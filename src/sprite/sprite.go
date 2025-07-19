@@ -1,8 +1,13 @@
 package sprite
 
-import "image"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+	input "github.com/quasilyte/ebitengine-input"
+)
 
 type Sprite interface {
+	OnAction(action input.Action) error
 	Update() error
-	Image() (image.Image, error)
+	Image() (*ebiten.Image, error)
+	Position() (x, y int, display bool)
 }

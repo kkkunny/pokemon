@@ -6,9 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/disintegration/imaging"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tnnmigga/enum"
+
+	"github.com/kkkunny/pokemon/src/input"
 )
 
 type Behavior string
@@ -21,20 +23,20 @@ var BehaviorEnum = enum.New[struct {
 type Direction int8
 
 var DirectionEnum = enum.New[struct {
-	Down  Direction `enum:"1"`  // 下
-	Up    Direction `enum:"-1"` // 上
+	Up    Direction `enum:"1"`  // 上
+	Down  Direction `enum:"-1"` // 下
 	Left  Direction `enum:"2"`  // 左
 	Right Direction `enum:"-2"` // 右
 }]()
 
 var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
 
-type Trainer struct {
-	behaviorImages map[Behavior]image.Image
+type Self struct {
+	behaviorImages map[Behavior]*ebiten.Image
 	direction      Direction
 }
 
-func NewTrainer(name string) (*Trainer, error) {
+func NewSelf(name string) (*Self, error) {
 	dirpath := filepath.Join("./resource/map_item/people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
@@ -42,31 +44,46 @@ func NewTrainer(name string) (*Trainer, error) {
 	} else if !dirinfo.IsDir() {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
-	behaviorImages := make(map[Behavior]image.Image, len(trainerBehaviors))
+	behaviorImages := make(map[Behavior]*ebiten.Image, len(trainerBehaviors))
 	for _, behavior := range trainerBehaviors {
-		_, behaviorImg, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
+		behaviorImg, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
 			return nil, err
 		}
 		behaviorImages[behavior] = behaviorImg
 	}
-	return &Trainer{
+	return &Self{
 		behaviorImages: behaviorImages,
 		direction:      DirectionEnum.Down,
 	}, nil
 }
 
-func (t *Trainer) Update() error {
+func (s *Self) OnAction(action input.Action) error {
+	switch action {
+	case input.ActionEnum.MoveUp:
+		s.direction = DirectionEnum.Up
+	case input.ActionEnum.MoveDown:
+		s.direction = DirectionEnum.Down
+	case input.ActionEnum.MoveLeft:
+		s.direction = DirectionEnum.Left
+	case input.ActionEnum.MoveRight:
+		s.direction = DirectionEnum.Right
+	}
+	fmt.Println(action)
 	return nil
 }
 
-func (t *Trainer) Image() (image.Image, error) {
-	img := t.behaviorImages[BehaviorEnum.Walk]
+func (s *Self) Update() error {
+	return nil
+}
+
+func (s *Self) Image() (*ebiten.Image, error) {
+	img := s.behaviorImages[BehaviorEnum.Walk]
 	size := img.Bounds().Size()
 	frameW, frameH := size.X/3, size.Y/4
 
 	var frameLine int
-	switch t.direction {
+	switch s.direction {
 	case DirectionEnum.Down:
 		frameLine = 0
 	case DirectionEnum.Up:
@@ -77,7 +94,10 @@ func (t *Trainer) Image() (image.Image, error) {
 		frameLine = 3
 	}
 	beginX, beginY := 0, frameLine*frameH
-
-	img = imaging.Crop(img, image.Rect(beginX, beginY, beginX+frameW, beginY+frameH))
+	img = img.SubImage(image.Rect(beginX, beginY, beginX+frameW, beginY+frameH)).(*ebiten.Image)
 	return img, nil
+}
+
+func (s *Self) Position() (x, y int, display bool) {
+	return 0, 0, true
 }
