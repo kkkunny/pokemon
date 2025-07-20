@@ -1,7 +1,11 @@
 package util
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+
+	"github.com/kkkunny/pokemon/src/config"
+)
 
 type Drawer interface {
-	Draw(screen *ebiten.Image) error
+	Draw(cfg *config.Config, screen *ebiten.Image) error
 }

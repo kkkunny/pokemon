@@ -127,7 +127,7 @@ func (s *Self) SetPosition(x, y int) {
 	s.expectPos = [2]int{x, y}
 }
 
-func (s *Self) OnAction(action input.Action, info *UpdateInfo) {
+func (s *Self) OnAction(cfg *config.Config, action input.Action, info *UpdateInfo) {
 	if info.Person == nil {
 		return
 	}
@@ -168,12 +168,12 @@ func (s *Self) OnAction(action input.Action, info *UpdateInfo) {
 	return
 }
 
-func (s *Self) PixelPosition() (x, y int) {
+func (s *Self) PixelPosition(cfg *config.Config) (x, y int) {
 	img := s.directionImages[s.direction]
-	return 7 * config.TileSize, 4*config.TileSize + config.TileSize - img.Bounds().Dy()
+	return cfg.ScreenWidth/2 - img.Bounds().Dx()/2, cfg.ScreenHeight/2 - img.Bounds().Dy()/2
 }
 
-func (s *Self) Update(info *UpdateInfo) error {
+func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
 	if info.Person == nil {
 		return errors.New("expect PersonUpdateInfo")
 	}
@@ -181,10 +181,10 @@ func (s *Self) Update(info *UpdateInfo) error {
 	// 移动
 	if s.Move() {
 		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
-		a.SetFrameTime(info.Person.Map.TilePixelSize() / s.speed / a.FrameCount())
+		a.SetFrameTime(cfg.TileSize / s.speed / a.FrameCount())
 		a.Update()
 
-		diff := info.Person.Map.TilePixelSize() - s.moveCounter
+		diff := cfg.TileSize - s.moveCounter
 		if diff > s.speed {
 			s.moveCounter += s.speed
 		} else {
@@ -197,7 +197,7 @@ func (s *Self) Update(info *UpdateInfo) error {
 
 	// 更新地图位置
 	img := s.directionImages[s.direction]
-	x, y := s.pos[0]*config.TileSize, s.pos[1]*config.TileSize+config.TileSize-img.Bounds().Dy()
+	x, y := s.pos[0]*cfg.TileSize, s.pos[1]*cfg.TileSize+cfg.TileSize-img.Bounds().Dy()
 	switch s.direction {
 	case DirectionEnum.Up:
 		y -= s.moveCounter
@@ -208,17 +208,17 @@ func (s *Self) Update(info *UpdateInfo) error {
 	case DirectionEnum.Right:
 		x += s.moveCounter
 	}
-	selfX, selfY := s.PixelPosition()
+	selfX, selfY := s.PixelPosition(cfg)
 	x = -x + selfX
 	y = -y + selfY
 	info.Person.Map.MoveTo(x, y)
 	return nil
 }
 
-func (s *Self) Draw(screen *ebiten.Image) error {
+func (s *Self) Draw(cfg *config.Config, screen *ebiten.Image) error {
 	img := s.directionImages[s.direction]
 
-	x, y := s.PixelPosition()
+	x, y := s.PixelPosition(cfg)
 
 	if s.Move() {
 		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]

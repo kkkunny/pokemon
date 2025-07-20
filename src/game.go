@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
@@ -13,14 +14,16 @@ import (
 )
 
 type Game struct {
+	cfg   *config.Config
 	input *input.System
 
 	gameMap *maps.Map
 	sprites []sprite.Sprite
 }
 
-func NewGame() (*Game, error) {
+func NewGame(cfg *config.Config) (*Game, error) {
 	g := &Game{
+		cfg:   cfg,
 		input: input.NewSystem(),
 	}
 	err := g.Init()
@@ -29,7 +32,7 @@ func NewGame() (*Game, error) {
 
 func (g *Game) Init() (err error) {
 	// 地图
-	g.gameMap, err = maps.NewMap()
+	g.gameMap, err = maps.NewMap(g.cfg)
 	if err != nil {
 		return err
 	}
@@ -52,12 +55,12 @@ func (g *Game) Update() error {
 	}
 	if action != nil {
 		for _, s := range g.sprites {
-			s.OnAction(*action, drawInfo)
+			s.OnAction(g.cfg, *action, drawInfo)
 		}
 	}
 	// 更新帧
 	for _, s := range g.sprites {
-		err = s.Update(drawInfo)
+		err = s.Update(g.cfg, drawInfo)
 		if err != nil {
 			return err
 		}
@@ -66,14 +69,20 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*g.cfg.Scale, screen.Bounds().Dy()*g.cfg.Scale)
 	drawer := make([]util.Drawer, len(g.sprites))
 	for i, s := range g.sprites {
 		drawer[i] = s
 	}
-	err := g.gameMap.Draw(screen, drawer)
+	err := g.gameMap.Draw(g.cfg, originSizeScreen, drawer)
 	if err != nil {
 		panic(err)
 	}
+
+	ops := &ebiten.DrawImageOptions{}
+	ops.GeoM.Scale(float64(g.cfg.Scale), float64(g.cfg.Scale))
+	ops.GeoM.Translate(float64(screen.Bounds().Dx()/2*(1-g.cfg.Scale)), float64(screen.Bounds().Dy()/2*(1-g.cfg.Scale)))
+	screen.DrawImage(originSizeScreen, ops)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }
 

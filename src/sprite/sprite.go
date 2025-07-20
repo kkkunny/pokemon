@@ -3,6 +3,7 @@ package sprite
 import (
 	input "github.com/quasilyte/ebitengine-input"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/util"
 )
@@ -17,6 +18,6 @@ type PersonUpdateInfo struct {
 
 type Sprite interface {
 	util.Drawer
-	OnAction(action input.Action, info *UpdateInfo)
-	Update(info *UpdateInfo) error
+	OnAction(cfg *config.Config, action input.Action, info *UpdateInfo)
+	Update(cfg *config.Config, info *UpdateInfo) error
 }

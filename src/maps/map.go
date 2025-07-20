@@ -1,10 +1,13 @@
 package maps
 
 import (
+	"errors"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/util"
 )
 
@@ -15,10 +18,13 @@ type Map struct {
 	pos [2]int
 }
 
-func NewMap() (*Map, error) {
+func NewMap(cfg *config.Config) (*Map, error) {
 	mapTMX, err := tiled.LoadFile("map/maps/pallet_town.tmx")
 	if err != nil {
 		return nil, err
+	}
+	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != cfg.TileSize {
+		return nil, errors.New("map tile is not valid")
 	}
 	renderer, err := render.NewRenderer(mapTMX)
 	if err != nil {
@@ -30,7 +36,7 @@ func NewMap() (*Map, error) {
 	}, nil
 }
 
-func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
+func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {
 	// 找到对象层级
 	var objectLayerID uint32
 	for _, layer := range m.define.Layers {
@@ -55,7 +61,7 @@ func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
 	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
 	// 绘制对象
 	for _, s := range sprites {
-		err := s.Draw(screen)
+		err := s.Draw(cfg, screen)
 		if err != nil {
 			return err
 		}
@@ -73,10 +79,6 @@ func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
 	}
 	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
 	return nil
-}
-
-func (m *Map) TilePixelSize() int {
-	return m.define.TileWidth
 }
 
 func (m *Map) PixelSize() (w int, h int) {
