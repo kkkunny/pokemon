@@ -3,7 +3,6 @@ package sprite
 import (
 	"fmt"
 	"image"
-	"math"
 	"os"
 	"path/filepath"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 )
 
@@ -45,12 +45,13 @@ type Self struct {
 	directionImages    map[Direction]*ebiten.Image                              // 方向图片
 	behaviorAnimations map[Behavior]map[Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
-	direction        Direction  // 当前所处方向
-	moveStartingFoot Foot       // 移动时的起始脚
-	speed            int        // 移动速度
-	pos              [2]int     // 当前地块位置
-	expectPos        [2]int     // 预期所处的地块位置，用于移动
-	pixelPos         [2]float64 // 当前像素位置
+	direction        Direction // 当前所处方向
+	moveStartingFoot Foot      // 移动时的起始脚
+	speed            int       // 移动速度
+	pos              [2]int    // 当前地块位置
+	expectPos        [2]int    // 预期所处的地块位置，用于移动
+
+	moveCounter int // 移动时的计数器，用于显示动画
 }
 
 func NewSelf(name string) (*Self, error) {
@@ -163,40 +164,20 @@ func (s *Self) OnAction(action input.Action, info *UpdateInfo) {
 	return
 }
 
-func (s *Self) Update(info *UpdateInfo) error {
-	if info.Person == nil {
+func (s *Self) Update() error {
+	if !s.Move() {
 		return nil
 	}
 
-	tileSize := info.Person.Map.TilePixelSize()
-	if !s.Move() {
-		s.pixelPos = [2]float64{float64(s.expectPos[0] * tileSize), float64(s.expectPos[1] * tileSize)}
-		return nil
-	}
-	// 更新动画
 	a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
-	a.SetFrameTime(tileSize / s.speed / a.FrameCount())
+	a.SetFrameTime(config.TileSize / s.speed / a.FrameCount())
 	a.Update()
 
-	// 更新xy
-	expectPixelX := float64(s.expectPos[0] * tileSize)
-	expectPixelY := float64(s.expectPos[1] * tileSize)
-
-	dx := expectPixelX - s.pixelPos[0]
-	dy := expectPixelY - s.pixelPos[1]
-	if math.Abs(dx) > float64(s.speed) {
-		s.pixelPos[0] += float64(s.speed) * math.Copysign(1, dx)
+	diff := config.TileSize - s.moveCounter
+	if diff > s.speed {
+		s.moveCounter += s.speed
 	} else {
-		s.pixelPos[0] = expectPixelX
-	}
-	if math.Abs(dy) > float64(s.speed) {
-		s.pixelPos[1] += float64(s.speed) * math.Copysign(1, dy)
-	} else {
-		s.pixelPos[1] = expectPixelY
-	}
-
-	// 移动结束
-	if s.pixelPos[0] == expectPixelX && s.pixelPos[1] == expectPixelY {
+		s.moveCounter = 0
 		s.pos = s.expectPos
 		s.moveStartingFoot = -s.moveStartingFoot
 		a.Reset()
@@ -204,14 +185,28 @@ func (s *Self) Update(info *UpdateInfo) error {
 	return nil
 }
 
-func (s *Self) Draw(screen *ebiten.Image) {
+func (s *Self) Draw(screen *ebiten.Image) error {
+	img := s.directionImages[s.direction]
+
+	x, y := s.pos[0]*config.TileSize, s.pos[1]*config.TileSize+config.TileSize-img.Bounds().Dy()
+	switch s.direction {
+	case DirectionEnum.Up:
+		y -= s.moveCounter
+	case DirectionEnum.Down:
+		y += s.moveCounter
+	case DirectionEnum.Left:
+		x -= s.moveCounter
+	case DirectionEnum.Right:
+		x += s.moveCounter
+	}
+
 	if s.Move() {
 		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
-		a.Draw(screen, s.pixelPos[0], s.pixelPos[1])
+		a.Draw(screen, float64(x), float64(y))
 	} else {
 		ops := &ebiten.DrawImageOptions{}
-		ops.GeoM.Translate(s.pixelPos[0], s.pixelPos[1])
-		img := s.directionImages[s.direction]
+		ops.GeoM.Translate(float64(x), float64(y))
 		screen.DrawImage(img, ops)
 	}
+	return nil
 }

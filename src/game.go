@@ -9,6 +9,7 @@ import (
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/util"
 )
 
 type Game struct {
@@ -56,7 +57,7 @@ func (g *Game) Update() error {
 	}
 	// 更新帧
 	for _, s := range g.sprites {
-		err = s.Update(drawInfo)
+		err = s.Update()
 		if err != nil {
 			return err
 		}
@@ -65,9 +66,13 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(g.gameMap.Image(), nil)
-	for _, s := range g.sprites {
-		s.Draw(screen)
+	drawer := make([]util.Drawer, len(g.sprites))
+	for i, s := range g.sprites {
+		drawer[i] = s
+	}
+	err := g.gameMap.Draw(screen, drawer)
+	if err != nil {
+		panic(err)
 	}
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }

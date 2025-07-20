@@ -1,10 +1,10 @@
 package sprite
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	input "github.com/quasilyte/ebitengine-input"
 
 	"github.com/kkkunny/pokemon/src/maps"
+	"github.com/kkkunny/pokemon/src/util"
 )
 
 type UpdateInfo struct {
@@ -16,7 +16,7 @@ type PersonUpdateInfo struct {
 }
 
 type Sprite interface {
+	util.Drawer
 	OnAction(action input.Action, info *UpdateInfo)
-	Update(info *UpdateInfo) error
-	Draw(screen *ebiten.Image)
+	Update() error
 }

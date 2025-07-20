@@ -4,6 +4,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
+
+	"github.com/kkkunny/pokemon/src/util"
 )
 
 type Map struct {
@@ -20,18 +22,53 @@ func NewMap() (*Map, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = renderer.RenderVisibleLayers()
-	if err != nil {
-		return nil, err
-	}
 	return &Map{
 		define: mapTMX,
 		render: renderer,
 	}, nil
 }
 
-func (m *Map) Image() *ebiten.Image {
-	return ebiten.NewImageFromImage(m.render.Result)
+func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
+	// 找到对象层级
+	var objectLayerID uint32
+	for _, layer := range m.define.Layers {
+		objectLayerID = max(objectLayerID, layer.ID)
+	}
+	if len(m.define.ObjectGroups) > 0 {
+		objectLayerID = m.define.ObjectGroups[0].ID
+	}
+	// 绘制背景
+	m.render.Clear()
+	for i, layer := range m.define.Layers {
+		if layer.ID > objectLayerID {
+			continue
+		}
+		err := m.render.RenderLayer(i)
+		if err != nil {
+			return err
+		}
+	}
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), nil)
+	// 绘制对象
+	for _, s := range sprites {
+		err := s.Draw(screen)
+		if err != nil {
+			return err
+		}
+	}
+	// 绘制前景
+	m.render.Clear()
+	for i, layer := range m.define.Layers {
+		if layer.ID <= objectLayerID {
+			continue
+		}
+		err := m.render.RenderLayer(i)
+		if err != nil {
+			return err
+		}
+	}
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), nil)
+	return nil
 }
 
 func (m *Map) TilePixelSize() int {
