@@ -34,8 +34,8 @@ func (m *Map) Image() *ebiten.Image {
 	return ebiten.NewImageFromImage(m.render.Result)
 }
 
-func (m *Map) TileSize() (w int, h int) {
-	return m.define.TileWidth, m.define.TileHeight
+func (m *Map) TileSize() int {
+	return m.define.TileWidth
 }
 
 func (m *Map) Size() (w int, h int) {

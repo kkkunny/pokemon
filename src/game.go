@@ -53,8 +53,9 @@ func (g *Game) Update() error {
 		}
 	}
 	// 更新帧
+	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{Map: g.gameMap}}
 	for _, s := range g.sprites {
-		err = s.Update()
+		err = s.Update(drawInfo)
 		if err != nil {
 			return err
 		}
@@ -64,9 +65,8 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.gameMap.Image(), nil)
-	drawInfo := &sprite.DrawInfo{Person: &sprite.PersonDrawInfo{Map: g.gameMap}}
 	for _, s := range g.sprites {
-		s.Draw(screen, drawInfo)
+		s.Draw(screen)
 	}
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }

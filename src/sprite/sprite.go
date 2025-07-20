@@ -7,16 +7,16 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 )
 
-type DrawInfo struct {
-	Person *PersonDrawInfo
+type UpdateInfo struct {
+	Person *PersonUpdateInfo
 }
 
-type PersonDrawInfo struct {
+type PersonUpdateInfo struct {
 	Map *maps.Map
 }
 
 type Sprite interface {
 	OnAction(action input.Action)
-	Update() error
-	Draw(screen *ebiten.Image, info *DrawInfo)
+	Update(info *UpdateInfo) error
+	Draw(screen *ebiten.Image)
 }

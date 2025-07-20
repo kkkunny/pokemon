@@ -26,6 +26,10 @@ func NewAnimation(frameSheet *ebiten.Image, frameWidth, frameHeight, frameTime i
 	}
 }
 
+func (a *Animation) SetFrameTime(frameTime int) {
+	a.frameTime = frameTime
+}
+
 func (a *Animation) FrameCount() int {
 	return a.frameSheet.Bounds().Dx() / a.frameWidth
 }
@@ -42,7 +46,7 @@ func (a *Animation) Update() bool {
 		a.counter = 0
 		a.curFrameIndex = (a.curFrameIndex + 1) % a.FrameCount()
 	}
-	return a.counter+1 >= a.frameTime
+	return a.counter == 0 && a.curFrameIndex == 0
 }
 
 func (a *Animation) Draw(screen *ebiten.Image, x, y float64) {
