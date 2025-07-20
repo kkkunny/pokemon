@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tnnmigga/enum"
 
+	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/input"
 )
 
@@ -32,10 +33,13 @@ var DirectionEnum = enum.New[struct {
 var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
 
 type Self struct {
-	behaviorImages map[Behavior]*ebiten.Image
-	direction      Direction // 当前所处方向
-	move           bool      // 是否在移动
-	x, y           int
+	// 静态资源
+	directionImages    map[Direction]*ebiten.Image                     // 方向图片
+	behaviorAnimations map[Behavior]map[Direction]*animation.Animation // 行为动画
+	// 属性
+	direction Direction // 当前所处方向
+	move      bool      // 是否在移动
+	x, y      int
 }
 
 func NewSelf(name string) (*Self, error) {
@@ -46,17 +50,51 @@ func NewSelf(name string) (*Self, error) {
 	} else if !dirinfo.IsDir() {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
-	behaviorImages := make(map[Behavior]*ebiten.Image, len(trainerBehaviors))
+
+	directions := enum.Values[Direction](DirectionEnum)
+	directionImages := make(map[Direction]*ebiten.Image, len(directions))
+	behaviorAnimations := make(map[Behavior]map[Direction]*animation.Animation, len(trainerBehaviors))
 	for _, behavior := range trainerBehaviors {
-		behaviorImg, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
+		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
 			return nil, err
 		}
-		behaviorImages[behavior] = behaviorImg
+		frameW, frameH := behaviorImgSheetRect.Bounds().Dx()/3, behaviorImgSheetRect.Bounds().Dy()/4
+		behaviorDirectionAnimations := make(map[Direction]*animation.Animation, len(directions))
+		for i, direction := range []Direction{DirectionEnum.Down, DirectionEnum.Up, DirectionEnum.Left, DirectionEnum.Right} {
+			y := i * frameH
+			animationFrameSheet := ebiten.NewImage(4*frameW, frameH)
+			for j := range 3 {
+				x := j * frameW
+				img := behaviorImgSheetRect.SubImage(image.Rect(x, y, x+frameW, y+frameH)).(*ebiten.Image)
+				switch j {
+				case 0:
+					if behavior == BehaviorEnum.Walk {
+						directionImages[direction] = img
+					}
+					ops := &ebiten.DrawImageOptions{}
+					ops.GeoM.Translate(float64(frameW), 0)
+					animationFrameSheet.DrawImage(img, ops)
+					ops.GeoM.Translate(2*float64(frameW), 0)
+					animationFrameSheet.DrawImage(img, ops)
+				case 1:
+					ops := &ebiten.DrawImageOptions{}
+					ops.GeoM.Translate(0, 0)
+					animationFrameSheet.DrawImage(img, ops)
+				case 2:
+					ops := &ebiten.DrawImageOptions{}
+					ops.GeoM.Translate(2*float64(frameW), 0)
+					animationFrameSheet.DrawImage(img, ops)
+				}
+			}
+			behaviorDirectionAnimations[direction] = animation.NewAnimation(animationFrameSheet, frameW, frameH, 10)
+		}
+		behaviorAnimations[behavior] = behaviorDirectionAnimations
 	}
 	return &Self{
-		behaviorImages: behaviorImages,
-		direction:      DirectionEnum.Down,
+		directionImages:    directionImages,
+		behaviorAnimations: behaviorAnimations,
+		direction:          DirectionEnum.Down,
 	}, nil
 }
 
@@ -98,24 +136,7 @@ func (s *Self) Update() error {
 }
 
 func (s *Self) Image() (*ebiten.Image, error) {
-	img := s.behaviorImages[BehaviorEnum.Walk]
-	size := img.Bounds().Size()
-	frameW, frameH := size.X/3, size.Y/4
-
-	var frameLine int
-	switch s.direction {
-	case DirectionEnum.Up:
-		frameLine = 1
-	case DirectionEnum.Down:
-		frameLine = 0
-	case DirectionEnum.Left:
-		frameLine = 2
-	case DirectionEnum.Right:
-		frameLine = 3
-	}
-	beginX, beginY := 0, frameLine*frameH
-	img = img.SubImage(image.Rect(beginX, beginY, beginX+frameW, beginY+frameH)).(*ebiten.Image)
-	return img, nil
+	return s.directionImages[s.direction], nil
 }
 
 func (s *Self) Position() (x, y int, display bool) {

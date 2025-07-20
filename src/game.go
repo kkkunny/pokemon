@@ -2,21 +2,19 @@ package src
 
 import (
 	"fmt"
-	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/lafriks/go-tiled"
-	"github.com/lafriks/go-tiled/render"
 
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
 )
 
 type Game struct {
 	input *input.System
 
-	gameMap *image.NRGBA
+	gameMap *ebiten.Image
 	sprites []sprite.Sprite
 }
 
@@ -30,20 +28,11 @@ func NewGame() (*Game, error) {
 
 func (g *Game) Init() error {
 	// 地图
-	mapTMX, err := tiled.LoadFile("maps/hoenn/littleroot-town.tmx")
+	bigmap, err := maps.NewMap()
 	if err != nil {
 		return err
 	}
-	renderer, err := render.NewRenderer(mapTMX)
-	if err != nil {
-		return err
-	}
-	err = renderer.RenderVisibleLayers()
-	if err != nil {
-		return err
-	}
-	// defer renderer.Clear()
-	g.gameMap = renderer.Result
+	g.gameMap = bigmap.Image()
 	// 主角
 	masterCharacter, err := sprite.NewSelf("master")
 	if err != nil {
@@ -78,7 +67,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(ebiten.NewImageFromImage(g.gameMap), nil)
+	screen.DrawImage(g.gameMap, nil)
 	for _, s := range g.sprites {
 		x, y, display := s.Position()
 		if !display {
@@ -93,7 +82,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		ops.GeoM.Translate(float64(x), float64(y))
 		screen.DrawImage(spriteImg, ops)
 	}
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f", ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
