@@ -17,17 +17,17 @@ import (
 type Behavior string
 
 var BehaviorEnum = enum.New[struct {
-	Walk Behavior `enum:"walk"` // 行走
-	Run  Behavior `enum:"run"`  // 奔跑
+	Walk Behavior `enum:"walk"`
+	Run  Behavior `enum:"run"`
 }]()
 
 type Direction int8
 
 var DirectionEnum = enum.New[struct {
-	Up    Direction `enum:"1"`  // 上
-	Down  Direction `enum:"-1"` // 下
-	Left  Direction `enum:"2"`  // 左
-	Right Direction `enum:"-2"` // 右
+	Up    Direction `enum:"-1"`
+	Down  Direction `enum:"1"`
+	Left  Direction `enum:"-3"`
+	Right Direction `enum:"3"`
 }]()
 
 var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
@@ -38,8 +38,8 @@ type Self struct {
 	behaviorAnimations map[Behavior]map[Direction]*animation.Animation // 行为动画
 	// 属性
 	direction Direction // 当前所处方向
-	move      bool      // 是否在移动
-	x, y      int
+	pos       [2]int    // 当前位置
+	expectPos [2]int    // 预期所处的位置，用于移动
 }
 
 func NewSelf(name string) (*Self, error) {
@@ -98,7 +98,14 @@ func NewSelf(name string) (*Self, error) {
 	}, nil
 }
 
-func (s *Self) OnAction(action input.Action) error {
+func (s *Self) Move() bool {
+	return s.pos != s.expectPos
+}
+
+func (s *Self) OnAction(action input.Action) {
+	if s.Move() {
+		return
+	}
 	preDirection := s.direction
 	switch action {
 	case input.ActionEnum.MoveUp:
@@ -111,34 +118,50 @@ func (s *Self) OnAction(action input.Action) error {
 		s.direction = DirectionEnum.Right
 	}
 	if preDirection == s.direction {
-		s.move = true
+		switch action {
+		case input.ActionEnum.MoveUp:
+			s.expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Up)%2}
+		case input.ActionEnum.MoveDown:
+			s.expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Down)%2}
+		case input.ActionEnum.MoveLeft:
+			s.expectPos = [2]int{s.pos[0] + int(DirectionEnum.Left)%2, s.pos[1]}
+		case input.ActionEnum.MoveRight:
+			s.expectPos = [2]int{s.pos[0] + int(DirectionEnum.Right)%2, s.pos[1]}
+		}
 	}
-	return nil
+	return
 }
 
 func (s *Self) Update() error {
-	defer func() {
-		s.move = false
-	}()
-	if s.move {
-		switch s.direction {
-		case DirectionEnum.Up:
-			s.y--
-		case DirectionEnum.Down:
-			s.y++
-		case DirectionEnum.Left:
-			s.x--
-		case DirectionEnum.Right:
-			s.x++
-		}
+	if !s.Move() {
+		return nil
+	}
+	// switch s.direction {
+	// case DirectionEnum.Up:
+	// 	s.y--
+	// case DirectionEnum.Down:
+	// 	s.y++
+	// case DirectionEnum.Left:
+	// 	s.x--
+	// case DirectionEnum.Right:
+	// 	s.x++
+	// }
+	a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction]
+	if a.Update() {
+		s.pos = s.expectPos
 	}
 	return nil
 }
 
-func (s *Self) Image() (*ebiten.Image, error) {
-	return s.directionImages[s.direction], nil
-}
+func (s *Self) Draw(screen *ebiten.Image, info *DrawInfo) {
+	if info.Person == nil {
+		return
+	}
 
-func (s *Self) Position() (x, y int, display bool) {
-	return s.x, s.y, true
+	tileW, tileH := info.Person.Map.TileSize()
+	x, y := tileW*s.pos[0], tileH*s.pos[1]
+	img := s.directionImages[s.direction]
+	ops := &ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(x), float64(y))
+	screen.DrawImage(img, ops)
 }

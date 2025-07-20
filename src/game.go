@@ -14,7 +14,7 @@ import (
 type Game struct {
 	input *input.System
 
-	gameMap *ebiten.Image
+	gameMap *maps.Map
 	sprites []sprite.Sprite
 }
 
@@ -26,13 +26,12 @@ func NewGame() (*Game, error) {
 	return g, err
 }
 
-func (g *Game) Init() error {
+func (g *Game) Init() (err error) {
 	// 地图
-	bigmap, err := maps.NewMap()
+	g.gameMap, err = maps.NewMap()
 	if err != nil {
 		return err
 	}
-	g.gameMap = bigmap.Image()
 	// 主角
 	masterCharacter, err := sprite.NewSelf("master")
 	if err != nil {
@@ -50,10 +49,7 @@ func (g *Game) Update() error {
 	}
 	if action != nil {
 		for _, s := range g.sprites {
-			err := s.OnAction(*action)
-			if err != nil {
-				return err
-			}
+			s.OnAction(*action)
 		}
 	}
 	// 更新帧
@@ -67,20 +63,10 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(g.gameMap, nil)
+	screen.DrawImage(g.gameMap.Image(), nil)
+	drawInfo := &sprite.DrawInfo{Person: &sprite.PersonDrawInfo{Map: g.gameMap}}
 	for _, s := range g.sprites {
-		x, y, display := s.Position()
-		if !display {
-			continue
-		}
-		spriteImg, err := s.Image()
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		ops := &ebiten.DrawImageOptions{}
-		ops.GeoM.Translate(float64(x), float64(y))
-		screen.DrawImage(spriteImg, ops)
+		s.Draw(screen, drawInfo)
 	}
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }

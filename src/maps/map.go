@@ -33,3 +33,15 @@ func NewMap() (*Map, error) {
 func (m *Map) Image() *ebiten.Image {
 	return ebiten.NewImageFromImage(m.render.Result)
 }
+
+func (m *Map) TileSize() (w int, h int) {
+	return m.define.TileWidth, m.define.TileHeight
+}
+
+func (m *Map) Size() (w int, h int) {
+	return m.define.Width, m.define.Height
+}
+
+func (m *Map) Rect() (w int, h int) {
+	return m.define.Width / m.define.TileWidth, m.define.Height / m.define.TileHeight
+}
