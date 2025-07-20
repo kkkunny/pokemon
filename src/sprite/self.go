@@ -112,6 +112,7 @@ func NewSelf(name string) (*Self, error) {
 		direction:          DirectionEnum.Down,
 		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
+		pos:                [2]int{6, 8},
 	}, nil
 }
 
@@ -119,7 +120,16 @@ func (s *Self) Move() bool {
 	return s.pos != s.expectPos
 }
 
-func (s *Self) OnAction(action input.Action) {
+func (s *Self) SetPosition(x, y int) {
+	s.pos = [2]int{x, y}
+	s.expectPos = [2]int{x, y}
+}
+
+func (s *Self) OnAction(action input.Action, info *UpdateInfo) {
+	if info.Person == nil {
+		return
+	}
+
 	if s.Move() {
 		return
 	}
@@ -135,15 +145,19 @@ func (s *Self) OnAction(action input.Action) {
 		s.direction = DirectionEnum.Right
 	}
 	if preDirection == s.direction {
+		expectPos := s.pos
 		switch action {
 		case input.ActionEnum.MoveUp:
-			s.expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Up)%2}
+			expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Up)%2}
 		case input.ActionEnum.MoveDown:
-			s.expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Down)%2}
+			expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Down)%2}
 		case input.ActionEnum.MoveLeft:
-			s.expectPos = [2]int{s.pos[0] + int(DirectionEnum.Left)%2, s.pos[1]}
+			expectPos = [2]int{s.pos[0] + int(DirectionEnum.Left)%2, s.pos[1]}
 		case input.ActionEnum.MoveRight:
-			s.expectPos = [2]int{s.pos[0] + int(DirectionEnum.Right)%2, s.pos[1]}
+			expectPos = [2]int{s.pos[0] + int(DirectionEnum.Right)%2, s.pos[1]}
+		}
+		if !info.Person.Map.CheckCollision(expectPos[0], expectPos[1]) {
+			s.expectPos = expectPos
 		}
 	}
 	return
@@ -154,11 +168,12 @@ func (s *Self) Update(info *UpdateInfo) error {
 		return nil
 	}
 
+	tileSize := info.Person.Map.TilePixelSize()
 	if !s.Move() {
+		s.pixelPos = [2]float64{float64(s.expectPos[0] * tileSize), float64(s.expectPos[1] * tileSize)}
 		return nil
 	}
 	// 更新动画
-	tileSize := info.Person.Map.TileSize()
 	a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
 	a.SetFrameTime(tileSize / s.speed / a.FrameCount())
 	a.Update()

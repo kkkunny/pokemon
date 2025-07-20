@@ -37,11 +37,13 @@ func (g *Game) Init() (err error) {
 	if err != nil {
 		return err
 	}
+	masterCharacter.SetPosition(6, 8)
 	g.sprites = append(g.sprites, masterCharacter)
 	return nil
 }
 
 func (g *Game) Update() error {
+	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{Map: g.gameMap}}
 	// 处理输入
 	action, err := g.input.Action()
 	if err != nil {
@@ -49,11 +51,10 @@ func (g *Game) Update() error {
 	}
 	if action != nil {
 		for _, s := range g.sprites {
-			s.OnAction(*action)
+			s.OnAction(*action, drawInfo)
 		}
 	}
 	// 更新帧
-	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{Map: g.gameMap}}
 	for _, s := range g.sprites {
 		err = s.Update(drawInfo)
 		if err != nil {

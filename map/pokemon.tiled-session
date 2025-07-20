@@ -1,0 +1,86 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "maps/pallet_town2.tmx",
+    "expandedProjectPaths": [
+        "maps",
+        "tile",
+        "."
+    ],
+    "fileStates": {
+        "maps/pallet_town.tmx": {
+            "scale": 3.6040625,
+            "selectedLayer": -1,
+            "viewCenter": {
+                "x": 212.95413162230122,
+                "y": 159.95838030000868
+            }
+        },
+        "maps/pallet_town2.tmx": {
+            "scale": 3.6040625,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 212.95413162230122,
+                "y": 159.95838030000868
+            }
+        },
+        "tile/building.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tile/decorate.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tile/default.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tile/ground.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tile/land_decoration.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.imagePath": "W:/code/go/github.com/kkkunny/pokemon/map/tile",
+    "map.height": 20,
+    "map.lastUsedFormat": "tmx",
+    "map.renderOrder": "3",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 24,
+    "openFiles": [
+        "tile/ground.tsx",
+        "tile/land_decoration.tsx",
+        "tile/decorate.tsx",
+        "tile/building.tsx",
+        "maps/pallet_town2.tmx"
+    ],
+    "project": "pokemon.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "maps/pallet_town.tmx",
+        "tile/ground.tsx",
+        "tile/land_decoration.tsx",
+        "tile/decorate.tsx",
+        "tile/building.tsx",
+        "maps/pallet_town2.tmx",
+        "tile/default.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    },
+    "tileset.transparentColor": "#000000",
+    "tileset.type": 0,
+    "tileset.useTransparentColor": true
+}

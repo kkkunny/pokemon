@@ -16,7 +16,7 @@ type PersonUpdateInfo struct {
 }
 
 type Sprite interface {
-	OnAction(action input.Action)
+	OnAction(action input.Action, info *UpdateInfo)
 	Update(info *UpdateInfo) error
 	Draw(screen *ebiten.Image)
 }
