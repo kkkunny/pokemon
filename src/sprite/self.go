@@ -33,7 +33,9 @@ var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
 
 type Self struct {
 	behaviorImages map[Behavior]*ebiten.Image
-	direction      Direction
+	direction      Direction // 当前所处方向
+	move           bool      // 是否在移动
+	x, y           int
 }
 
 func NewSelf(name string) (*Self, error) {
@@ -59,6 +61,7 @@ func NewSelf(name string) (*Self, error) {
 }
 
 func (s *Self) OnAction(action input.Action) error {
+	preDirection := s.direction
 	switch action {
 	case input.ActionEnum.MoveUp:
 		s.direction = DirectionEnum.Up
@@ -69,11 +72,28 @@ func (s *Self) OnAction(action input.Action) error {
 	case input.ActionEnum.MoveRight:
 		s.direction = DirectionEnum.Right
 	}
-	fmt.Println(action)
+	if preDirection == s.direction {
+		s.move = true
+	}
 	return nil
 }
 
 func (s *Self) Update() error {
+	defer func() {
+		s.move = false
+	}()
+	if s.move {
+		switch s.direction {
+		case DirectionEnum.Up:
+			s.y--
+		case DirectionEnum.Down:
+			s.y++
+		case DirectionEnum.Left:
+			s.x--
+		case DirectionEnum.Right:
+			s.x++
+		}
+	}
 	return nil
 }
 
@@ -84,10 +104,10 @@ func (s *Self) Image() (*ebiten.Image, error) {
 
 	var frameLine int
 	switch s.direction {
-	case DirectionEnum.Down:
-		frameLine = 0
 	case DirectionEnum.Up:
 		frameLine = 1
+	case DirectionEnum.Down:
+		frameLine = 0
 	case DirectionEnum.Left:
 		frameLine = 2
 	case DirectionEnum.Right:
@@ -99,5 +119,5 @@ func (s *Self) Image() (*ebiten.Image, error) {
 }
 
 func (s *Self) Position() (x, y int, display bool) {
-	return 0, 0, true
+	return s.x, s.y, true
 }
