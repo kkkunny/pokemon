@@ -7,5 +7,5 @@ import (
 )
 
 type Drawer interface {
-	Draw(cfg *config.Config, screen *ebiten.Image) error
+	Draw(cfg *config.Config, screen *ebiten.Image, options *ebiten.DrawImageOptions) error
 }

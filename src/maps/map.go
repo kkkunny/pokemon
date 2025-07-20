@@ -2,53 +2,80 @@ package maps
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/util"
 )
 
 type Map struct {
-	define *tiled.Map
-	render *render.Renderer
+	name         string
+	define       *tiled.Map
+	adjacentMaps map[consts.Direction]*Map
 
-	pos [2]int
+	render *render.Renderer
 }
 
-func NewMap(cfg *config.Config) (*Map, error) {
-	mapTMX, err := tiled.LoadFile("map/maps/pallet_town.tmx")
+func NewMap(cfg *config.Config, name string) (*Map, error) {
+	return newMapWithAdjacent(cfg, name, make(map[string]*Map))
+}
+
+func newMapWithAdjacent(cfg *config.Config, name string, existMap map[string]*Map) (*Map, error) {
+	curMap := existMap[name]
+	if curMap != nil {
+		return curMap, nil
+	}
+
+	mapTMX, err := tiled.LoadFile(fmt.Sprintf("map/maps/%s.tmx", name))
 	if err != nil {
 		return nil, err
 	}
 	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != cfg.TileSize {
 		return nil, errors.New("map tile is not valid")
 	}
-	renderer, err := render.NewRenderer(mapTMX)
-	if err != nil {
-		return nil, err
-	}
-	return &Map{
+	curMap = &Map{
+		name:   name,
 		define: mapTMX,
-		render: renderer,
-	}, nil
+	}
+	existMap[name] = curMap
+
+	adjacentMaps := curMap.AdjacentMaps()
+	curMap.adjacentMaps = make(map[consts.Direction]*Map, len(adjacentMaps))
+	for direction, mapName := range adjacentMaps {
+		directionMap, err := newMapWithAdjacent(cfg, mapName, existMap)
+		if err != nil {
+			return nil, err
+		}
+		curMap.adjacentMaps[direction] = directionMap
+	}
+	return curMap, nil
 }
 
-func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {
+func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer, options *ebiten.DrawImageOptions) error {
+	if m.render == nil {
+		var err error
+		m.render, err = render.NewRenderer(m.define)
+		if err != nil {
+			return err
+		}
+	}
 	// 找到对象层级
-	var objectLayerID uint32
+	var objectLayerName string
 	for _, layer := range m.define.Layers {
-		objectLayerID = max(objectLayerID, layer.ID)
+		objectLayerName = max(objectLayerName, layer.Name)
 	}
 	if len(m.define.ObjectGroups) > 0 {
-		objectLayerID = m.define.ObjectGroups[0].ID
+		objectLayerName = m.define.ObjectGroups[0].Name
 	}
 	// 绘制背景
 	m.render.Clear()
 	for i, layer := range m.define.Layers {
-		if layer.ID > objectLayerID {
+		if layer.Name > objectLayerName {
 			continue
 		}
 		err := m.render.RenderLayer(i)
@@ -56,12 +83,10 @@ func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Draw
 			return err
 		}
 	}
-	ops := &ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(float64(m.pos[0]), float64(m.pos[1]))
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), options)
 	// 绘制对象
 	for _, s := range sprites {
-		err := s.Draw(cfg, screen)
+		err := s.Draw(cfg, screen, options)
 		if err != nil {
 			return err
 		}
@@ -69,7 +94,7 @@ func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Draw
 	// 绘制前景
 	m.render.Clear()
 	for i, layer := range m.define.Layers {
-		if layer.ID <= objectLayerID {
+		if layer.Name <= objectLayerName {
 			continue
 		}
 		err := m.render.RenderLayer(i)
@@ -77,7 +102,7 @@ func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Draw
 			return err
 		}
 	}
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), options)
 	return nil
 }
 
@@ -87,6 +112,10 @@ func (m *Map) PixelSize() (w int, h int) {
 
 func (m *Map) Size() (w int, h int) {
 	return m.define.Width, m.define.Height
+}
+
+func (m *Map) Name() string {
+	return m.name
 }
 
 func (m *Map) CheckCollision(x, y int) bool {
@@ -105,6 +134,49 @@ func (m *Map) CheckCollision(x, y int) bool {
 	return false
 }
 
-func (m *Map) MoveTo(x, y int) {
-	m.pos = [2]int{x, y}
+func (m *Map) AdjacentMaps() map[consts.Direction]string {
+	directions := map[consts.Direction]string{
+		consts.DirectionEnum.Up:    "up",
+		consts.DirectionEnum.Down:  "down",
+		consts.DirectionEnum.Left:  "left",
+		consts.DirectionEnum.Right: "right",
+	}
+	maps := make(map[consts.Direction]string, len(directions))
+	for direction, attr := range directions {
+		mapName := m.define.Properties.GetString(attr)
+		if mapName == "" {
+			continue
+		}
+		maps[direction] = mapName
+	}
+	return maps
+}
+
+func (m *Map) GetActualPosition(x, y int) (*Map, int, int, bool) {
+	if y < 0 {
+		upMap := m.adjacentMaps[consts.DirectionEnum.Up]
+		if upMap == nil {
+			return nil, 0, 0, false
+		}
+		return upMap.GetActualPosition(x, y+upMap.define.Height)
+	} else if y >= m.define.Height {
+		downMap := m.adjacentMaps[consts.DirectionEnum.Down]
+		if downMap == nil {
+			return nil, 0, 0, false
+		}
+		return downMap.GetActualPosition(x, y-m.define.Height)
+	} else if x < 0 {
+		leftMap := m.adjacentMaps[consts.DirectionEnum.Left]
+		if leftMap == nil {
+			return nil, 0, 0, false
+		}
+		return leftMap.GetActualPosition(x+leftMap.define.Width, y)
+	} else if x >= m.define.Width {
+		rightMap := m.adjacentMaps[consts.DirectionEnum.Right]
+		if rightMap == nil {
+			return nil, 0, 0, false
+		}
+		return rightMap.GetActualPosition(x-m.define.Width, y)
+	}
+	return m, x, y, true
 }

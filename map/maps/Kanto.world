@@ -1,0 +1,20 @@
+{
+    "maps": [
+        {
+            "fileName": "Pallet_Town.tmx",
+            "height": 320,
+            "width": 384,
+            "x": 192,
+            "y": 784
+        },
+        {
+            "fileName": "Route_1.tmx",
+            "height": 640,
+            "width": 384,
+            "x": 192,
+            "y": 144
+        }
+    ],
+    "onlyShowAdjacentMaps": false,
+    "type": "world"
+}

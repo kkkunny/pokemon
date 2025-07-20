@@ -13,7 +13,7 @@ type UpdateInfo struct {
 }
 
 type PersonUpdateInfo struct {
-	Map *maps.Map
+	World *maps.World
 }
 
 type Sprite interface {

@@ -13,6 +13,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/input"
 )
 
@@ -21,15 +22,6 @@ type Behavior string
 var BehaviorEnum = enum.New[struct {
 	Walk Behavior `enum:"walk"`
 	Run  Behavior `enum:"run"`
-}]()
-
-type Direction int8
-
-var DirectionEnum = enum.New[struct {
-	Up    Direction `enum:"-1"`
-	Down  Direction `enum:"1"`
-	Left  Direction `enum:"-3"`
-	Right Direction `enum:"3"`
 }]()
 
 type Foot int8
@@ -43,14 +35,14 @@ var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
 
 type Self struct {
 	// 静态资源
-	directionImages    map[Direction]*ebiten.Image                              // 方向图片
-	behaviorAnimations map[Behavior]map[Direction]map[Foot]*animation.Animation // 行为动画
+	directionImages    map[consts.Direction]*ebiten.Image                              // 方向图片
+	behaviorAnimations map[Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
-	direction        Direction // 当前所处方向
-	moveStartingFoot Foot      // 移动时的起始脚
-	speed            int       // 移动速度
-	pos              [2]int    // 当前地块位置
-	expectPos        [2]int    // 预期所处的地块位置，用于移动
+	direction        consts.Direction // 当前所处方向
+	moveStartingFoot Foot             // 移动时的起始脚
+	speed            int              // 移动速度
+	pos              [2]int           // 当前地块位置
+	expectPos        [2]int           // 预期所处的地块位置，用于移动
 
 	moveCounter int // 移动时的计数器，用于显示动画
 }
@@ -64,17 +56,17 @@ func NewSelf(name string) (*Self, error) {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	directions := enum.Values[Direction](DirectionEnum)
-	directionImages := make(map[Direction]*ebiten.Image, len(directions))
-	behaviorAnimations := make(map[Behavior]map[Direction]map[Foot]*animation.Animation, len(trainerBehaviors))
+	directions := enum.Values[consts.Direction](consts.DirectionEnum)
+	directionImages := make(map[consts.Direction]*ebiten.Image, len(directions))
+	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(trainerBehaviors))
 	for _, behavior := range trainerBehaviors {
 		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
 			return nil, err
 		}
 		frameW, frameH := behaviorImgSheetRect.Bounds().Dx()/3, behaviorImgSheetRect.Bounds().Dy()/4
-		behaviorDirectionAnimations := make(map[Direction]map[Foot]*animation.Animation, len(directions))
-		for i, direction := range []Direction{DirectionEnum.Down, DirectionEnum.Up, DirectionEnum.Left, DirectionEnum.Right} {
+		behaviorDirectionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
+		for i, direction := range []consts.Direction{consts.DirectionEnum.Down, consts.DirectionEnum.Up, consts.DirectionEnum.Left, consts.DirectionEnum.Right} {
 			y := i * frameH
 			leftFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
 			rightFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
@@ -111,7 +103,7 @@ func NewSelf(name string) (*Self, error) {
 	return &Self{
 		directionImages:    directionImages,
 		behaviorAnimations: behaviorAnimations,
-		direction:          DirectionEnum.Down,
+		direction:          consts.DirectionEnum.Down,
 		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
 		pos:                [2]int{6, 8},
@@ -138,30 +130,27 @@ func (s *Self) OnAction(cfg *config.Config, action input.Action, info *UpdateInf
 	preDirection := s.direction
 	switch action {
 	case input.ActionEnum.MoveUp:
-		s.direction = DirectionEnum.Up
+		s.direction = consts.DirectionEnum.Up
 	case input.ActionEnum.MoveDown:
-		s.direction = DirectionEnum.Down
+		s.direction = consts.DirectionEnum.Down
 	case input.ActionEnum.MoveLeft:
-		s.direction = DirectionEnum.Left
+		s.direction = consts.DirectionEnum.Left
 	case input.ActionEnum.MoveRight:
-		s.direction = DirectionEnum.Right
+		s.direction = consts.DirectionEnum.Right
 	}
 	if preDirection == s.direction {
 		expectPos := s.pos
 		switch action {
 		case input.ActionEnum.MoveUp:
-			expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Up)%2}
+			expectPos = [2]int{s.pos[0], s.pos[1] + int(consts.DirectionEnum.Up)%2}
 		case input.ActionEnum.MoveDown:
-			expectPos = [2]int{s.pos[0], s.pos[1] + int(DirectionEnum.Down)%2}
+			expectPos = [2]int{s.pos[0], s.pos[1] + int(consts.DirectionEnum.Down)%2}
 		case input.ActionEnum.MoveLeft:
-			expectPos = [2]int{s.pos[0] + int(DirectionEnum.Left)%2, s.pos[1]}
+			expectPos = [2]int{s.pos[0] + int(consts.DirectionEnum.Left)%2, s.pos[1]}
 		case input.ActionEnum.MoveRight:
-			expectPos = [2]int{s.pos[0] + int(DirectionEnum.Right)%2, s.pos[1]}
+			expectPos = [2]int{s.pos[0] + int(consts.DirectionEnum.Right)%2, s.pos[1]}
 		}
-		w, h := info.Person.Map.Size()
-		if expectPos[0] >= 0 && expectPos[0] < w &&
-			expectPos[1] >= 0 && expectPos[1] < h &&
-			!info.Person.Map.CheckCollision(expectPos[0], expectPos[1]) {
+		if !info.Person.World.CheckCollision(expectPos[0], expectPos[1]) {
 			s.expectPos = expectPos
 		}
 	}
@@ -189,6 +178,9 @@ func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
 			s.moveCounter += s.speed
 		} else {
 			s.moveCounter = 0
+			targetMap, targetX, targetY, _ := info.Person.World.GetActualPosition(s.expectPos[0], s.expectPos[1])
+			info.Person.World.MoveTo(targetMap)
+			s.expectPos = [2]int{targetX, targetY}
 			s.pos = s.expectPos
 			s.moveStartingFoot = -s.moveStartingFoot
 			a.Reset()
@@ -199,33 +191,33 @@ func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
 	img := s.directionImages[s.direction]
 	x, y := s.pos[0]*cfg.TileSize, s.pos[1]*cfg.TileSize+cfg.TileSize-img.Bounds().Dy()
 	switch s.direction {
-	case DirectionEnum.Up:
+	case consts.DirectionEnum.Up:
 		y -= s.moveCounter
-	case DirectionEnum.Down:
+	case consts.DirectionEnum.Down:
 		y += s.moveCounter
-	case DirectionEnum.Left:
+	case consts.DirectionEnum.Left:
 		x -= s.moveCounter
-	case DirectionEnum.Right:
+	case consts.DirectionEnum.Right:
 		x += s.moveCounter
 	}
 	selfX, selfY := s.PixelPosition(cfg)
 	x = -x + selfX
 	y = -y + selfY
-	info.Person.Map.MoveTo(x, y)
+	info.Person.World.MovePixelPosTo(x, y)
 	return nil
 }
 
-func (s *Self) Draw(cfg *config.Config, screen *ebiten.Image) error {
+func (s *Self) Draw(cfg *config.Config, screen *ebiten.Image, _ *ebiten.DrawImageOptions) error {
 	img := s.directionImages[s.direction]
 
 	x, y := s.PixelPosition(cfg)
+	ops := &ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(x), float64(y))
 
 	if s.Move() {
 		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
-		a.Draw(screen, float64(x), float64(y))
+		a.Draw(screen, ops)
 	} else {
-		ops := &ebiten.DrawImageOptions{}
-		ops.GeoM.Translate(float64(x), float64(y))
 		screen.DrawImage(img, ops)
 	}
 	return nil

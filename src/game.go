@@ -17,7 +17,7 @@ type Game struct {
 	cfg   *config.Config
 	input *input.System
 
-	gameMap *maps.Map
+	world   *maps.World
 	sprites []sprite.Sprite
 }
 
@@ -32,7 +32,7 @@ func NewGame(cfg *config.Config) (*Game, error) {
 
 func (g *Game) Init() (err error) {
 	// 地图
-	g.gameMap, err = maps.NewMap(g.cfg)
+	g.world, err = maps.NewWorld(g.cfg, "Pallet_Town")
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (g *Game) Init() (err error) {
 }
 
 func (g *Game) Update() error {
-	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{Map: g.gameMap}}
+	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{World: g.world}}
 	// 处理输入
 	action, err := g.input.Action()
 	if err != nil {
@@ -74,7 +74,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for i, s := range g.sprites {
 		drawer[i] = s
 	}
-	err := g.gameMap.Draw(g.cfg, originSizeScreen, drawer)
+	err := g.world.Draw(g.cfg, originSizeScreen, drawer)
 	if err != nil {
 		panic(err)
 	}
