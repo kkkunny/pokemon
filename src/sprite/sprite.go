@@ -18,5 +18,5 @@ type PersonUpdateInfo struct {
 type Sprite interface {
 	util.Drawer
 	OnAction(action input.Action, info *UpdateInfo)
-	Update() error
+	Update(info *UpdateInfo) error
 }

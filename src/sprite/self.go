@@ -1,6 +1,7 @@
 package sprite
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"os"
@@ -157,37 +158,45 @@ func (s *Self) OnAction(action input.Action, info *UpdateInfo) {
 		case input.ActionEnum.MoveRight:
 			expectPos = [2]int{s.pos[0] + int(DirectionEnum.Right)%2, s.pos[1]}
 		}
-		if !info.Person.Map.CheckCollision(expectPos[0], expectPos[1]) {
+		w, h := info.Person.Map.Size()
+		if expectPos[0] >= 0 && expectPos[0] < w &&
+			expectPos[1] >= 0 && expectPos[1] < h &&
+			!info.Person.Map.CheckCollision(expectPos[0], expectPos[1]) {
 			s.expectPos = expectPos
 		}
 	}
 	return
 }
 
-func (s *Self) Update() error {
-	if !s.Move() {
-		return nil
-	}
-
-	a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
-	a.SetFrameTime(config.TileSize / s.speed / a.FrameCount())
-	a.Update()
-
-	diff := config.TileSize - s.moveCounter
-	if diff > s.speed {
-		s.moveCounter += s.speed
-	} else {
-		s.moveCounter = 0
-		s.pos = s.expectPos
-		s.moveStartingFoot = -s.moveStartingFoot
-		a.Reset()
-	}
-	return nil
+func (s *Self) PixelPosition() (x, y int) {
+	img := s.directionImages[s.direction]
+	return 7 * config.TileSize, 4*config.TileSize + config.TileSize - img.Bounds().Dy()
 }
 
-func (s *Self) Draw(screen *ebiten.Image) error {
-	img := s.directionImages[s.direction]
+func (s *Self) Update(info *UpdateInfo) error {
+	if info.Person == nil {
+		return errors.New("expect PersonUpdateInfo")
+	}
 
+	// 移动
+	if s.Move() {
+		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
+		a.SetFrameTime(info.Person.Map.TilePixelSize() / s.speed / a.FrameCount())
+		a.Update()
+
+		diff := info.Person.Map.TilePixelSize() - s.moveCounter
+		if diff > s.speed {
+			s.moveCounter += s.speed
+		} else {
+			s.moveCounter = 0
+			s.pos = s.expectPos
+			s.moveStartingFoot = -s.moveStartingFoot
+			a.Reset()
+		}
+	}
+
+	// 更新地图位置
+	img := s.directionImages[s.direction]
 	x, y := s.pos[0]*config.TileSize, s.pos[1]*config.TileSize+config.TileSize-img.Bounds().Dy()
 	switch s.direction {
 	case DirectionEnum.Up:
@@ -199,6 +208,17 @@ func (s *Self) Draw(screen *ebiten.Image) error {
 	case DirectionEnum.Right:
 		x += s.moveCounter
 	}
+	selfX, selfY := s.PixelPosition()
+	x = -x + selfX
+	y = -y + selfY
+	info.Person.Map.MoveTo(x, y)
+	return nil
+}
+
+func (s *Self) Draw(screen *ebiten.Image) error {
+	img := s.directionImages[s.direction]
+
+	x, y := s.PixelPosition()
 
 	if s.Move() {
 		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]

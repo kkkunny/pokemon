@@ -57,7 +57,7 @@ func (g *Game) Update() error {
 	}
 	// 更新帧
 	for _, s := range g.sprites {
-		err = s.Update()
+		err = s.Update(drawInfo)
 		if err != nil {
 			return err
 		}

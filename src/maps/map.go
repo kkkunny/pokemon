@@ -11,6 +11,8 @@ import (
 type Map struct {
 	define *tiled.Map
 	render *render.Renderer
+
+	pos [2]int
 }
 
 func NewMap() (*Map, error) {
@@ -48,7 +50,9 @@ func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
 			return err
 		}
 	}
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), nil)
+	ops := &ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(m.pos[0]), float64(m.pos[1]))
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
 	// 绘制对象
 	for _, s := range sprites {
 		err := s.Draw(screen)
@@ -67,7 +71,7 @@ func (m *Map) Draw(screen *ebiten.Image, sprites []util.Drawer) error {
 			return err
 		}
 	}
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), nil)
+	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), ops)
 	return nil
 }
 
@@ -97,4 +101,8 @@ func (m *Map) CheckCollision(x, y int) bool {
 		return tileDef.Properties.GetBool("collision")
 	}
 	return false
+}
+
+func (m *Map) MoveTo(x, y int) {
+	m.pos = [2]int{x, y}
 }
