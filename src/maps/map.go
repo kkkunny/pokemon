@@ -10,7 +10,6 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/util"
 )
 
 type Map struct {
@@ -56,14 +55,24 @@ func newMapWithAdjacent(cfg *config.Config, name string, existMap map[string]*Ma
 	return curMap, nil
 }
 
-func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer, options *ebiten.DrawImageOptions) error {
-	if m.render == nil {
-		var err error
-		m.render, err = render.NewRenderer(m.define)
-		if err != nil {
-			return err
-		}
+func (m *Map) initRender() error {
+	if m.render != nil {
+		return nil
 	}
+	var err error
+	m.render, err = render.NewRenderer(m.define)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
+	err := m.initRender()
+	if err != nil {
+		return err
+	}
+
 	// 找到对象层级
 	var objectLayerName string
 	for _, layer := range m.define.Layers {
@@ -72,32 +81,42 @@ func (m *Map) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Draw
 	if len(m.define.ObjectGroups) > 0 {
 		objectLayerName = m.define.ObjectGroups[0].Name
 	}
-	// 绘制背景
+
 	m.render.Clear()
 	for i, layer := range m.define.Layers {
 		if layer.Name > objectLayerName {
 			continue
 		}
-		err := m.render.RenderLayer(i)
+		err = m.render.RenderLayer(i)
 		if err != nil {
 			return err
 		}
 	}
 	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), options)
-	// 绘制对象
-	for _, s := range sprites {
-		err := s.Draw(cfg, screen, options)
-		if err != nil {
-			return err
-		}
+	return nil
+}
+
+func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
+	err := m.initRender()
+	if err != nil {
+		return err
 	}
-	// 绘制前景
+
+	// 找到对象层级
+	var objectLayerName string
+	for _, layer := range m.define.Layers {
+		objectLayerName = max(objectLayerName, layer.Name)
+	}
+	if len(m.define.ObjectGroups) > 0 {
+		objectLayerName = m.define.ObjectGroups[0].Name
+	}
+
 	m.render.Clear()
 	for i, layer := range m.define.Layers {
 		if layer.Name <= objectLayerName {
 			continue
 		}
-		err := m.render.RenderLayer(i)
+		err = m.render.RenderLayer(i)
 		if err != nil {
 			return err
 		}

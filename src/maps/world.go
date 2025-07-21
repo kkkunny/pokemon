@@ -22,13 +22,13 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 }
 
 func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {
+	drawMaps := make(map[*Map]*ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
+
 	x, y := float64(w.pos[0]), float64(w.pos[1])
 	ops := &ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(x, y)
-	err := w.currentMap.Draw(cfg, screen, sprites, ops)
-	if err != nil {
-		return err
-	}
+	drawMaps[w.currentMap] = ops
+
 	currentMapW, currentMapH := w.currentMap.PixelSize()
 	for direction, adjacentMap := range w.currentMap.adjacentMaps {
 		width, height := adjacentMap.PixelSize()
@@ -43,9 +43,25 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Dr
 		case consts.DirectionEnum.Right:
 			adjacentMapX += float64(currentMapW)
 		}
-		directionOps := &ebiten.DrawImageOptions{}
-		directionOps.GeoM.Translate(adjacentMapX, adjacentMapY)
-		err = adjacentMap.Draw(cfg, screen, nil, directionOps)
+		ops = &ebiten.DrawImageOptions{}
+		ops.GeoM.Translate(adjacentMapX, adjacentMapY)
+		drawMaps[adjacentMap] = ops
+	}
+
+	for drawMap, ops := range drawMaps {
+		err := drawMap.DrawBackground(screen, ops)
+		if err != nil {
+			return err
+		}
+	}
+	for _, s := range sprites {
+		err := s.Draw(cfg, screen, ops)
+		if err != nil {
+			return err
+		}
+	}
+	for drawMap, ops := range drawMaps {
+		err := drawMap.DrawForeground(screen, ops)
 		if err != nil {
 			return err
 		}
