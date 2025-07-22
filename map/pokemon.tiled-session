@@ -3,27 +3,27 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/Pallet_Town.tmx",
+    "activeFile": "tile/decorate.tsx",
     "expandedProjectPaths": [
-        ".",
         "maps",
+        ".",
         "tile"
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {
             "scale": 3.6040625,
-            "selectedLayer": 6,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 254.01890228041273,
-                "y": 61.7358883204717
+                "x": 190.2020289603746,
+                "y": 258.18087227954567
             }
         },
         "maps/Route_1.tmx": {
             "scale": 3.6040625,
-            "selectedLayer": 4,
+            "selectedLayer": 0,
             "viewCenter": {
                 "x": 218.22596028786958,
-                "y": 603.6243822075783
+                "y": 112.51192230989336
             }
         },
         "maps/pallet_town.tmx": {
@@ -75,6 +75,7 @@
             "scaleInEditor": 1
         }
     },
+    "frame.defaultDuration": 300,
     "last.imagePath": "W:/code/go/github.com/kkkunny/pokemon/map/tile",
     "last.worldFilePath": "W:/code/go/github.com/kkkunny/pokemon/map/maps",
     "loadedWorlds": [
@@ -88,17 +89,19 @@
     "map.width": 24,
     "openFiles": [
         "maps/Pallet_Town.tmx",
-        "maps/Route_1.tmx"
+        "maps/Route_1.tmx",
+        "tile/land_decoration.tsx",
+        "tile/decorate.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "string",
+    "property.type": "int",
     "recentFiles": [
-        "maps/Route_1.tmx",
         "maps/Pallet_Town.tmx",
-        "tile/building.tsx",
+        "maps/Route_1.tmx",
+        "tile/land_decoration.tsx",
         "tile/decorate.tsx",
         "tile/ground.tsx",
-        "tile/land_decoration.tsx",
+        "tile/building.tsx",
         "tile/default.tsx",
         "maps/pallet_town3.tmx",
         "maps/pallet_town2.tmx",

@@ -5,20 +5,26 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/util"
 )
 
 type World struct {
+	tileCache  *render.TileCache
 	currentMap *Map
 	pos        [2]int
 }
 
 func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
-	enterMap, err := NewMap(cfg, initMapName)
+	tileCache := render.NewTileCache()
+	enterMap, err := NewMap(cfg, tileCache, initMapName)
 	if err != nil {
 		return nil, err
 	}
-	return &World{currentMap: enterMap}, nil
+	return &World{
+		tileCache:  tileCache,
+		currentMap: enterMap,
+	}, nil
 }
 
 func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {

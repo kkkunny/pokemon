@@ -6,7 +6,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
-	"github.com/lafriks/go-tiled/render"
+
+	"github.com/kkkunny/pokemon/src/maps/render"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
@@ -15,16 +16,15 @@ import (
 type Map struct {
 	name         string
 	define       *tiled.Map
+	tileCache    *render.TileCache
 	adjacentMaps map[consts.Direction]*Map
-
-	render *render.Renderer
 }
 
-func NewMap(cfg *config.Config, name string) (*Map, error) {
-	return newMapWithAdjacent(cfg, name, make(map[string]*Map))
+func NewMap(cfg *config.Config, tileCache *render.TileCache, name string) (*Map, error) {
+	return newMapWithAdjacent(cfg, tileCache, name, make(map[string]*Map))
 }
 
-func newMapWithAdjacent(cfg *config.Config, name string, existMap map[string]*Map) (*Map, error) {
+func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name string, existMap map[string]*Map) (*Map, error) {
 	curMap := existMap[name]
 	if curMap != nil {
 		return curMap, nil
@@ -38,15 +38,16 @@ func newMapWithAdjacent(cfg *config.Config, name string, existMap map[string]*Ma
 		return nil, errors.New("map tile is not valid")
 	}
 	curMap = &Map{
-		name:   name,
-		define: mapTMX,
+		name:      name,
+		define:    mapTMX,
+		tileCache: tileCache,
 	}
 	existMap[name] = curMap
 
 	adjacentMaps := curMap.AdjacentMaps()
 	curMap.adjacentMaps = make(map[consts.Direction]*Map, len(adjacentMaps))
 	for direction, mapName := range adjacentMaps {
-		directionMap, err := newMapWithAdjacent(cfg, mapName, existMap)
+		directionMap, err := newMapWithAdjacent(cfg, tileCache, mapName, existMap)
 		if err != nil {
 			return nil, err
 		}
@@ -55,23 +56,8 @@ func newMapWithAdjacent(cfg *config.Config, name string, existMap map[string]*Ma
 	return curMap, nil
 }
 
-func (m *Map) initRender() error {
-	if m.render != nil {
-		return nil
-	}
-	var err error
-	m.render, err = render.NewRenderer(m.define)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
-	err := m.initRender()
-	if err != nil {
-		return err
-	}
+	renderer := render.NewRenderer(m.define, m.tileCache)
 
 	// 找到对象层级
 	var objectLayerName string
@@ -82,25 +68,20 @@ func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOpti
 		objectLayerName = m.define.ObjectGroups[0].Name
 	}
 
-	m.render.Clear()
 	for i, layer := range m.define.Layers {
 		if layer.Name > objectLayerName {
 			continue
 		}
-		err = m.render.RenderLayer(i)
+		err := renderer.RenderLayer(screen, i, options)
 		if err != nil {
 			return err
 		}
 	}
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), options)
 	return nil
 }
 
 func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
-	err := m.initRender()
-	if err != nil {
-		return err
-	}
+	renderer := render.NewRenderer(m.define, m.tileCache)
 
 	// 找到对象层级
 	var objectLayerName string
@@ -111,17 +92,15 @@ func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOpti
 		objectLayerName = m.define.ObjectGroups[0].Name
 	}
 
-	m.render.Clear()
 	for i, layer := range m.define.Layers {
 		if layer.Name <= objectLayerName {
 			continue
 		}
-		err = m.render.RenderLayer(i)
+		err := renderer.RenderLayer(screen, i, options)
 		if err != nil {
 			return err
 		}
 	}
-	screen.DrawImage(ebiten.NewImageFromImage(m.render.Result), options)
 	return nil
 }
 

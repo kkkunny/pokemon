@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.11.2" name="decorate" tilewidth="16" tileheight="16" tilecount="900" columns="30">
  <image source="decorate.png" trans="000000" width="480" height="480"/>
+ <tile id="0">
+  <properties>
+   <property name="animation_frame_offset" type="int" value="300"/>
+   <property name="animation_next_frame" type="int" value="6"/>
+  </properties>
+  <animation>
+   <frame tileid="0" duration="300"/>
+   <frame tileid="6" duration="300"/>
+   <frame tileid="7" duration="300"/>
+   <frame tileid="8" duration="300"/>
+  </animation>
+ </tile>
  <tile id="3">
   <properties>
    <property name="collision" type="bool" value="true"/>
@@ -14,6 +26,24 @@
  <tile id="5">
   <properties>
    <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="6">
+  <properties>
+   <property name="animation_frame_offset" type="int" value="300"/>
+   <property name="animation_next_frame" type="int" value="7"/>
+  </properties>
+ </tile>
+ <tile id="7">
+  <properties>
+   <property name="animation_frame_offset" type="int" value="300"/>
+   <property name="animation_next_frame" type="int" value="8"/>
+  </properties>
+ </tile>
+ <tile id="8">
+  <properties>
+   <property name="animation_frame_offset" type="int" value="300"/>
+   <property name="animation_next_frame" type="int" value="0"/>
   </properties>
  </tile>
  <tile id="9">
