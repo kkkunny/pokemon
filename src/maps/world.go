@@ -96,6 +96,10 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 	return w.currentMap.GetActualPosition(x, y)
 }
 
+func (w *World) CurrentMap() *Map {
+	return w.currentMap
+}
+
 func (w *World) CheckCollision(x, y int) bool {
 	targetMap, x, y, ok := w.GetActualPosition(x, y)
 	if !ok {

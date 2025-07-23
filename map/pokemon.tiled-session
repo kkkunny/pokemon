@@ -94,7 +94,7 @@
         "tile/decorate.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "int",
+    "property.type": "string",
     "recentFiles": [
         "maps/Pallet_Town.tmx",
         "maps/Route_1.tmx",

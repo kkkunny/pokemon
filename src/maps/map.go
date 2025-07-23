@@ -19,6 +19,7 @@ type Map struct {
 	define       *tiled.Map
 	tileCache    *render.TileCache
 	adjacentMaps map[consts.Direction]*Map
+	songFilepath string
 }
 
 func NewMap(cfg *config.Config, tileCache *render.TileCache, name string) (*Map, error) {
@@ -26,11 +27,13 @@ func NewMap(cfg *config.Config, tileCache *render.TileCache, name string) (*Map,
 }
 
 func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name string, existMap map[string]*Map) (*Map, error) {
+	// 缓存
 	curMap := existMap[name]
 	if curMap != nil {
 		return curMap, nil
 	}
 
+	// 地图
 	mapTMX, err := tiled.LoadFile(fmt.Sprintf("map/maps/%s.tmx", name))
 	if err != nil {
 		return nil, err
@@ -38,12 +41,19 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != cfg.TileSize {
 		return nil, errors.New("map tile is not valid")
 	}
+
 	curMap = &Map{
 		name:      name,
 		define:    mapTMX,
 		tileCache: tileCache,
 	}
 	existMap[name] = curMap
+
+	// 音频
+	songFileName := mapTMX.Properties.GetString("song")
+	if songFileName != "" {
+		curMap.songFilepath = fmt.Sprintf("resource/voice/map/%s", songFileName)
+	}
 
 	adjacentMaps := curMap.AdjacentMaps()
 	curMap.adjacentMaps = make(map[consts.Direction]*Map, len(adjacentMaps))
@@ -115,6 +125,10 @@ func (m *Map) Size() (w int, h int) {
 
 func (m *Map) Name() string {
 	return m.name
+}
+
+func (m *Map) SongFilepath() (string, bool) {
+	return m.songFilepath, m.songFilepath != ""
 }
 
 func (m *Map) CheckCollision(x, y int) bool {

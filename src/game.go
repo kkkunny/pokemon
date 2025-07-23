@@ -11,6 +11,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/voice"
 )
 
 type Game struct {
@@ -19,12 +20,15 @@ type Game struct {
 
 	world   *maps.World
 	sprites []sprite.Sprite
+
+	mapVoicePlayer *voice.Player
 }
 
 func NewGame(cfg *config.Config) (*Game, error) {
 	g := &Game{
-		cfg:   cfg,
-		input: input.NewSystem(),
+		cfg:            cfg,
+		input:          input.NewSystem(),
+		mapVoicePlayer: voice.NewPlayer(),
 	}
 	err := g.Init()
 	return g, err
@@ -47,6 +51,19 @@ func (g *Game) Init() (err error) {
 }
 
 func (g *Game) Update() error {
+	// 地图音乐
+	songFilepath, ok := g.world.CurrentMap().SongFilepath()
+	if ok {
+		err := g.mapVoicePlayer.LoadFile(songFilepath)
+		if err != nil {
+			return err
+		}
+		err = g.mapVoicePlayer.Play()
+		if err != nil {
+			return err
+		}
+	}
+
 	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{World: g.world}}
 	// 处理输入
 	action, err := g.input.Action()
