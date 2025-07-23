@@ -3,6 +3,7 @@ package maps
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
@@ -56,8 +57,8 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	return curMap, nil
 }
 
-func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
-	renderer := render.NewRenderer(m.define, m.tileCache)
+func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOptions, dur time.Duration) error {
+	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级
 	var objectLayerName string
@@ -80,8 +81,8 @@ func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOpti
 	return nil
 }
 
-func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOptions) error {
-	renderer := render.NewRenderer(m.define, m.tileCache)
+func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOptions, dur time.Duration) error {
+	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级
 	var objectLayerName string

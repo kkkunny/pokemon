@@ -1,6 +1,8 @@
 package render
 
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/lafriks/go-tiled"
@@ -10,12 +12,14 @@ import (
 type Renderer struct {
 	m     *tiled.Map
 	cache *TileCache
+	dur   time.Duration
 }
 
-func NewRenderer(m *tiled.Map, cache *TileCache) *Renderer {
+func NewRenderer(m *tiled.Map, cache *TileCache, dur time.Duration) *Renderer {
 	return &Renderer{
 		m:     m,
 		cache: cache,
+		dur:   dur,
 	}
 }
 
@@ -80,6 +84,18 @@ func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options
 		err := func() error {
 			if layerTile == nil || layerTile.IsNil() {
 				return nil
+			}
+
+			// 动画
+			if layerTile.Tileset != nil {
+				tileDef, err := layerTile.Tileset.GetTilesetTile(layerTile.ID)
+				if err == nil && tileDef != nil && len(tileDef.Animation) > 0 {
+					index := int(r.dur/(time.Millisecond*time.Duration(tileDef.Animation[0].Duration))) % len(tileDef.Animation)
+					thisFrame := tileDef.Animation[index]
+					newLayerTile := *layerTile
+					newLayerTile.ID = thisFrame.TileID
+					layerTile = &newLayerTile
+				}
 			}
 
 			img, err := r.getTileImage(layerTile)

@@ -1,6 +1,8 @@
 package maps
 
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/kkkunny/pokemon/src/config"
@@ -10,9 +12,10 @@ import (
 )
 
 type World struct {
-	tileCache  *render.TileCache
-	currentMap *Map
-	pos        [2]int
+	tileCache       *render.TileCache
+	currentMap      *Map
+	pos             [2]int
+	firstRenderTime time.Time
 }
 
 func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
@@ -28,6 +31,12 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 }
 
 func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {
+	now := time.Now()
+	var defaultTime time.Time
+	if w.firstRenderTime == defaultTime {
+		w.firstRenderTime = now
+	}
+
 	drawMaps := make(map[*Map]*ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
 
 	x, y := float64(w.pos[0]), float64(w.pos[1])
@@ -55,7 +64,7 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Dr
 	}
 
 	for drawMap, ops := range drawMaps {
-		err := drawMap.DrawBackground(screen, ops)
+		err := drawMap.DrawBackground(screen, ops, now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -67,7 +76,7 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Dr
 		}
 	}
 	for drawMap, ops := range drawMaps {
-		err := drawMap.DrawForeground(screen, ops)
+		err := drawMap.DrawForeground(screen, ops, now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
