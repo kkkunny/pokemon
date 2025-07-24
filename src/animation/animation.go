@@ -49,8 +49,13 @@ func (a *Animation) Update() bool {
 	return a.counter == 0 && a.curFrameIndex == 0
 }
 
+func (a *Animation) GetFrameImage(i int) *ebiten.Image {
+	sx := (i % (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameWidth
+	sy := (i / (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameHeight
+	return a.frameSheet.SubImage(image.Rect(sx, sy, sx+a.frameWidth, sy+a.frameHeight)).(*ebiten.Image)
+}
+
 func (a *Animation) Draw(screen *ebiten.Image, options *ebiten.DrawImageOptions) {
-	sx := (a.curFrameIndex % (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameWidth
-	sy := (a.curFrameIndex / (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameHeight
-	screen.DrawImage(a.frameSheet.SubImage(image.Rect(sx, sy, sx+a.frameWidth, sy+a.frameHeight)).(*ebiten.Image), options)
+	frameImg := a.GetFrameImage(a.curFrameIndex)
+	screen.DrawImage(frameImg, options)
 }

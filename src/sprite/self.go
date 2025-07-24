@@ -3,12 +3,10 @@ package sprite
 import (
 	"errors"
 	"fmt"
-	"image"
 	"os"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
@@ -56,50 +54,11 @@ func NewSelf(name string) (*Self, error) {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	directions := enum.Values[consts.Direction](consts.DirectionEnum)
-	directionImages := make(map[consts.Direction]*ebiten.Image, len(directions))
-	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(trainerBehaviors))
-	for _, behavior := range trainerBehaviors {
-		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
-		if err != nil {
-			return nil, err
-		}
-		frameW, frameH := behaviorImgSheetRect.Bounds().Dx()/3, behaviorImgSheetRect.Bounds().Dy()/4
-		behaviorDirectionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
-		for i, direction := range []consts.Direction{consts.DirectionEnum.Down, consts.DirectionEnum.Up, consts.DirectionEnum.Left, consts.DirectionEnum.Right} {
-			y := i * frameH
-			leftFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
-			rightFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
-			for j := range 3 {
-				x := j * frameW
-				img := behaviorImgSheetRect.SubImage(image.Rect(x, y, x+frameW, y+frameH)).(*ebiten.Image)
-				switch j {
-				case 0:
-					if behavior == BehaviorEnum.Walk {
-						directionImages[direction] = img
-					}
-					ops := &ebiten.DrawImageOptions{}
-					ops.GeoM.Translate(0, 0)
-					leftFootAnimationFrameSheet.DrawImage(img, ops)
-					ops.GeoM.Translate(0, 0)
-					rightFootAnimationFrameSheet.DrawImage(img, ops)
-				case 1:
-					ops := &ebiten.DrawImageOptions{}
-					ops.GeoM.Translate(float64(frameW), 0)
-					leftFootAnimationFrameSheet.DrawImage(img, ops)
-				case 2:
-					ops := &ebiten.DrawImageOptions{}
-					ops.GeoM.Translate(float64(frameW), 0)
-					rightFootAnimationFrameSheet.DrawImage(img, ops)
-				}
-			}
-			behaviorDirectionAnimations[direction] = map[Foot]*animation.Animation{
-				FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
-				FootEnum.Right: animation.NewAnimation(rightFootAnimationFrameSheet, frameW, frameH, 0),
-			}
-		}
-		behaviorAnimations[behavior] = behaviorDirectionAnimations
+	directionImages, behaviorAnimations, err := loadTrainerAnimations(name)
+	if err != nil {
+		return nil, err
 	}
+
 	return &Self{
 		directionImages:    directionImages,
 		behaviorAnimations: behaviorAnimations,

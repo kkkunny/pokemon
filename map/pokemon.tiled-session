@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "tile/decorate.tsx",
+    "activeFile": "maps/Route_1.tmx",
     "expandedProjectPaths": [
         "maps",
         ".",
@@ -23,7 +23,7 @@
             "selectedLayer": 0,
             "viewCenter": {
                 "x": 218.22596028786958,
-                "y": 112.51192230989336
+                "y": -133.0443076389491
             }
         },
         "maps/pallet_town.tmx": {
@@ -97,9 +97,9 @@
     "property.type": "string",
     "recentFiles": [
         "maps/Pallet_Town.tmx",
-        "maps/Route_1.tmx",
-        "tile/land_decoration.tsx",
         "tile/decorate.tsx",
+        "tile/land_decoration.tsx",
+        "maps/Route_1.tmx",
         "tile/ground.tsx",
         "tile/building.tsx",
         "tile/default.tsx",
