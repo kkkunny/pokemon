@@ -186,6 +186,10 @@ func (m *Map) AdjacentMaps() map[consts.Direction]string {
 	return maps
 }
 
+func (m *Map) Sprites() []sprite.Sprite {
+	return m.sprites
+}
+
 func (m *Map) GetActualPosition(x, y int) (*Map, int, int, bool) {
 	if y < 0 {
 		upMap := m.adjacentMaps[consts.DirectionEnum.Up]

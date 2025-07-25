@@ -71,11 +71,20 @@ func (g *Game) Update() error {
 	}
 	if action != nil {
 		g.self.OnAction(g.cfg, *action, drawInfo)
+		for _, s := range g.world.CurrentMap().Sprites() {
+			s.OnAction(g.cfg, *action, drawInfo)
+		}
 	}
 	// 更新帧
 	err = g.self.Update(g.cfg, drawInfo)
 	if err != nil {
 		return err
+	}
+	for _, s := range g.world.CurrentMap().Sprites() {
+		err = s.Update(g.cfg, drawInfo)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

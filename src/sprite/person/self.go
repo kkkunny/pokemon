@@ -91,14 +91,14 @@ func (s *Self) OnAction(cfg *config.Config, action input.Action, info sprite.Upd
 	}
 	if preDirection == s.direction {
 		expectPos := s.pos
-		switch action {
-		case input.ActionEnum.MoveUp:
+		switch s.direction {
+		case consts.DirectionEnum.Up:
 			expectPos = [2]int{s.pos[0], s.pos[1] + int(consts.DirectionEnum.Up)%2}
-		case input.ActionEnum.MoveDown:
+		case consts.DirectionEnum.Down:
 			expectPos = [2]int{s.pos[0], s.pos[1] + int(consts.DirectionEnum.Down)%2}
-		case input.ActionEnum.MoveLeft:
+		case consts.DirectionEnum.Left:
 			expectPos = [2]int{s.pos[0] + int(consts.DirectionEnum.Left)%2, s.pos[1]}
-		case input.ActionEnum.MoveRight:
+		case consts.DirectionEnum.Right:
 			expectPos = [2]int{s.pos[0] + int(consts.DirectionEnum.Right)%2, s.pos[1]}
 		}
 		if !updateInfo.World.CheckCollision(expectPos[0], expectPos[1]) {
@@ -144,7 +144,7 @@ func (s *Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 
 	// 更新地图位置
 	img := s.directionImages[s.direction]
-	x, y := s.pos[0]*cfg.TileSize, s.pos[1]*cfg.TileSize+cfg.TileSize-img.Bounds().Dy()
+	x, y := s.pos[0]*cfg.TileSize, (s.pos[1]+1)*cfg.TileSize-img.Bounds().Dy()
 	switch s.direction {
 	case consts.DirectionEnum.Up:
 		y -= s.moveCounter

@@ -1,7 +1,9 @@
 package person
 
 import (
+	"errors"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 
@@ -81,10 +83,81 @@ func (p *Person) OnAction(_ *config.Config, _ input.Action, _ sprite.UpdateInfo)
 
 func (p *Person) PixelPosition(cfg *config.Config) (x, y int) {
 	img := p.directionImages[p.direction]
-	return p.pos[0] * cfg.TileSize, (p.pos[1]+1)*cfg.TileSize - img.Bounds().Dy()
+	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-img.Bounds().Dy()
+
+	if p.Move() {
+		switch p.direction {
+		case consts.DirectionEnum.Up:
+			y -= p.moveCounter
+		case consts.DirectionEnum.Down:
+			y += p.moveCounter
+		case consts.DirectionEnum.Left:
+			x -= p.moveCounter
+		case consts.DirectionEnum.Right:
+			x += p.moveCounter
+		}
+	}
+
+	return x, y
 }
 
-func (p *Person) Update(cfg *config.Config, _ sprite.UpdateInfo) error {
+func (p *Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
+	if info == nil {
+		return errors.New("expect UpdateInfo")
+	}
+	updateInfo, ok := info.(*UpdateInfo)
+	if !ok {
+		return errors.New("expect UpdateInfo")
+	}
+
+	// 移动
+	if p.Move() {
+		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.direction][p.moveStartingFoot]
+		a.SetFrameTime(cfg.TileSize / p.speed / a.FrameCount())
+		a.Update()
+
+		diff := cfg.TileSize - p.moveCounter
+		if diff > p.speed {
+			p.moveCounter += p.speed
+		} else {
+			p.moveCounter = 0
+			_, targetX, targetY, _ := updateInfo.World.GetActualPosition(p.expectPos[0], p.expectPos[1])
+			p.expectPos = [2]int{targetX, targetY}
+			p.pos = p.expectPos
+			p.moveStartingFoot = -p.moveStartingFoot
+			a.Reset()
+		}
+	} else {
+		preDirection := p.direction
+		n := rand.IntN(500)
+		if n >= 499 {
+			p.direction = consts.DirectionEnum.Up
+		} else if n >= 498 {
+			p.direction = consts.DirectionEnum.Down
+		} else if n >= 497 {
+			p.direction = consts.DirectionEnum.Left
+		} else if n >= 496 {
+			p.direction = consts.DirectionEnum.Right
+		} else {
+			return nil
+		}
+		if preDirection == p.direction {
+			expectPos := p.pos
+			switch p.direction {
+			case consts.DirectionEnum.Up:
+				expectPos = [2]int{p.pos[0], p.pos[1] + int(consts.DirectionEnum.Up)%2}
+			case consts.DirectionEnum.Down:
+				expectPos = [2]int{p.pos[0], p.pos[1] + int(consts.DirectionEnum.Down)%2}
+			case consts.DirectionEnum.Left:
+				expectPos = [2]int{p.pos[0] + int(consts.DirectionEnum.Left)%2, p.pos[1]}
+			case consts.DirectionEnum.Right:
+				expectPos = [2]int{p.pos[0] + int(consts.DirectionEnum.Right)%2, p.pos[1]}
+			}
+			if !updateInfo.World.CheckCollision(expectPos[0], expectPos[1]) {
+				p.expectPos = expectPos
+			}
+		}
+	}
 	return nil
 }
 
