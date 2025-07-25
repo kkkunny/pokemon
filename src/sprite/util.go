@@ -14,8 +14,22 @@ import (
 	"github.com/kkkunny/pokemon/src/consts"
 )
 
-// 载入训练师图片
-func loadTrainerAnimations(name string) (map[consts.Direction]*ebiten.Image, map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
+type Behavior string
+
+var BehaviorEnum = enum.New[struct {
+	Walk Behavior `enum:"walk"`
+	Run  Behavior `enum:"run"`
+}]()
+
+type Foot int8
+
+var FootEnum = enum.New[struct {
+	Left  Foot `enum:"1"`
+	Right Foot `enum:"-1"`
+}]()
+
+// LoadPersonAnimations 载入训练师图片
+func LoadPersonAnimations(name string, behaviors ...Behavior) (map[consts.Direction]*ebiten.Image, map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
 	dirpath := filepath.Join("./resource/map_item/people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
@@ -25,17 +39,17 @@ func loadTrainerAnimations(name string) (map[consts.Direction]*ebiten.Image, map
 	}
 
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
-	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(trainerBehaviors))
-	for _, behavior := range trainerBehaviors {
+	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
+	for _, behavior := range behaviors {
 		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
 			return nil, nil, err
 		}
 		var behaviorDirectionAnimations map[consts.Direction]map[Foot]*animation.Animation
 		if behaviorImgSheetRect.Bounds().Dy() == 60 {
-			behaviorDirectionAnimations, err = loadSimpleTrainerDirectionAnimations(behaviorImgSheetRect)
+			behaviorDirectionAnimations, err = loadSimplePersonDirectionAnimations(behaviorImgSheetRect)
 		} else {
-			behaviorDirectionAnimations, err = loadCompleteTrainerDirectionAnimations(behaviorImgSheetRect)
+			behaviorDirectionAnimations, err = loadCompletePersonDirectionAnimations(behaviorImgSheetRect)
 		}
 		if err != nil {
 			return nil, nil, err
@@ -50,7 +64,7 @@ func loadTrainerAnimations(name string) (map[consts.Direction]*ebiten.Image, map
 	return directionImages, behaviorAnimations, nil
 }
 
-func loadSimpleTrainerDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
+func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
 	directionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
@@ -113,7 +127,7 @@ func loadSimpleTrainerDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Di
 	}
 	return directionAnimations, nil
 }
-func loadCompleteTrainerDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
+func loadCompletePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
 	directionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3

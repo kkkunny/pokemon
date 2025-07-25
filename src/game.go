@@ -9,7 +9,7 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/maps"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/voice"
 )
@@ -18,8 +18,8 @@ type Game struct {
 	cfg   *config.Config
 	input *input.System
 
-	world   *maps.World
-	sprites []sprite.Sprite
+	world *maps.World
+	self  *person.Self
 
 	mapVoicePlayer *voice.Player
 }
@@ -41,12 +41,11 @@ func (g *Game) Init() (err error) {
 		return err
 	}
 	// 主角
-	masterCharacter, err := sprite.NewSelf("master")
+	g.self, err = person.NewSelf("master")
 	if err != nil {
 		return err
 	}
-	masterCharacter.SetPosition(6, 8)
-	g.sprites = append(g.sprites, masterCharacter)
+	g.self.SetPosition(6, 8)
 	return nil
 }
 
@@ -64,34 +63,26 @@ func (g *Game) Update() error {
 		}
 	}
 
-	drawInfo := &sprite.UpdateInfo{Person: &sprite.PersonUpdateInfo{World: g.world}}
+	drawInfo := &person.UpdateInfo{World: g.world}
 	// 处理输入
 	action, err := g.input.Action()
 	if err != nil {
 		return err
 	}
 	if action != nil {
-		for _, s := range g.sprites {
-			s.OnAction(g.cfg, *action, drawInfo)
-		}
+		g.self.OnAction(g.cfg, *action, drawInfo)
 	}
 	// 更新帧
-	for _, s := range g.sprites {
-		err = s.Update(g.cfg, drawInfo)
-		if err != nil {
-			return err
-		}
+	err = g.self.Update(g.cfg, drawInfo)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*g.cfg.Scale, screen.Bounds().Dy()*g.cfg.Scale)
-	drawer := make([]util.Drawer, len(g.sprites))
-	for i, s := range g.sprites {
-		drawer[i] = s
-	}
-	err := g.world.Draw(g.cfg, originSizeScreen, drawer)
+	err := g.world.Draw(g.cfg, originSizeScreen, []util.Drawer{g.self})
 	if err != nil {
 		panic(err)
 	}

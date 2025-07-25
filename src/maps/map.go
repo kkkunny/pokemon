@@ -9,6 +9,7 @@ import (
 	"github.com/lafriks/go-tiled"
 
 	"github.com/kkkunny/pokemon/src/maps/render"
+	"github.com/kkkunny/pokemon/src/sprite"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
@@ -20,6 +21,7 @@ type Map struct {
 	tileCache    *render.TileCache
 	adjacentMaps map[consts.Direction]*Map
 	songFilepath string
+	sprites      []sprite.Sprite
 }
 
 func NewMap(cfg *config.Config, tileCache *render.TileCache, name string) (*Map, error) {
@@ -53,6 +55,19 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	songFileName := mapTMX.Properties.GetString("song")
 	if songFileName != "" {
 		curMap.songFilepath = fmt.Sprintf("resource/voice/map/%s", songFileName)
+	}
+
+	// 精灵
+	for _, objectGroup := range mapTMX.ObjectGroups {
+		for _, object := range objectGroup.Objects {
+			x, y := int(object.X+object.Width/2)/cfg.TileSize, int(object.Y+object.Height/2)/cfg.TileSize
+			spriteObj, err := sprite.NewSprite(object.Type, object.Properties.GetString("image"))
+			if err != nil {
+				return nil, err
+			}
+			spriteObj.SetPosition(x, y)
+			curMap.sprites = append(curMap.sprites, spriteObj)
+		}
 	}
 
 	adjacentMaps := curMap.AdjacentMaps()

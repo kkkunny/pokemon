@@ -11,19 +11,22 @@
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {
+            "expandedObjectLayers": [
+                8
+            ],
             "scale": 3.6040625,
-            "selectedLayer": 3,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 190.2020289603746,
-                "y": 258.18087227954567
+                "x": 183.5428769617619,
+                "y": 231.82172895170382
             }
         },
         "maps/Route_1.tmx": {
             "scale": 3.6040625,
-            "selectedLayer": 0,
+            "selectedLayer": 3,
             "viewCenter": {
                 "x": 218.22596028786958,
-                "y": -133.0443076389491
+                "y": 800.0693661666522
             }
         },
         "maps/pallet_town.tmx": {

@@ -58,23 +58,34 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Dr
 		case consts.DirectionEnum.Right:
 			adjacentMapX += float64(currentMapW)
 		}
-		ops = &ebiten.DrawImageOptions{}
-		ops.GeoM.Translate(adjacentMapX, adjacentMapY)
-		drawMaps[adjacentMap] = ops
+		adjacentMapOps := &ebiten.DrawImageOptions{}
+		adjacentMapOps.GeoM.Translate(adjacentMapX, adjacentMapY)
+		drawMaps[adjacentMap] = adjacentMapOps
 	}
 
+	// 背景
 	for drawMap, ops := range drawMaps {
 		err := drawMap.DrawBackground(screen, ops, now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
 	}
+	// 精灵
+	// 全局精灵
 	for _, s := range sprites {
 		err := s.Draw(cfg, screen, ops)
 		if err != nil {
 			return err
 		}
 	}
+	// 地图精灵
+	for _, s := range w.currentMap.sprites {
+		err := s.Draw(cfg, screen, ops)
+		if err != nil {
+			return err
+		}
+	}
+	// 前景
 	for drawMap, ops := range drawMaps {
 		err := drawMap.DrawForeground(screen, ops, now.Sub(w.firstRenderTime))
 		if err != nil {

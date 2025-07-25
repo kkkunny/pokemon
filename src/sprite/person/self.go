@@ -1,4 +1,4 @@
-package sprite
+package person
 
 import (
 	"errors"
@@ -7,37 +7,21 @@ import (
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/sprite"
 )
-
-type Behavior string
-
-var BehaviorEnum = enum.New[struct {
-	Walk Behavior `enum:"walk"`
-	Run  Behavior `enum:"run"`
-}]()
-
-type Foot int8
-
-var FootEnum = enum.New[struct {
-	Left  Foot `enum:"1"`
-	Right Foot `enum:"-1"`
-}]()
-
-var trainerBehaviors = []Behavior{BehaviorEnum.Walk, BehaviorEnum.Run}
 
 type Self struct {
 	// 静态资源
-	directionImages    map[consts.Direction]*ebiten.Image                              // 方向图片
-	behaviorAnimations map[Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
+	directionImages    map[consts.Direction]*ebiten.Image                                            // 方向图片
+	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[sprite.Foot]*animation.Animation // 行为动画
 	// 属性
 	direction        consts.Direction // 当前所处方向
-	moveStartingFoot Foot             // 移动时的起始脚
+	moveStartingFoot sprite.Foot      // 移动时的起始脚
 	speed            int              // 移动速度
 	pos              [2]int           // 当前地块位置
 	expectPos        [2]int           // 预期所处的地块位置，用于移动
@@ -54,7 +38,7 @@ func NewSelf(name string) (*Self, error) {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	directionImages, behaviorAnimations, err := loadTrainerAnimations(name)
+	directionImages, behaviorAnimations, err := sprite.LoadPersonAnimations(name, sprite.BehaviorEnum.Walk, sprite.BehaviorEnum.Run)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +47,7 @@ func NewSelf(name string) (*Self, error) {
 		directionImages:    directionImages,
 		behaviorAnimations: behaviorAnimations,
 		direction:          consts.DirectionEnum.Down,
-		moveStartingFoot:   FootEnum.Left,
+		moveStartingFoot:   sprite.FootEnum.Left,
 		speed:              1,
 		pos:                [2]int{6, 8},
 	}, nil
@@ -78,8 +62,12 @@ func (s *Self) SetPosition(x, y int) {
 	s.expectPos = [2]int{x, y}
 }
 
-func (s *Self) OnAction(cfg *config.Config, action input.Action, info *UpdateInfo) {
-	if info.Person == nil {
+func (s *Self) OnAction(cfg *config.Config, action input.Action, info sprite.UpdateInfo) {
+	if info == nil {
+		return
+	}
+	updateInfo, ok := info.(*UpdateInfo)
+	if !ok {
 		return
 	}
 
@@ -109,7 +97,7 @@ func (s *Self) OnAction(cfg *config.Config, action input.Action, info *UpdateInf
 		case input.ActionEnum.MoveRight:
 			expectPos = [2]int{s.pos[0] + int(consts.DirectionEnum.Right)%2, s.pos[1]}
 		}
-		if !info.Person.World.CheckCollision(expectPos[0], expectPos[1]) {
+		if !updateInfo.World.CheckCollision(expectPos[0], expectPos[1]) {
 			s.expectPos = expectPos
 		}
 	}
@@ -121,14 +109,18 @@ func (s *Self) PixelPosition(cfg *config.Config) (x, y int) {
 	return cfg.ScreenWidth/2 - img.Bounds().Dx()/2, cfg.ScreenHeight/2 - img.Bounds().Dy()/2
 }
 
-func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
-	if info.Person == nil {
-		return errors.New("expect PersonUpdateInfo")
+func (s *Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
+	if info == nil {
+		return errors.New("expect UpdateInfo")
+	}
+	updateInfo, ok := info.(*UpdateInfo)
+	if !ok {
+		return errors.New("expect UpdateInfo")
 	}
 
 	// 移动
 	if s.Move() {
-		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
+		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
 		a.SetFrameTime(cfg.TileSize / s.speed / a.FrameCount())
 		a.Update()
 
@@ -137,8 +129,8 @@ func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
 			s.moveCounter += s.speed
 		} else {
 			s.moveCounter = 0
-			targetMap, targetX, targetY, _ := info.Person.World.GetActualPosition(s.expectPos[0], s.expectPos[1])
-			info.Person.World.MoveTo(targetMap)
+			targetMap, targetX, targetY, _ := updateInfo.World.GetActualPosition(s.expectPos[0], s.expectPos[1])
+			updateInfo.World.MoveTo(targetMap)
 			s.expectPos = [2]int{targetX, targetY}
 			s.pos = s.expectPos
 			s.moveStartingFoot = -s.moveStartingFoot
@@ -162,7 +154,7 @@ func (s *Self) Update(cfg *config.Config, info *UpdateInfo) error {
 	selfX, selfY := s.PixelPosition(cfg)
 	x = -x + selfX
 	y = -y + selfY
-	info.Person.World.MovePixelPosTo(x, y)
+	updateInfo.World.MovePixelPosTo(x, y)
 	return nil
 }
 
@@ -174,7 +166,7 @@ func (s *Self) Draw(cfg *config.Config, screen *ebiten.Image, _ *ebiten.DrawImag
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if s.Move() {
-		a := s.behaviorAnimations[BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
+		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
 		a.Draw(screen, ops)
 	} else {
 		screen.DrawImage(img, ops)
