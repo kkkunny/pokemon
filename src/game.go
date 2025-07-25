@@ -9,8 +9,8 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/maps"
+	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/person"
-	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/voice"
 )
 
@@ -82,7 +82,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*g.cfg.Scale, screen.Bounds().Dy()*g.cfg.Scale)
-	err := g.world.Draw(g.cfg, originSizeScreen, []util.Drawer{g.self})
+	err := g.world.Draw(g.cfg, originSizeScreen, []sprite.Sprite{g.self})
 	if err != nil {
 		panic(err)
 	}

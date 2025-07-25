@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kkkunny/stl/container/pqueue"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/maps/render"
-	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/sprite"
 )
 
 type World struct {
@@ -30,7 +31,7 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 	}, nil
 }
 
-func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Drawer) error {
+func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
@@ -71,16 +72,20 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []util.Dr
 		}
 	}
 	// 精灵
+	drawSprites := pqueue.AnyWith[int, sprite.Sprite]()
 	// 全局精灵
 	for _, s := range sprites {
-		err := s.Draw(cfg, screen, ops)
-		if err != nil {
-			return err
-		}
+		_, y := s.Position()
+		drawSprites.Push(y, s)
 	}
 	// 地图精灵
 	for _, s := range w.currentMap.sprites {
-		err := s.Draw(cfg, screen, ops)
+		_, y := s.Position()
+		drawSprites.Push(y, s)
+	}
+	spritePairs := drawSprites.ToSlice()
+	for i := len(spritePairs) - 1; i >= 0; i-- {
+		err := spritePairs[i].E2().Draw(cfg, screen, ops)
 		if err != nil {
 			return err
 		}
