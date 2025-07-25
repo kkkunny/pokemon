@@ -62,32 +62,36 @@ func NewPerson(name string) (*Person, error) {
 	}, nil
 }
 
-func (s *Person) Move() bool {
-	return s.pos != s.expectPos
+func (p *Person) Move() bool {
+	return p.pos != p.expectPos
 }
 
-func (s *Person) SetPosition(x, y int) {
-	s.pos = [2]int{x, y}
-	s.expectPos = [2]int{x, y}
+func (p *Person) SetPosition(x, y int) {
+	p.pos = [2]int{x, y}
+	p.expectPos = [2]int{x, y}
 }
 
-func (s *Person) OnAction(_ *config.Config, _ input.Action, _ sprite.UpdateInfo) {
+func (p *Person) Position() (int, int) {
+	return p.pos[0], p.pos[1]
+}
+
+func (p *Person) OnAction(_ *config.Config, _ input.Action, _ sprite.UpdateInfo) {
 	return
 }
 
-func (s *Person) PixelPosition(cfg *config.Config) (x, y int) {
-	img := s.directionImages[s.direction]
-	return s.pos[0] * cfg.TileSize, (s.pos[1]+1)*cfg.TileSize - img.Bounds().Dy()
+func (p *Person) PixelPosition(cfg *config.Config) (x, y int) {
+	img := p.directionImages[p.direction]
+	return p.pos[0] * cfg.TileSize, (p.pos[1]+1)*cfg.TileSize - img.Bounds().Dy()
 }
 
-func (s *Person) Update(cfg *config.Config, _ sprite.UpdateInfo) error {
+func (p *Person) Update(cfg *config.Config, _ sprite.UpdateInfo) error {
 	return nil
 }
 
-func (s *Person) Draw(cfg *config.Config, screen *ebiten.Image, ops *ebiten.DrawImageOptions) error {
-	img := s.directionImages[s.direction]
+func (p *Person) Draw(cfg *config.Config, screen *ebiten.Image, ops *ebiten.DrawImageOptions) error {
+	img := p.directionImages[p.direction]
 
-	x, y := s.PixelPosition(cfg)
+	x, y := p.PixelPosition(cfg)
 	if ops == nil {
 		ops = &ebiten.DrawImageOptions{}
 	} else {
@@ -96,8 +100,8 @@ func (s *Person) Draw(cfg *config.Config, screen *ebiten.Image, ops *ebiten.Draw
 	}
 	ops.GeoM.Translate(float64(x), float64(y))
 
-	if s.Move() {
-		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.direction][s.moveStartingFoot]
+	if p.Move() {
+		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.direction][p.moveStartingFoot]
 		a.Draw(screen, ops)
 	} else {
 		screen.DrawImage(img, ops)

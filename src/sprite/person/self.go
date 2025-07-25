@@ -62,6 +62,10 @@ func (s *Self) SetPosition(x, y int) {
 	s.expectPos = [2]int{x, y}
 }
 
+func (s *Self) Position() (int, int) {
+	return s.pos[0], s.pos[1]
+}
+
 func (s *Self) OnAction(cfg *config.Config, action input.Action, info sprite.UpdateInfo) {
 	if info == nil {
 		return

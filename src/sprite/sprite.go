@@ -16,6 +16,7 @@ type UpdateInfo interface {
 type Sprite interface {
 	util.Drawer
 	SetPosition(x, y int)
+	Position() (int, int)
 	OnAction(cfg *config.Config, action input.Action, info UpdateInfo)
 	Update(cfg *config.Config, info UpdateInfo) error
 }
