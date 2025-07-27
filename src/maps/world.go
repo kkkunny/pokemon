@@ -68,7 +68,10 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 
 func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
 	for _, s := range sprites {
-		x, y := s.NextStepPosition()
+		x, y := s.Position()
+		if movable, ok := s.(sprite.MovableSprite); ok {
+			x, y = movable.NextStepPosition()
+		}
 		w.selfPos = [2]int{x, y}
 	}
 

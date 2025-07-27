@@ -65,35 +65,14 @@ func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.Upd
 		return nil
 	}
 
-	if action == input.ActionEnum.A { // 交互
-		targetX, targetY := getNextPositionByDirection(s.direction, s.pos[0], s.pos[1])
-		targetMap, targetX, targetY, _ := updateInfo.World.GetActualPosition(targetX, targetY)
-		targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
+	if s.movable { // 移动
+		nextStepDirection, ok := actionToDirection[action]
 		if ok {
-			scriptName := targetSprite.GetScript()
-			rt, err := loadScriptFileWithSelf(updateInfo.World, targetSprite, s, scriptName)
-			if err != nil {
-				return err
+			if s.direction != nextStepDirection {
+				s.nextStepDirection = nextStepDirection
+			} else if x, y := GetNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+				s.SetNextStepDirection(nextStepDirection)
 			}
-			defer rt.Close()
-
-			param1 := rt.NewUserData()
-			param1.Value = targetSprite
-			err = rt.CallByParam(lua.P{
-				Fn:      rt.GetGlobal(scriptName),
-				NRet:    1,
-				Protect: true,
-			}, param1)
-			if err != nil {
-				return err
-			}
-		}
-	} else if s.movable { // 移动
-		nextStepDirection := actionToDirection[action]
-		if s.direction != nextStepDirection {
-			s.nextStepDirection = nextStepDirection
-		} else if x, y := getNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
-			s.SetNextStepDirection(nextStepDirection)
 		}
 	}
 

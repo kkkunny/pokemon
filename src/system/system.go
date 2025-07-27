@@ -17,7 +17,6 @@ import (
 
 type System struct {
 	ctx            context.Context
-	input          *input.System
 	world          *maps.World
 	self           person.Self
 	mapVoicePlayer *voice.Player
@@ -35,8 +34,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 	if err != nil {
 		return nil, err
 	}
-	ds.ResetText("欢迎来到口袋妖怪世界！开始属于你的冒险吧！")
-	ds.SetDisplay(true)
+	ds.DisplayText("欢迎来到口袋妖怪世界！开始属于你的冒险吧！")
 	// 主角
 	self, err := person.NewSelf("master")
 	if err != nil {
@@ -45,7 +43,6 @@ func NewSystem(ctx context.Context) (*System, error) {
 	self.SetPosition(6, 8)
 	return &System{
 		ctx:            ctx,
-		input:          input.NewSystem(),
 		world:          world,
 		self:           self,
 		mapVoicePlayer: voice.NewPlayer(),
@@ -53,7 +50,58 @@ func NewSystem(ctx context.Context) (*System, error) {
 	}, nil
 }
 
-func (s *System) Update() error {
+func (s *System) OnAction(action input.Action) error {
+	if !s.dialogue.Display() {
+		drawInfo := &person.UpdateInfo{World: s.world}
+		err := s.self.OnAction(s.ctx, action, drawInfo)
+		if err != nil {
+			return err
+		}
+		for _, sp := range s.world.CurrentMap().Sprites() {
+			err = sp.OnAction(s.ctx, action, drawInfo)
+			if err != nil {
+				return err
+			}
+		}
+
+		if action == input.ActionEnum.A {
+			x, y := s.self.Position()
+			targetX, targetY := person.GetNextPositionByDirection(s.self.Direction(), x, y)
+			targetMap, targetX, targetY, _ := s.world.GetActualPosition(targetX, targetY)
+			targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
+			if ok {
+				switch targetSprite.ActionType() {
+				case sprite.ActionTypeEnum.Script:
+					// scriptName := targetSprite.GetScript()
+					// rt, err := loadScriptFileWithSelf(updateInfo.World, targetSprite, s, scriptName)
+					// if err != nil {
+					// 	return err
+					// }
+					// defer rt.Close()
+					//
+					// param1 := rt.NewUserData()
+					// param1.Value = targetSprite
+					// err = rt.CallByParam(lua.P{
+					// 	Fn:      rt.GetGlobal(scriptName),
+					// 	NRet:    1,
+					// 	Protect: true,
+					// }, param1)
+					// if err != nil {
+					// 	return err
+					// }
+				case sprite.ActionTypeEnum.Dialogue:
+					text := s.ctx.Localisation().Get(targetSprite.GetText())
+					s.dialogue.DisplayText(text)
+				}
+			}
+		}
+	} else if s.dialogue.StreamDone() && action == input.ActionEnum.A {
+		s.dialogue.SetDisplay(false)
+	}
+	return nil
+}
+
+func (s *System) OnUpdate() error {
 	// 地图音乐
 	songFilepath, ok := s.world.CurrentMap().SongFilepath()
 	if ok {
@@ -67,33 +115,13 @@ func (s *System) Update() error {
 		}
 	}
 
+	// 主角
 	drawInfo := &person.UpdateInfo{World: s.world}
-	// 处理输入
-	action, err := s.input.Action()
+	err := s.self.Update(s.ctx, drawInfo)
 	if err != nil {
 		return err
 	}
-	if action != nil {
-		if !s.dialogue.Display() {
-			err = s.self.OnAction(s.ctx, *action, drawInfo)
-			if err != nil {
-				return err
-			}
-			for _, sp := range s.world.CurrentMap().Sprites() {
-				err = sp.OnAction(s.ctx, *action, drawInfo)
-				if err != nil {
-					return err
-				}
-			}
-		} else if s.dialogue.StreamDone() && *action == input.ActionEnum.A {
-			s.dialogue.SetDisplay(false)
-		}
-	}
-	// 更新
-	err = s.self.Update(s.ctx, drawInfo)
-	if err != nil {
-		return err
-	}
+	// 世界
 	err = s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
 	if err != nil {
 		return err
@@ -101,7 +129,7 @@ func (s *System) Update() error {
 	return nil
 }
 
-func (s *System) Draw(screen *ebiten.Image) error {
+func (s *System) OnDraw(screen *ebiten.Image) error {
 	// 地图
 	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*s.ctx.Config().Scale, screen.Bounds().Dy()*s.ctx.Config().Scale)
 	err := s.world.Draw(s.ctx, originSizeScreen, []sprite.Sprite{s.self})

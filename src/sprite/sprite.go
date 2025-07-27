@@ -3,12 +3,12 @@ package sprite
 import (
 	"fmt"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
 	input "github.com/quasilyte/ebitengine-input"
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/util"
 )
 
 type Behavior string
@@ -21,18 +21,29 @@ var BehaviorEnum = enum.New[struct {
 	Script Behavior `enum:"script"`
 }]()
 
+type ActionType string
+
+var ActionTypeEnum = enum.New[struct {
+	None     ActionType `enum:""`
+	Script   ActionType `enum:"script"`
+	Dialogue ActionType `enum:"dialogue"`
+}]()
+
 type UpdateInfo interface {
 	UpdateInfo()
 }
 
 type Sprite interface {
-	util.Drawer
+	ActionType() ActionType
+	GetScript() string
+	GetText() string
+	
 	SetPosition(x, y int)
 	Position() (int, int)
-	NextStepPosition() (int, int)
-	GetScript() string
+
 	OnAction(ctx context.Context, action input.Action, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error
+	Draw(ctx context.Context, screen *ebiten.Image, options ebiten.DrawImageOptions) error
 }
 
 var spriteCreateFuncMap = make(map[string]func(object *tiled.Object) (Sprite, error))

@@ -151,8 +151,8 @@ func loadCompletePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.D
 	return directionAnimations, nil
 }
 
-// 获取该方向下一步位置
-func getNextPositionByDirection(d consts.Direction, x, y int) (int, int) {
+// GetNextPositionByDirection 获取该方向下一步位置
+func GetNextPositionByDirection(d consts.Direction, x, y int) (int, int) {
 	switch d {
 	case consts.DirectionEnum.Up:
 		return x, y + int(consts.DirectionEnum.Up)%2

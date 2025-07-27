@@ -66,6 +66,11 @@ func (d *DialogueSystem) ResetText(s string) {
 	d.lastUpdateTime = time.Time{}
 }
 
+func (d *DialogueSystem) DisplayText(s string) {
+	d.ResetText(s)
+	d.SetDisplay(true)
+}
+
 func (d *DialogueSystem) StreamDone() bool {
 	return d.index > len(d.text)-1
 }
@@ -120,11 +125,22 @@ func (d *DialogueSystem) Draw(screen *ebiten.Image) error {
 	if d.StreamDone() || (d.lastUpdateTime != stlval.Default[time.Time]() && time.Now().Sub(d.lastUpdateTime) < d.displayInterval) {
 		return nil
 	}
+
+	// 更新
 	d.lastUpdateTime = time.Now()
 	d.index++
+
+	// 换行
 	nextBounds, _ := font.BoundString(d.fontFace.UnsafeInternal(), string(d.text[renderedIndex:d.index]))
 	nextRenderW := float64((nextBounds.Max.X - nextBounds.Min.X).Floor())
-	if nextRenderW > fgW {
+	changeLine := nextRenderW > fgW
+
+	if d.index <= len(d.text)-1 && d.text[d.index-1] == '\n' {
+		changeLine = true
+		renderText = d.text[renderedIndex:d.index]
+		d.index++
+	}
+	if changeLine {
 		d.lines = append(d.lines, renderText)
 	}
 	return nil

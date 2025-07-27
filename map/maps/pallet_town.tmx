@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="8">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="9">
  <properties>
   <property name="name" value="pallet_town"/>
   <property name="song" value="pallet_town.ogg"/>
@@ -135,6 +135,12 @@
     <property name="conversation" value="conversation.1"/>
     <property name="image" value="person1"/>
     <property name="script" value="person_random_talk"/>
+   </properties>
+  </object>
+  <object id="8" type="label" x="144.559" y="176.051" width="14.9831" height="15.8155">
+   <properties>
+    <property name="action_type" value="dialogue"/>
+    <property name="text" value="pallet_town_desc"/>
    </properties>
   </object>
  </objectgroup>

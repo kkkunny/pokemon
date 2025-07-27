@@ -6,13 +6,15 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/i18n"
+	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system"
 )
 
 type Game struct {
-	cfg *config.Config
-	loc *i18n.Localisation
-	sys *system.System
+	cfg   *config.Config
+	loc   *i18n.Localisation
+	input *input.System
+	sys   *system.System
 }
 
 func NewGame(cfg *config.Config) (*Game, error) {
@@ -26,18 +28,29 @@ func NewGame(cfg *config.Config) (*Game, error) {
 		return nil, err
 	}
 	return &Game{
-		cfg: cfg,
-		loc: loc,
-		sys: sys,
+		cfg:   cfg,
+		loc:   loc,
+		input: input.NewSystem(),
+		sys:   sys,
 	}, err
 }
 
 func (g *Game) Update() error {
-	return g.sys.Update()
+	action, err := g.input.Action()
+	if err != nil {
+		return err
+	}
+	if action != nil {
+		err = g.sys.OnAction(*action)
+		if err != nil {
+			return err
+		}
+	}
+	return g.sys.OnUpdate()
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	err := g.sys.Draw(screen)
+	err := g.sys.OnDraw(screen)
 	if err != nil {
 		panic(err)
 	}

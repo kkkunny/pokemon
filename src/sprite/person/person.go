@@ -18,6 +18,7 @@ import (
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/sprite/item"
 )
 
 func init() {
@@ -26,8 +27,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		person := personObj.(*_Person)
-		person.script = object.Properties.GetString("script")
+		// person := personObj.(*_Person)
 		return personObj, nil
 	})
 }
@@ -37,6 +37,7 @@ type Person interface {
 }
 
 type _Person struct {
+	item.Item
 	// 静态资源
 	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
@@ -49,8 +50,6 @@ type _Person struct {
 	pos               [2]int           // 当前地块位置
 	nextStepPos       [2]int           // 下一步预期所处的地块位置，用于移动
 	moveCounter       int              // 移动时的计数器，用于显示动画
-	// 交互
-	script string // 脚本id
 }
 
 func NewPerson(name string) (Person, error) {
@@ -67,7 +66,13 @@ func NewPerson(name string) (Person, error) {
 		return nil, err
 	}
 
+	itemSprite, err := item.NewItem()
+	if err != nil {
+		return nil, err
+	}
+
 	return &_Person{
+		Item:               itemSprite,
 		behaviorAnimations: behaviorAnimations,
 		direction:          consts.DirectionEnum.Down,
 		movable:            true,
@@ -126,7 +131,7 @@ func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
 	if !p.Turn(d) {
 		return false
 	}
-	p.nextStepPos[0], p.nextStepPos[1] = getNextPositionByDirection(d, p.pos[0], p.pos[1])
+	p.nextStepPos[0], p.nextStepPos[1] = GetNextPositionByDirection(d, p.pos[0], p.pos[1])
 	return true
 }
 
@@ -203,7 +208,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		}
 		if p.direction != nextStepDirection && rand.IntN(500) > 250 {
 			p.nextStepDirection = nextStepDirection
-		} else if x, y := getNextPositionByDirection(nextStepDirection, p.pos[0], p.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+		} else if x, y := GetNextPositionByDirection(nextStepDirection, p.pos[0], p.pos[1]); !updateInfo.World.CheckCollision(x, y) {
 			p.SetNextStepDirection(nextStepDirection)
 		}
 	}
@@ -233,10 +238,6 @@ func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.Dra
 		a.Draw(screen, ops)
 	}
 	return nil
-}
-
-func (p *_Person) GetScript() string {
-	return p.script
 }
 
 func (p *_Person) Turn(d consts.Direction) bool {
