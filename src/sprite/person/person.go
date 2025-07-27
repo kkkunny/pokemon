@@ -27,14 +27,13 @@ func init() {
 			return nil, err
 		}
 		person := personObj.(*_Person)
-		person.interactiveBehavior = sprite.Behavior(object.Properties.GetString("interactive_behavior"))
+		person.script = object.Properties.GetString("script")
 		return personObj, nil
 	})
 }
 
 type Person interface {
-	sprite.Talker
-	Moving() bool
+	sprite.MovableSprite
 }
 
 type _Person struct {
@@ -43,6 +42,7 @@ type _Person struct {
 	// 属性
 	direction consts.Direction // 当前所处方向
 	// 移动
+	movable           bool             // 是否可移动
 	speed             int              // 移动速度
 	moveStartingFoot  Foot             // 移动时的起始脚
 	nextStepDirection consts.Direction // 下一步预期所处方向
@@ -50,8 +50,7 @@ type _Person struct {
 	nextStepPos       [2]int           // 下一步预期所处的地块位置，用于移动
 	moveCounter       int              // 移动时的计数器，用于显示动画
 	// 交互
-	interactiveBehavior sprite.Behavior // 交互行为
-	talkTo              sprite.Talker   // 交谈对象
+	script string // 脚本id
 }
 
 func NewPerson(name string) (Person, error) {
@@ -71,6 +70,7 @@ func NewPerson(name string) (Person, error) {
 	return &_Person{
 		behaviorAnimations: behaviorAnimations,
 		direction:          consts.DirectionEnum.Down,
+		movable:            true,
 		nextStepDirection:  consts.DirectionEnum.Down,
 		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
@@ -87,14 +87,9 @@ func (p *_Person) Moving() bool {
 	return p.pos != p.nextStepPos
 }
 
-// Talking 是否正在交谈
-func (p *_Person) Talking() bool {
-	return p.talkTo != nil
-}
-
 // Busying 是否忙碌中
 func (p *_Person) Busying() bool {
-	return p.Turning() || p.Moving() || p.Talking()
+	return p.Turning() || p.Moving()
 }
 
 func (p *_Person) SetDirection(d consts.Direction) {
@@ -176,7 +171,6 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			p.direction = p.nextStepDirection
 			p.moveStartingFoot = -p.moveStartingFoot
 		}
-	} else if p.Talking() {
 	} else if p.Moving() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.SetFrameTime(ctx.Config().TileSize / p.speed / a.FrameCount())
@@ -193,7 +187,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			p.moveStartingFoot = -p.moveStartingFoot
 			a.Reset()
 		}
-	} else {
+	} else if p.movable {
 		var nextStepDirection consts.Direction
 		n := rand.IntN(500)
 		if n >= 499 {
@@ -241,8 +235,8 @@ func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.Dra
 	return nil
 }
 
-func (p *_Person) GetInteractiveBehavior() sprite.Behavior {
-	return p.interactiveBehavior
+func (p *_Person) GetScript() string {
+	return p.script
 }
 
 func (p *_Person) Turn(d consts.Direction) bool {
@@ -253,31 +247,10 @@ func (p *_Person) Turn(d consts.Direction) bool {
 	return true
 }
 
-func (p *_Person) TalkTo(talker sprite.Talker, passive bool) (bool, error) {
-	if p.Busying() {
-		return false, nil
-	}
-	if !passive {
-		ok, err := talker.TalkTo(p, true)
-		if err != nil {
-			return false, err
-		} else if !ok {
-			return false, nil
-		}
-	} else {
-		if !p.Turn(-talker.Direction()) {
-			return false, nil
-		}
-	}
-	p.talkTo = talker
-	return true, nil
+func (p *_Person) SetMovable(movable bool) {
+	p.movable = movable
 }
 
-func (p *_Person) EndTalk() error {
-	if !p.Talking() {
-		return nil
-	}
-	talkTo := p.talkTo
-	p.talkTo = nil
-	return talkTo.EndTalk()
+func (p *_Person) Movable() bool {
+	return p.movable
 }

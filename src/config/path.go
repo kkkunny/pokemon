@@ -14,4 +14,5 @@ var (
 	LocalisationPath = filepath.Join(ResourcePath, "localisation")
 	MapItemPath      = filepath.Join(ResourcePath, "map_item")
 	VoicePath        = filepath.Join(ResourcePath, "voice")
+	ScriptsPath      = filepath.Join(ResourcePath, "scripts")
 )

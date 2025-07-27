@@ -2,16 +2,18 @@ package person
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	stlval "github.com/kkkunny/stl/value"
+	lua "github.com/yuin/gopher-lua"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/maps"
+	"github.com/kkkunny/pokemon/src/script"
 	"github.com/kkkunny/pokemon/src/sprite"
 )
 
@@ -68,24 +70,25 @@ func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.Upd
 		targetMap, targetX, targetY, _ := updateInfo.World.GetActualPosition(targetX, targetY)
 		targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
 		if ok {
-			switch targetSprite.GetInteractiveBehavior() {
-			case sprite.BehaviorEnum.Talk:
-				talker := targetSprite.(sprite.Talker)
-				ok, err := s.TalkTo(talker, false)
-				if err != nil {
-					return err
-				}
-				if ok {
-					err = s.EndTalk()
-					if err != nil {
-						return err
-					}
-				}
-			default:
-				return fmt.Errorf("invalid behavior `%s`", targetSprite.GetInteractiveBehavior())
+			scriptName := targetSprite.GetScript()
+			rt, err := loadScriptFileWithSelf(updateInfo.World, targetSprite, s, scriptName)
+			if err != nil {
+				return err
+			}
+			defer rt.Close()
+
+			param1 := rt.NewUserData()
+			param1.Value = targetSprite
+			err = rt.CallByParam(lua.P{
+				Fn:      rt.GetGlobal(scriptName),
+				NRet:    1,
+				Protect: true,
+			}, param1)
+			if err != nil {
+				return err
 			}
 		}
-	} else { // 移动
+	} else if s.movable { // 移动
 		nextStepDirection := actionToDirection[action]
 		if s.direction != nextStepDirection {
 			s.nextStepDirection = nextStepDirection
@@ -171,4 +174,56 @@ func (s *_Self) Draw(ctx context.Context, screen *ebiten.Image, _ ebiten.DrawIma
 		a.Draw(screen, ops)
 	}
 	return nil
+}
+
+var luaModuleToGo = map[string]map[string]lua.LGFunction{
+	"sprite": {
+		"set_movable": func(rt *lua.LState) int {
+			param1 := rt.CheckUserData(1)
+			s, ok := param1.Value.(sprite.MovableSprite)
+			if !ok {
+				return 1
+			}
+			movable := rt.CheckBool(2)
+			s.SetMovable(movable)
+			return 0
+		},
+	},
+	"game": {
+		"display_message": func(rt *lua.LState) int {
+			param1 := rt.CheckUserData(1)
+			s, ok := param1.Value.(sprite.MovableSprite)
+			if !ok {
+				return 1
+			}
+			movable := rt.CheckBool(2)
+			s.SetMovable(movable)
+			return 0
+		},
+	},
+}
+
+func loadScriptFileWithSelf(w *maps.World, this sprite.Sprite, master *_Self, name string) (rt *lua.LState, err error) {
+	rt, err = script.LoadScriptFile(name)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			rt.Close()
+		}
+	}()
+
+	err = rt.PCall(0, lua.MultRet, nil)
+	if err != nil {
+		return nil, err
+	}
+	for moduleName, luaFuncToGo := range luaModuleToGo {
+		rt.PreloadModule(moduleName, func(rt *lua.LState) int {
+			rt.Push(rt.SetFuncs(rt.NewTable(), luaFuncToGo))
+			return 1
+		})
+	}
+
+	return rt, nil
 }

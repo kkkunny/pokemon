@@ -130,11 +130,11 @@
 </data>
  </layer>
  <objectgroup id="8" name="6">
-  <object id="1" type="person" x="176.468" y="224.191" width="14.9831" height="15.8155">
+  <object id="1" type="person" x="208.376" y="271.637" width="14.9831" height="15.8155">
    <properties>
     <property name="conversation" value="conversation.1"/>
     <property name="image" value="person1"/>
-    <property name="interactive_behavior" value="talk"/>
+    <property name="script" value="person_random_talk"/>
    </properties>
   </object>
  </objectgroup>

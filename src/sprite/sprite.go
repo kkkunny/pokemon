@@ -17,7 +17,8 @@ var BehaviorEnum = enum.New[struct {
 	Walk Behavior `enum:"walk"`
 	Run  Behavior `enum:"run"`
 	// 无动画
-	Talk Behavior `enum:"talk"`
+	Talk   Behavior `enum:"talk"`
+	Script Behavior `enum:"script"`
 }]()
 
 type UpdateInfo interface {
@@ -29,7 +30,7 @@ type Sprite interface {
 	SetPosition(x, y int)
 	Position() (int, int)
 	NextStepPosition() (int, int)
-	GetInteractiveBehavior() Behavior
+	GetScript() string
 	OnAction(ctx context.Context, action input.Action, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error
 }

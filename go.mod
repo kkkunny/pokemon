@@ -8,6 +8,7 @@ require (
 	github.com/lafriks/go-tiled v0.13.0
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/tnnmigga/enum v1.0.2
+	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/image v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 )
