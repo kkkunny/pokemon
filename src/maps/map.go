@@ -139,7 +139,7 @@ func (m *Map) Size() (w int, h int) {
 }
 
 func (m *Map) Name() string {
-	return m.name
+	return m.define.Properties.GetString("name")
 }
 
 func (m *Map) SongFilepath() (string, bool) {

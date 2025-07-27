@@ -1,15 +1,23 @@
 package maps
 
 import (
+	"fmt"
+	"image/color"
+	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/kkkunny/stl/container/pqueue"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/util"
 )
 
 type World struct {
@@ -17,6 +25,10 @@ type World struct {
 	currentMap      *Map
 	pos             [2]int
 	firstRenderTime time.Time
+	// 切换地图
+	nameMoveSpeed   int           // 地图名移动速度
+	fontFace        *text.GoXFace // 显示地图名
+	nameMoveCounter int           // 地图名移动计数器
 }
 
 func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
@@ -25,10 +37,30 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &World{
-		tileCache:  tileCache,
-		currentMap: enterMap,
-	}, nil
+	// 字体
+	fontBytes, err := os.ReadFile(fmt.Sprintf("./resource/fonts/%s.ttf", cfg.MaterFontName))
+	if err != nil {
+		return nil, err
+	}
+	fontInst, err := opentype.Parse(fontBytes)
+	if err != nil {
+		return nil, err
+	}
+	fontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
+		Size:    32,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	})
+	if err != nil {
+		return nil, err
+	}
+	w := &World{
+		tileCache:     tileCache,
+		nameMoveSpeed: 1,
+		fontFace:      text.NewGoXFace(fontFace),
+	}
+	w.MoveTo(enterMap)
+	return w, nil
 }
 
 func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []sprite.Sprite) error {
@@ -105,7 +137,11 @@ func (w *World) MovePixelPosTo(x, y int) {
 }
 
 func (w *World) MoveTo(targetMap *Map) {
+	if w.currentMap == targetMap {
+		return
+	}
 	w.currentMap = targetMap
+	w.nameMoveCounter = 0
 }
 
 func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
@@ -122,4 +158,41 @@ func (w *World) CheckCollision(x, y int) bool {
 		return true
 	}
 	return targetMap.CheckCollision(x, y)
+}
+
+// DrawMapName 绘制地图名
+func (w *World) DrawMapName(cfg *config.Config, screen *ebiten.Image) error {
+	height := cfg.ScreenHeight / 7
+	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
+		return nil
+	}
+
+	var ops ebiten.DrawImageOptions
+	if w.nameMoveCounter < height {
+		ops.GeoM.Translate(10, float64(w.nameMoveCounter-height))
+	} else if w.nameMoveCounter < height*3 {
+		ops.GeoM.Translate(10, 0)
+	} else {
+		ops.GeoM.Translate(10, -float64(w.nameMoveCounter%height))
+	}
+	screen.DrawImage(w.getMapNameDisplayImage(cfg), &ops)
+	w.nameMoveCounter += w.nameMoveSpeed
+	return nil
+}
+
+func (w *World) getMapNameDisplayImage(cfg *config.Config) *ebiten.Image {
+	width, height := float32(cfg.ScreenWidth)/3, float32(cfg.ScreenHeight)/7
+	img := ebiten.NewImage(int(width), int(height))
+
+	vector.DrawFilledRect(img, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
+	vector.StrokeRect(img, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
+	vector.StrokeRect(img, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
+
+	displayText := w.currentMap.Name()
+	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), displayText)
+	var textOps text.DrawOptions
+	textOps.ColorScale.ScaleWithColor(color.Black)
+	textOps.GeoM.Translate((float64(width)+10)/2-float64(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (float64(height)-6)/2-float64(bounds.Max.Y.Floor()-bounds.Min.Y.Floor()))
+	text.Draw(img, displayText, w.fontFace, &textOps)
+	return img
 }

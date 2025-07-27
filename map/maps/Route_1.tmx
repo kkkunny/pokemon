@@ -2,6 +2,7 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="40" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="1">
  <properties>
   <property name="down" value="Pallet_Town"/>
+  <property name="name" value="1号道路"/>
   <property name="song" value="route1.ogg"/>
  </properties>
  <tileset firstgid="1" source="../tile/building.tsx"/>

@@ -63,7 +63,6 @@ func (s *_Self) OnAction(cfg *config.Config, action input.Action, info sprite.Up
 	if s.SetNextStepDirection(actionToDirection[action]) && updateInfo.World.CheckCollision(s.nextStepPos[0], s.nextStepPos[1]) {
 		s.nextStepPos = s.pos
 	}
-	return
 }
 
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {

@@ -8,6 +8,7 @@ require (
 	github.com/lafriks/go-tiled v0.13.0
 	github.com/quasilyte/ebitengine-input v0.9.1
 	github.com/tnnmigga/enum v1.0.2
+	golang.org/x/image v0.29.0
 )
 
 require (
@@ -18,6 +19,7 @@ require (
 	github.com/ebitengine/oto/v3 v3.3.3 // indirect
 	github.com/ebitengine/purego v0.8.0 // indirect
 	github.com/elastic/go-freelru v0.16.0 // indirect
+	github.com/go-text/typesetting v0.2.0 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
@@ -25,7 +27,7 @@ require (
 	github.com/segmentio/fasthash v1.0.3 // indirect
 	github.com/zyedidia/generic v1.2.1 // indirect
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
-	golang.org/x/image v0.29.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 )

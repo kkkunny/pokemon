@@ -96,10 +96,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		panic(err)
 	}
 
-	ops := &ebiten.DrawImageOptions{}
+	var ops ebiten.DrawImageOptions
 	ops.GeoM.Scale(float64(g.cfg.Scale), float64(g.cfg.Scale))
 	ops.GeoM.Translate(float64(screen.Bounds().Dx()/2*(1-g.cfg.Scale)), float64(screen.Bounds().Dy()/2*(1-g.cfg.Scale)))
-	screen.DrawImage(originSizeScreen, ops)
+	screen.DrawImage(originSizeScreen, &ops)
+
+	// 地图名
+	err = g.world.DrawMapName(g.cfg, screen)
+	if err != nil {
+		panic(err)
+	}
+
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 }
 
