@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
+	stlval "github.com/kkkunny/stl/value"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
@@ -60,7 +61,10 @@ func (s *_Self) OnAction(cfg *config.Config, action input.Action, info sprite.Up
 		return
 	}
 
-	if s.SetNextStepDirection(actionToDirection[action]) && updateInfo.World.CheckCollision(s.nextStepPos[0], s.nextStepPos[1]) {
+	nextStepDirection := actionToDirection[action]
+	if s.direction != nextStepDirection {
+		s.nextStepDirection = nextStepDirection
+	} else if s.SetNextStepDirection(nextStepDirection) && updateInfo.World.CheckCollision(s.nextStepPos[0], s.nextStepPos[1]) {
 		s.nextStepPos = s.pos
 	}
 }
@@ -121,6 +125,17 @@ func (s *_Self) Draw(cfg *config.Config, screen *ebiten.Image, _ ebiten.DrawImag
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if s.Turning() {
+		if s.direction == -s.nextStepDirection {
+			s.moveStartingFoot = sprite.FootEnum.Right
+		} else if s.direction == consts.DirectionEnum.Up {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Left, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if s.direction == consts.DirectionEnum.Down {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Right, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if s.direction == consts.DirectionEnum.Left {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Down, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if s.direction == consts.DirectionEnum.Right {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		}
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {

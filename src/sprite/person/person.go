@@ -9,6 +9,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
+	stlval "github.com/kkkunny/stl/value"
 
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
@@ -210,6 +211,17 @@ func (p *_Person) Draw(cfg *config.Config, screen *ebiten.Image, ops ebiten.Draw
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if p.Turning() {
+		if p.direction == -p.nextStepDirection {
+			p.moveStartingFoot = sprite.FootEnum.Right
+		} else if p.direction == consts.DirectionEnum.Up {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Left, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if p.direction == consts.DirectionEnum.Down {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Right, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if p.direction == consts.DirectionEnum.Left {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Down, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		} else if p.direction == consts.DirectionEnum.Right {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, sprite.FootEnum.Left, sprite.FootEnum.Right)
+		}
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {
