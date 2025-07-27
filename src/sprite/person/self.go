@@ -67,8 +67,8 @@ func (s *_Self) OnAction(cfg *config.Config, action input.Action, info sprite.Up
 }
 
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {
-	img := s.directionImages[s.direction]
-	return cfg.ScreenWidth/2 - img.Bounds().Dx()/2, cfg.ScreenHeight/2 - img.Bounds().Dy()/2
+	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
+	return cfg.ScreenWidth/2 - bounds.Dx()/2, cfg.ScreenHeight/2 - bounds.Dy()/2
 }
 
 func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
@@ -117,8 +117,6 @@ func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 }
 
 func (s *_Self) Draw(cfg *config.Config, screen *ebiten.Image, _ ebiten.DrawImageOptions) error {
-	img := s.directionImages[s.nextStepDirection]
-
 	x, y := s.PixelPosition(cfg)
 	var ops ebiten.DrawImageOptions
 	ops.GeoM.Translate(float64(x), float64(y))
@@ -126,11 +124,9 @@ func (s *_Self) Draw(cfg *config.Config, screen *ebiten.Image, _ ebiten.DrawImag
 	if s.Turning() {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
-	} else if s.Moving() {
+	} else {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		a.Draw(screen, ops)
-	} else {
-		screen.DrawImage(img, &ops)
 	}
 	return nil
 }

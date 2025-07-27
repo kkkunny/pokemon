@@ -9,7 +9,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
-	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
@@ -36,7 +35,6 @@ type Person interface {
 
 type _Person struct {
 	// 静态资源
-	directionImages    map[consts.Direction]*ebiten.Image                                            // 方向图片
 	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[sprite.Foot]*animation.Animation // 行为动画
 	// 属性
 	direction consts.Direction // 当前所处方向
@@ -62,13 +60,8 @@ func NewPerson(name string) (Person, error) {
 	if err != nil {
 		return nil, err
 	}
-	directionImages := make(map[consts.Direction]*ebiten.Image, len(enum.Values[consts.Direction](consts.DirectionEnum)))
-	for direction, directionAnimations := range behaviorAnimations[sprite.BehaviorEnum.Walk] {
-		directionImages[direction] = stlmaps.First(directionAnimations).E2().GetFrameImage(0)
-	}
 
 	return &_Person{
-		directionImages:    directionImages,
 		behaviorAnimations: behaviorAnimations,
 		direction:          consts.DirectionEnum.Down,
 		nextStepDirection:  consts.DirectionEnum.Down,
@@ -137,8 +130,8 @@ func (p *_Person) OnAction(_ *config.Config, _ input.Action, _ sprite.UpdateInfo
 }
 
 func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
-	img := p.directionImages[p.nextStepDirection]
-	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-img.Bounds().Dy()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
+	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-width
 
 	if p.Moving() && !p.Turning() {
 		switch p.nextStepDirection {
@@ -213,19 +206,15 @@ func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 }
 
 func (p *_Person) Draw(cfg *config.Config, screen *ebiten.Image, ops ebiten.DrawImageOptions) error {
-	img := p.directionImages[p.nextStepDirection]
-
 	x, y := p.PixelPosition(cfg)
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if p.Turning() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
-	} else if p.Moving() {
+	} else {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.Draw(screen, ops)
-	} else {
-		screen.DrawImage(img, &ops)
 	}
 	return nil
 }
