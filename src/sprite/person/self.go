@@ -37,7 +37,7 @@ func NewSelf(name string) (Self, error) {
 	}
 	person := personObj.(*_Person)
 
-	behaviorAnimations, err := sprite.LoadPersonAnimations(name, sprite.BehaviorEnum.Run)
+	behaviorAnimations, err := loadPersonAnimations(name, BehaviorEnum.Run)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +65,13 @@ func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.Upd
 	nextStepDirection := actionToDirection[action]
 	if s.direction != nextStepDirection {
 		s.nextStepDirection = nextStepDirection
-	} else if s.SetNextStepDirection(nextStepDirection) && updateInfo.World.CheckCollision(s.nextStepPos[0], s.nextStepPos[1]) {
-		s.nextStepPos = s.pos
+	} else if x, y := getNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+		s.SetNextStepDirection(nextStepDirection)
 	}
 }
 
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {
-	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
+	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
 	return cfg.ScreenWidth/2 - bounds.Dx()/2, cfg.ScreenHeight/2 - bounds.Dy()/2
 }
 
@@ -93,7 +93,7 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			s.moveStartingFoot = -s.moveStartingFoot
 		}
 	} else if s.Moving() {
-		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		a.SetFrameTime(ctx.Config().TileSize / s.speed / a.FrameCount())
 		a.Update()
 
@@ -127,20 +127,20 @@ func (s *_Self) Draw(ctx context.Context, screen *ebiten.Image, _ ebiten.DrawIma
 
 	if s.Turning() {
 		if s.direction == -s.nextStepDirection {
-			s.moveStartingFoot = sprite.FootEnum.Right
+			s.moveStartingFoot = FootEnum.Right
 		} else if s.direction == consts.DirectionEnum.Up {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Left, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
 		} else if s.direction == consts.DirectionEnum.Down {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Right, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
 		} else if s.direction == consts.DirectionEnum.Left {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Down, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
 		} else if s.direction == consts.DirectionEnum.Right {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
-		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {
-		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		a.Draw(screen, ops)
 	}
 	return nil

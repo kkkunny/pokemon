@@ -1,4 +1,4 @@
-package sprite
+package person
 
 import (
 	"fmt"
@@ -29,8 +29,8 @@ var FootEnum = enum.New[struct {
 	Right Foot `enum:"-1"`
 }]()
 
-// LoadPersonAnimations 载入训练师图片
-func LoadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
+// 载入人类动画
+func loadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
 	dirpath := filepath.Join(config.MapItemPath, "people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
@@ -58,7 +58,6 @@ func LoadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[
 	}
 	return behaviorAnimations, nil
 }
-
 func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
 	directionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
@@ -156,4 +155,20 @@ func loadCompletePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.D
 		}
 	}
 	return directionAnimations, nil
+}
+
+// 获取该方向下一步位置
+func getNextPositionByDirection(d consts.Direction, x, y int) (int, int) {
+	switch d {
+	case consts.DirectionEnum.Up:
+		return x, y + int(consts.DirectionEnum.Up)%2
+	case consts.DirectionEnum.Down:
+		return x, y + int(consts.DirectionEnum.Down)%2
+	case consts.DirectionEnum.Left:
+		return x + int(consts.DirectionEnum.Left)%2, y
+	case consts.DirectionEnum.Right:
+		return x + int(consts.DirectionEnum.Right)%2, y
+	default:
+		return x, y
+	}
 }

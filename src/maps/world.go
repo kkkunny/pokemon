@@ -30,6 +30,8 @@ type World struct {
 	nameMoveSpeed   int           // 地图名移动速度
 	fontFace        *text.GoXFace // 显示地图名
 	nameMoveCounter int           // 地图名移动计数器
+	// 缓存地图碰撞
+	selfPos [2]int // 主角所在当前地图位置
 }
 
 func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
@@ -62,6 +64,21 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 	}
 	w.MoveTo(enterMap)
 	return w, nil
+}
+
+func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
+	for _, s := range sprites {
+		x, y := s.NextStepPosition()
+		w.selfPos = [2]int{x, y}
+	}
+
+	for _, s := range w.CurrentMap().Sprites() {
+		err := s.Update(ctx, info)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *World) Draw(ctx context.Context, screen *ebiten.Image, sprites []sprite.Sprite) error {
@@ -154,6 +171,9 @@ func (w *World) CurrentMap() *Map {
 }
 
 func (w *World) CheckCollision(x, y int) bool {
+	if [2]int{x, y} == w.selfPos {
+		return true
+	}
 	targetMap, x, y, ok := w.GetActualPosition(x, y)
 	if !ok {
 		return true

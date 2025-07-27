@@ -37,12 +37,12 @@ type Person interface {
 
 type _Person struct {
 	// 静态资源
-	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[sprite.Foot]*animation.Animation // 行为动画
+	behaviorAnimations map[Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
 	direction consts.Direction // 当前所处方向
 	// 移动
 	speed             int              // 移动速度
-	moveStartingFoot  sprite.Foot      // 移动时的起始脚
+	moveStartingFoot  Foot             // 移动时的起始脚
 	nextStepDirection consts.Direction // 下一步预期所处方向
 	pos               [2]int           // 当前地块位置
 	nextStepPos       [2]int           // 下一步预期所处的地块位置，用于移动
@@ -58,7 +58,7 @@ func NewPerson(name string) (Person, error) {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	behaviorAnimations, err := sprite.LoadPersonAnimations(name, sprite.BehaviorEnum.Walk)
+	behaviorAnimations, err := loadPersonAnimations(name, BehaviorEnum.Walk)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func NewPerson(name string) (Person, error) {
 		behaviorAnimations: behaviorAnimations,
 		direction:          consts.DirectionEnum.Down,
 		nextStepDirection:  consts.DirectionEnum.Down,
-		moveStartingFoot:   sprite.FootEnum.Left,
+		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
 	}, nil
 }
@@ -107,6 +107,10 @@ func (p *_Person) Position() (int, int) {
 	return p.pos[0], p.pos[1]
 }
 
+func (p *_Person) NextStepPosition() (int, int) {
+	return p.nextStepPos[0], p.nextStepPos[1]
+}
+
 // SetNextStepDirection 设置下一步方向，每次只可前进一格
 // 设置时不会校验下一个是否可移动，会在Update时校验
 func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
@@ -114,16 +118,7 @@ func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
 		return false
 	}
 	p.nextStepDirection = d
-	switch d {
-	case consts.DirectionEnum.Up:
-		p.nextStepPos = [2]int{p.pos[0], p.pos[1] + int(consts.DirectionEnum.Up)%2}
-	case consts.DirectionEnum.Down:
-		p.nextStepPos = [2]int{p.pos[0], p.pos[1] + int(consts.DirectionEnum.Down)%2}
-	case consts.DirectionEnum.Left:
-		p.nextStepPos = [2]int{p.pos[0] + int(consts.DirectionEnum.Left)%2, p.pos[1]}
-	case consts.DirectionEnum.Right:
-		p.nextStepPos = [2]int{p.pos[0] + int(consts.DirectionEnum.Right)%2, p.pos[1]}
-	}
+	p.nextStepPos[0], p.nextStepPos[1] = getNextPositionByDirection(d, p.pos[0], p.pos[1])
 	return true
 }
 
@@ -132,7 +127,7 @@ func (p *_Person) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInf
 }
 
 func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
-	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
 	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-width
 
 	if p.Moving() && !p.Turning() {
@@ -169,7 +164,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			p.moveStartingFoot = -p.moveStartingFoot
 		}
 	} else if p.Moving() {
-		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.SetFrameTime(ctx.Config().TileSize / p.speed / a.FrameCount())
 		a.Update()
 
@@ -200,8 +195,8 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		}
 		if p.direction != nextStepDirection && rand.IntN(500) > 250 {
 			p.nextStepDirection = nextStepDirection
-		} else if p.SetNextStepDirection(nextStepDirection) && updateInfo.World.CheckCollision(p.nextStepPos[0], p.nextStepPos[1]) {
-			p.nextStepPos = p.pos
+		} else if x, y := getNextPositionByDirection(nextStepDirection, p.pos[0], p.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+			p.SetNextStepDirection(nextStepDirection)
 		}
 	}
 	return nil
@@ -213,20 +208,20 @@ func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.Dra
 
 	if p.Turning() {
 		if p.direction == -p.nextStepDirection {
-			p.moveStartingFoot = sprite.FootEnum.Right
+			p.moveStartingFoot = FootEnum.Right
 		} else if p.direction == consts.DirectionEnum.Up {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Left, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
 		} else if p.direction == consts.DirectionEnum.Down {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Right, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
 		} else if p.direction == consts.DirectionEnum.Left {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Down, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
 		} else if p.direction == consts.DirectionEnum.Right {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, sprite.FootEnum.Left, sprite.FootEnum.Right)
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
-		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {
-		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.Draw(screen, ops)
 	}
 	return nil

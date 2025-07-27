@@ -17,6 +17,7 @@ type Sprite interface {
 	util.Drawer
 	SetPosition(x, y int)
 	Position() (int, int)
+	NextStepPosition() (int, int)
 	OnAction(ctx context.Context, action input.Action, info UpdateInfo)
 	Update(ctx context.Context, info UpdateInfo) error
 }

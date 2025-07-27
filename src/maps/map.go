@@ -149,7 +149,7 @@ func (m *Map) SongFilepath() (string, bool) {
 
 func (m *Map) CheckCollision(x, y int) bool {
 	for _, s := range m.sprites {
-		sx, sy := s.Position()
+		sx, sy := s.NextStepPosition()
 		if sx == x && sy == y {
 			return true
 		}

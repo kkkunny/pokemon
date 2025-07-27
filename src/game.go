@@ -82,16 +82,14 @@ func (g *Game) Update() error {
 			s.OnAction(g.ctx, *action, drawInfo)
 		}
 	}
-	// 更新帧
+	// 更新
 	err = g.self.Update(g.ctx, drawInfo)
 	if err != nil {
 		return err
 	}
-	for _, s := range g.world.CurrentMap().Sprites() {
-		err = s.Update(g.ctx, drawInfo)
-		if err != nil {
-			return err
-		}
+	err = g.world.Update(g.ctx, []sprite.Sprite{g.self}, drawInfo)
+	if err != nil {
+		return err
 	}
 	return nil
 }
