@@ -172,23 +172,17 @@ func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(cfg *config.Config, screen *ebiten.Image, ops *ebiten.DrawImageOptions) error {
+func (p *_Person) Draw(cfg *config.Config, screen *ebiten.Image, ops ebiten.DrawImageOptions) error {
 	img := p.directionImages[p.direction]
 
 	x, y := p.PixelPosition(cfg)
-	if ops == nil {
-		ops = &ebiten.DrawImageOptions{}
-	} else {
-		copyOps := *ops
-		ops = &copyOps
-	}
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if p.Move() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.direction][p.moveStartingFoot]
 		a.Draw(screen, ops)
 	} else {
-		screen.DrawImage(img, ops)
+		screen.DrawImage(img, &ops)
 	}
 	return nil
 }

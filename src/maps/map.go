@@ -82,7 +82,7 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	return curMap, nil
 }
 
-func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawBackground(screen *ebiten.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级
@@ -106,7 +106,7 @@ func (m *Map) DrawBackground(screen *ebiten.Image, options *ebiten.DrawImageOpti
 	return nil
 }
 
-func (m *Map) DrawForeground(screen *ebiten.Image, options *ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawForeground(screen *ebiten.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级

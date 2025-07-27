@@ -55,7 +55,7 @@ func (a *Animation) GetFrameImage(i int) *ebiten.Image {
 	return a.frameSheet.SubImage(image.Rect(sx, sy, sx+a.frameWidth, sy+a.frameHeight)).(*ebiten.Image)
 }
 
-func (a *Animation) Draw(screen *ebiten.Image, options *ebiten.DrawImageOptions) {
+func (a *Animation) Draw(screen *ebiten.Image, options ebiten.DrawImageOptions) {
 	frameImg := a.GetFrameImage(a.curFrameIndex)
-	screen.DrawImage(frameImg, options)
+	screen.DrawImage(frameImg, &options)
 }

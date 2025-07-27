@@ -38,10 +38,10 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []sprite.
 		w.firstRenderTime = now
 	}
 
-	drawMaps := make(map[*Map]*ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
+	drawMaps := make(map[*Map]ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
 
 	x, y := float64(w.pos[0]), float64(w.pos[1])
-	ops := &ebiten.DrawImageOptions{}
+	var ops ebiten.DrawImageOptions
 	ops.GeoM.Translate(x, y)
 	drawMaps[w.currentMap] = ops
 
@@ -59,7 +59,7 @@ func (w *World) Draw(cfg *config.Config, screen *ebiten.Image, sprites []sprite.
 		case consts.DirectionEnum.Right:
 			adjacentMapX += float64(currentMapW)
 		}
-		adjacentMapOps := &ebiten.DrawImageOptions{}
+		var adjacentMapOps ebiten.DrawImageOptions
 		adjacentMapOps.GeoM.Translate(adjacentMapX, adjacentMapY)
 		drawMaps[adjacentMap] = adjacentMapOps
 	}

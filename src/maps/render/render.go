@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	stlval "github.com/kkkunny/stl/value"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
 )
@@ -78,7 +79,7 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*ebiten.Image, error) {
 	return img, nil
 }
 
-func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options *ebiten.DrawImageOptions) error {
+func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options ebiten.DrawImageOptions) error {
 	var retErr error
 	r.foreachLayerTile(layer, func(x, y int, layerTile *tiled.LayerTile) bool {
 		err := func() error {
@@ -107,7 +108,7 @@ func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options
 				// TODO
 				panic("unexpected opacity")
 			} else {
-				ops := *options
+				ops := *stlval.Ptr(options)
 				ops.GeoM.Translate(float64(x*r.m.TileWidth), float64(y*r.m.TileHeight))
 				target.DrawImage(img, &ops)
 			}
@@ -121,7 +122,7 @@ func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options
 	return retErr
 }
 
-func (r *Renderer) RenderLayer(target *ebiten.Image, id int, options *ebiten.DrawImageOptions) error {
+func (r *Renderer) RenderLayer(target *ebiten.Image, id int, options ebiten.DrawImageOptions) error {
 	if id >= len(r.m.Layers) {
 		return render.ErrOutOfBounds
 	}
