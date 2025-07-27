@@ -62,7 +62,7 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	for _, objectGroup := range mapTMX.ObjectGroups {
 		for _, object := range objectGroup.Objects {
 			x, y := int(object.X+object.Width/2)/cfg.TileSize, int(object.Y+object.Height/2)/cfg.TileSize
-			spriteObj, err := sprite.NewSprite(object.Type, object.Properties.GetString("image"))
+			spriteObj, err := sprite.NewSprite(object)
 			if err != nil {
 				return nil, err
 			}
@@ -218,4 +218,14 @@ func (m *Map) GetActualPosition(x, y int) (*Map, int, int, bool) {
 		return rightMap.GetActualPosition(x-m.define.Width, y)
 	}
 	return m, x, y, true
+}
+
+func (m *Map) GetSpriteByPosition(x, y int) (sprite.Sprite, bool) {
+	for _, s := range m.sprites {
+		sx, sy := s.Position()
+		if sx == x && sy == y {
+			return s, true
+		}
+	}
+	return nil, false
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	stlval "github.com/kkkunny/stl/value"
+	"github.com/lafriks/go-tiled"
 
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
@@ -20,24 +21,25 @@ import (
 )
 
 func init() {
-	sprite.RegisterCreateFunc([]string{"person"}, func(_ string, imageName string) (sprite.Sprite, error) {
-		person, err := NewPerson(imageName)
+	sprite.RegisterCreateFunc([]string{"person"}, func(object *tiled.Object) (sprite.Sprite, error) {
+		personObj, err := NewPerson(object.Properties.GetString("image"))
 		if err != nil {
 			return nil, err
 		}
-		return person, nil
+		person := personObj.(*_Person)
+		person.interactiveBehavior = sprite.Behavior(object.Properties.GetString("interactive_behavior"))
+		return personObj, nil
 	})
 }
 
 type Person interface {
-	sprite.Sprite
+	sprite.Talker
 	Moving() bool
-	PixelPosition(cfg *config.Config) (x, y int)
 }
 
 type _Person struct {
 	// 静态资源
-	behaviorAnimations map[Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
+	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
 	direction consts.Direction // 当前所处方向
 	// 移动
@@ -47,6 +49,9 @@ type _Person struct {
 	pos               [2]int           // 当前地块位置
 	nextStepPos       [2]int           // 下一步预期所处的地块位置，用于移动
 	moveCounter       int              // 移动时的计数器，用于显示动画
+	// 交互
+	interactiveBehavior sprite.Behavior // 交互行为
+	talkTo              sprite.Talker   // 交谈对象
 }
 
 func NewPerson(name string) (Person, error) {
@@ -58,7 +63,7 @@ func NewPerson(name string) (Person, error) {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	behaviorAnimations, err := loadPersonAnimations(name, BehaviorEnum.Walk)
+	behaviorAnimations, err := loadPersonAnimations(name, sprite.BehaviorEnum.Walk)
 	if err != nil {
 		return nil, err
 	}
@@ -82,9 +87,14 @@ func (p *_Person) Moving() bool {
 	return p.pos != p.nextStepPos
 }
 
+// Talking 是否正在交谈
+func (p *_Person) Talking() bool {
+	return p.talkTo != nil
+}
+
 // Busying 是否忙碌中
 func (p *_Person) Busying() bool {
-	return p.Turning() || p.Moving()
+	return p.Turning() || p.Moving() || p.Talking()
 }
 
 func (p *_Person) SetDirection(d consts.Direction) {
@@ -93,6 +103,10 @@ func (p *_Person) SetDirection(d consts.Direction) {
 	}
 	p.direction = d
 	p.nextStepDirection = d
+}
+
+func (p *_Person) Direction() consts.Direction {
+	return p.direction
 }
 
 func (p *_Person) SetPosition(x, y int) {
@@ -114,20 +128,19 @@ func (p *_Person) NextStepPosition() (int, int) {
 // SetNextStepDirection 设置下一步方向，每次只可前进一格
 // 设置时不会校验下一个是否可移动，会在Update时校验
 func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
-	if p.Busying() {
+	if !p.Turn(d) {
 		return false
 	}
-	p.nextStepDirection = d
 	p.nextStepPos[0], p.nextStepPos[1] = getNextPositionByDirection(d, p.pos[0], p.pos[1])
 	return true
 }
 
-func (p *_Person) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInfo) {
-	return
+func (p *_Person) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInfo) error {
+	return nil
 }
 
 func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
-	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
 	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-width
 
 	if p.Moving() && !p.Turning() {
@@ -163,8 +176,9 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			p.direction = p.nextStepDirection
 			p.moveStartingFoot = -p.moveStartingFoot
 		}
+	} else if p.Talking() {
 	} else if p.Moving() {
-		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.SetFrameTime(ctx.Config().TileSize / p.speed / a.FrameCount())
 		a.Update()
 
@@ -218,11 +232,52 @@ func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.Dra
 		} else if p.direction == consts.DirectionEnum.Right {
 			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
-		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {
-		a := p.behaviorAnimations[BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
+		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		a.Draw(screen, ops)
 	}
 	return nil
+}
+
+func (p *_Person) GetInteractiveBehavior() sprite.Behavior {
+	return p.interactiveBehavior
+}
+
+func (p *_Person) Turn(d consts.Direction) bool {
+	if p.Busying() {
+		return false
+	}
+	p.nextStepDirection = d
+	return true
+}
+
+func (p *_Person) TalkTo(talker sprite.Talker, passive bool) (bool, error) {
+	if p.Busying() {
+		return false, nil
+	}
+	if !passive {
+		ok, err := talker.TalkTo(p, true)
+		if err != nil {
+			return false, err
+		} else if !ok {
+			return false, nil
+		}
+	} else {
+		if !p.Turn(-talker.Direction()) {
+			return false, nil
+		}
+	}
+	p.talkTo = talker
+	return true, nil
+}
+
+func (p *_Person) EndTalk() error {
+	if !p.Talking() {
+		return nil
+	}
+	talkTo := p.talkTo
+	p.talkTo = nil
+	return talkTo.EndTalk()
 }

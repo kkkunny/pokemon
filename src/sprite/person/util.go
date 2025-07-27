@@ -13,14 +13,8 @@ import (
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/sprite"
 )
-
-type Behavior string
-
-var BehaviorEnum = enum.New[struct {
-	Walk Behavior `enum:"walk"`
-	Run  Behavior `enum:"run"`
-}]()
 
 type Foot int8
 
@@ -30,7 +24,7 @@ var FootEnum = enum.New[struct {
 }]()
 
 // 载入人类动画
-func loadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
+func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
 	dirpath := filepath.Join(config.MapItemPath, "people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
@@ -39,7 +33,7 @@ func loadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
 
-	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
+	behaviorAnimations := make(map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
 	for _, behavior := range behaviors {
 		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {

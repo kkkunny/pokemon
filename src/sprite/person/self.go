@@ -2,6 +2,7 @@ package person
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
@@ -37,7 +38,7 @@ func NewSelf(name string) (Self, error) {
 	}
 	person := personObj.(*_Person)
 
-	behaviorAnimations, err := loadPersonAnimations(name, BehaviorEnum.Run)
+	behaviorAnimations, err := loadPersonAnimations(name, sprite.BehaviorEnum.Run)
 	if err != nil {
 		return nil, err
 	}
@@ -49,29 +50,55 @@ func NewSelf(name string) (Self, error) {
 
 func (s *_Self) self() {}
 
-func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.UpdateInfo) {
+func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.UpdateInfo) error {
 	if info == nil {
-		return
+		return nil
 	}
 	updateInfo, ok := info.(*UpdateInfo)
 	if !ok {
-		return
+		return nil
 	}
 
 	if s.Busying() {
-		return
+		return nil
 	}
 
-	nextStepDirection := actionToDirection[action]
-	if s.direction != nextStepDirection {
-		s.nextStepDirection = nextStepDirection
-	} else if x, y := getNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
-		s.SetNextStepDirection(nextStepDirection)
+	if action == input.ActionEnum.A { // 交互
+		targetX, targetY := getNextPositionByDirection(s.direction, s.pos[0], s.pos[1])
+		targetMap, targetX, targetY, _ := updateInfo.World.GetActualPosition(targetX, targetY)
+		targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
+		if ok {
+			switch targetSprite.GetInteractiveBehavior() {
+			case sprite.BehaviorEnum.Talk:
+				talker := targetSprite.(sprite.Talker)
+				ok, err := s.TalkTo(talker, false)
+				if err != nil {
+					return err
+				}
+				if ok {
+					err = s.EndTalk()
+					if err != nil {
+						return err
+					}
+				}
+			default:
+				return fmt.Errorf("invalid behavior `%s`", targetSprite.GetInteractiveBehavior())
+			}
+		}
+	} else { // 移动
+		nextStepDirection := actionToDirection[action]
+		if s.direction != nextStepDirection {
+			s.nextStepDirection = nextStepDirection
+		} else if x, y := getNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+			s.SetNextStepDirection(nextStepDirection)
+		}
 	}
+
+	return nil
 }
 
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {
-	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
+	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
 	return cfg.ScreenWidth/2 - bounds.Dx()/2, cfg.ScreenHeight/2 - bounds.Dy()/2
 }
 
@@ -93,7 +120,7 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			s.moveStartingFoot = -s.moveStartingFoot
 		}
 	} else if s.Moving() {
-		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		a.SetFrameTime(ctx.Config().TileSize / s.speed / a.FrameCount())
 		a.Update()
 
@@ -137,10 +164,10 @@ func (s *_Self) Draw(ctx context.Context, screen *ebiten.Image, _ ebiten.DrawIma
 		} else if s.direction == consts.DirectionEnum.Right {
 			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
-		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		screen.DrawImage(a.GetFrameImage(1), &ops)
 	} else {
-		a := s.behaviorAnimations[BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
+		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		a.Draw(screen, ops)
 	}
 	return nil

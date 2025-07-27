@@ -12,6 +12,8 @@ var ActionEnum = enum.New[struct {
 	MoveDown  Action
 	MoveLeft  Action
 	MoveRight Action
+
+	A Action
 }]()
 
 type System struct {
@@ -29,6 +31,7 @@ func NewSystem() *System {
 		ActionEnum.MoveDown:  {input.KeyGamepadDown, input.KeyS},
 		ActionEnum.MoveLeft:  {input.KeyGamepadLeft, input.KeyA},
 		ActionEnum.MoveRight: {input.KeyGamepadRight, input.KeyD},
+		ActionEnum.A:         {input.KeyGamepadA, input.KeyJ},
 	}
 	s.actionHandler = s.inputSystem.NewHandler(0, keymap)
 	return s
@@ -45,6 +48,8 @@ func (s *System) Action() (*Action, error) {
 		action = &ActionEnum.MoveLeft
 	case s.actionHandler.ActionIsPressed(ActionEnum.MoveRight):
 		action = &ActionEnum.MoveRight
+	case s.actionHandler.ActionIsPressed(ActionEnum.A):
+		action = &ActionEnum.A
 	}
 	return action, nil
 }
