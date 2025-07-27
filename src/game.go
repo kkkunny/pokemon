@@ -19,7 +19,7 @@ type Game struct {
 	input *input.System
 
 	world *maps.World
-	self  *person.Self
+	self  person.Self
 
 	mapVoicePlayer *voice.Player
 }

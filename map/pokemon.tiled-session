@@ -3,11 +3,11 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/Route_1.tmx",
+    "activeFile": "maps/Pallet_Town.tmx",
     "expandedProjectPaths": [
-        "maps",
         ".",
-        "tile"
+        "tile",
+        "maps"
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {
@@ -99,10 +99,10 @@
     "project": "pokemon.tiled-project",
     "property.type": "string",
     "recentFiles": [
-        "maps/Pallet_Town.tmx",
         "tile/decorate.tsx",
         "tile/land_decoration.tsx",
         "maps/Route_1.tmx",
+        "maps/Pallet_Town.tmx",
         "tile/ground.tsx",
         "tile/building.tsx",
         "tile/default.tsx",

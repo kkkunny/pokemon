@@ -29,21 +29,20 @@ var FootEnum = enum.New[struct {
 }]()
 
 // LoadPersonAnimations 载入训练师图片
-func LoadPersonAnimations(name string, behaviors ...Behavior) (map[consts.Direction]*ebiten.Image, map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
+func LoadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
 	dirpath := filepath.Join("./resource/map_item/people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	} else if !dirinfo.IsDir() {
-		return nil, nil, fmt.Errorf("can not found trainer `%s`", name)
+		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
-
-	directions := enum.Values[consts.Direction](consts.DirectionEnum)
+	
 	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
 	for _, behavior := range behaviors {
 		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		var behaviorDirectionAnimations map[consts.Direction]map[Foot]*animation.Animation
 		if behaviorImgSheetRect.Bounds().Dy() == 60 {
@@ -52,16 +51,11 @@ func LoadPersonAnimations(name string, behaviors ...Behavior) (map[consts.Direct
 			behaviorDirectionAnimations, err = loadCompletePersonDirectionAnimations(behaviorImgSheetRect)
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		behaviorAnimations[behavior] = behaviorDirectionAnimations
 	}
-
-	directionImages := make(map[consts.Direction]*ebiten.Image, len(directions))
-	for direction, directionAnimations := range behaviorAnimations[BehaviorEnum.Walk] {
-		directionImages[direction] = directionAnimations[FootEnum.Left].GetFrameImage(0)
-	}
-	return directionImages, behaviorAnimations, nil
+	return behaviorAnimations, nil
 }
 
 func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
