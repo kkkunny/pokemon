@@ -5,7 +5,7 @@ import (
 
 	input "github.com/quasilyte/ebitengine-input"
 
-	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/util"
 )
 
@@ -17,8 +17,8 @@ type Sprite interface {
 	util.Drawer
 	SetPosition(x, y int)
 	Position() (int, int)
-	OnAction(cfg *config.Config, action input.Action, info UpdateInfo)
-	Update(cfg *config.Config, info UpdateInfo) error
+	OnAction(ctx context.Context, action input.Action, info UpdateInfo)
+	Update(ctx context.Context, info UpdateInfo) error
 }
 
 var spriteCreateFuncMap = make(map[string]func(class string, imageName string) (Sprite, error))

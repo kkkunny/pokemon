@@ -14,6 +14,7 @@ import (
 	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
 )
@@ -126,7 +127,7 @@ func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
 	return true
 }
 
-func (p *_Person) OnAction(_ *config.Config, _ input.Action, _ sprite.UpdateInfo) {
+func (p *_Person) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInfo) {
 	return
 }
 
@@ -150,7 +151,7 @@ func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
 	return x, y
 }
 
-func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
+func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	if info == nil {
 		return errors.New("expect UpdateInfo")
 	}
@@ -160,7 +161,7 @@ func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 	}
 
 	if p.Turning() {
-		if p.moveCounter < cfg.TileSize {
+		if p.moveCounter < ctx.Config().TileSize {
 			p.moveCounter += 2
 		} else {
 			p.moveCounter = 0
@@ -169,10 +170,10 @@ func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 		}
 	} else if p.Moving() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		a.SetFrameTime(cfg.TileSize / p.speed / a.FrameCount())
+		a.SetFrameTime(ctx.Config().TileSize / p.speed / a.FrameCount())
 		a.Update()
 
-		diff := cfg.TileSize - p.moveCounter
+		diff := ctx.Config().TileSize - p.moveCounter
 		if diff > p.speed {
 			p.moveCounter += p.speed
 		} else {
@@ -206,8 +207,8 @@ func (p *_Person) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(cfg *config.Config, screen *ebiten.Image, ops ebiten.DrawImageOptions) error {
-	x, y := p.PixelPosition(cfg)
+func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.DrawImageOptions) error {
+	x, y := p.PixelPosition(ctx.Config())
 	ops.GeoM.Translate(float64(x), float64(y))
 
 	if p.Turning() {

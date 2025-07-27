@@ -7,6 +7,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/context"
+	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
@@ -15,7 +17,7 @@ import (
 )
 
 type Game struct {
-	cfg   *config.Config
+	ctx   context.Context
 	input *input.System
 
 	world *maps.World
@@ -26,17 +28,22 @@ type Game struct {
 
 func NewGame(cfg *config.Config) (*Game, error) {
 	g := &Game{
-		cfg:            cfg,
 		input:          input.NewSystem(),
 		mapVoicePlayer: voice.NewPlayer(),
 	}
-	err := g.Init()
+	err := g.Init(cfg)
 	return g, err
 }
 
-func (g *Game) Init() (err error) {
+func (g *Game) Init(cfg *config.Config) (err error) {
+	// 翻译
+	locs, err := i18n.LoadLocalisation(i18n.LanguageEnum.ZH_CN)
+	if err != nil {
+		return
+	}
+	g.ctx = context.NewContext(cfg, locs)
 	// 地图
-	g.world, err = maps.NewWorld(g.cfg, "Pallet_Town")
+	g.world, err = maps.NewWorld(cfg, "Pallet_Town")
 	if err != nil {
 		return err
 	}
@@ -70,18 +77,18 @@ func (g *Game) Update() error {
 		return err
 	}
 	if action != nil {
-		g.self.OnAction(g.cfg, *action, drawInfo)
+		g.self.OnAction(g.ctx, *action, drawInfo)
 		for _, s := range g.world.CurrentMap().Sprites() {
-			s.OnAction(g.cfg, *action, drawInfo)
+			s.OnAction(g.ctx, *action, drawInfo)
 		}
 	}
 	// 更新帧
-	err = g.self.Update(g.cfg, drawInfo)
+	err = g.self.Update(g.ctx, drawInfo)
 	if err != nil {
 		return err
 	}
 	for _, s := range g.world.CurrentMap().Sprites() {
-		err = s.Update(g.cfg, drawInfo)
+		err = s.Update(g.ctx, drawInfo)
 		if err != nil {
 			return err
 		}
@@ -90,19 +97,19 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*g.cfg.Scale, screen.Bounds().Dy()*g.cfg.Scale)
-	err := g.world.Draw(g.cfg, originSizeScreen, []sprite.Sprite{g.self})
+	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*g.ctx.Config().Scale, screen.Bounds().Dy()*g.ctx.Config().Scale)
+	err := g.world.Draw(g.ctx, originSizeScreen, []sprite.Sprite{g.self})
 	if err != nil {
 		panic(err)
 	}
 
 	var ops ebiten.DrawImageOptions
-	ops.GeoM.Scale(float64(g.cfg.Scale), float64(g.cfg.Scale))
-	ops.GeoM.Translate(float64(screen.Bounds().Dx()/2*(1-g.cfg.Scale)), float64(screen.Bounds().Dy()/2*(1-g.cfg.Scale)))
+	ops.GeoM.Scale(float64(g.ctx.Config().Scale), float64(g.ctx.Config().Scale))
+	ops.GeoM.Translate(float64(screen.Bounds().Dx()/2*(1-g.ctx.Config().Scale)), float64(screen.Bounds().Dy()/2*(1-g.ctx.Config().Scale)))
 	screen.DrawImage(originSizeScreen, &ops)
 
 	// 地图名
-	err = g.world.DrawMapName(g.cfg, screen)
+	err = g.world.DrawMapName(g.ctx, screen)
 	if err != nil {
 		panic(err)
 	}

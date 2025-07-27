@@ -11,6 +11,7 @@ import (
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 )
 
@@ -30,7 +31,7 @@ var FootEnum = enum.New[struct {
 
 // LoadPersonAnimations 载入训练师图片
 func LoadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, error) {
-	dirpath := filepath.Join("./resource/map_item/people", name)
+	dirpath := filepath.Join(config.MapItemPath, "people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
 		return nil, err

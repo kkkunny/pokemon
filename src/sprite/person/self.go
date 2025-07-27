@@ -9,6 +9,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
 )
@@ -48,7 +49,7 @@ func NewSelf(name string) (Self, error) {
 
 func (s *_Self) self() {}
 
-func (s *_Self) OnAction(cfg *config.Config, action input.Action, info sprite.UpdateInfo) {
+func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.UpdateInfo) {
 	if info == nil {
 		return
 	}
@@ -74,7 +75,7 @@ func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {
 	return cfg.ScreenWidth/2 - bounds.Dx()/2, cfg.ScreenHeight/2 - bounds.Dy()/2
 }
 
-func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
+func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	if info == nil {
 		return errors.New("expect UpdateInfo")
 	}
@@ -84,7 +85,7 @@ func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 	}
 
 	if s.Turning() {
-		if s.moveCounter < cfg.TileSize {
+		if s.moveCounter < ctx.Config().TileSize {
 			s.moveCounter += 2
 		} else {
 			s.moveCounter = 0
@@ -93,10 +94,10 @@ func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 		}
 	} else if s.Moving() {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		a.SetFrameTime(cfg.TileSize / s.speed / a.FrameCount())
+		a.SetFrameTime(ctx.Config().TileSize / s.speed / a.FrameCount())
 		a.Update()
 
-		diff := cfg.TileSize - s.moveCounter
+		diff := ctx.Config().TileSize - s.moveCounter
 		if diff > s.speed {
 			s.moveCounter += s.speed
 		} else {
@@ -111,16 +112,16 @@ func (s *_Self) Update(cfg *config.Config, info sprite.UpdateInfo) error {
 	}
 
 	// 更新地图位置
-	x, y := s._Person.PixelPosition(cfg)
-	selfX, selfY := s.PixelPosition(cfg)
+	x, y := s._Person.PixelPosition(ctx.Config())
+	selfX, selfY := s.PixelPosition(ctx.Config())
 	x = -x + selfX
 	y = -y + selfY
 	updateInfo.World.MovePixelPosTo(x, y)
 	return nil
 }
 
-func (s *_Self) Draw(cfg *config.Config, screen *ebiten.Image, _ ebiten.DrawImageOptions) error {
-	x, y := s.PixelPosition(cfg)
+func (s *_Self) Draw(ctx context.Context, screen *ebiten.Image, _ ebiten.DrawImageOptions) error {
+	x, y := s.PixelPosition(ctx.Config())
 	var ops ebiten.DrawImageOptions
 	ops.GeoM.Translate(float64(x), float64(y))
 

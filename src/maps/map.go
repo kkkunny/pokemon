@@ -3,6 +3,7 @@ package maps
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -54,7 +55,7 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	// 音频
 	songFileName := mapTMX.Properties.GetString("song")
 	if songFileName != "" {
-		curMap.songFilepath = fmt.Sprintf("resource/voice/map/%s", songFileName)
+		curMap.songFilepath = filepath.Join(config.VoicePath, "map", songFileName)
 	}
 
 	// 精灵
@@ -138,7 +139,7 @@ func (m *Map) Size() (w int, h int) {
 	return m.define.Width, m.define.Height
 }
 
-func (m *Map) Name() string {
+func (m *Map) NameLocKey() string {
 	return m.define.Properties.GetString("name")
 }
 
