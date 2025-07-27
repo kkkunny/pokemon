@@ -37,7 +37,7 @@ func LoadPersonAnimations(name string, behaviors ...Behavior) (map[Behavior]map[
 	} else if !dirinfo.IsDir() {
 		return nil, fmt.Errorf("can not found trainer `%s`", name)
 	}
-	
+
 	behaviorAnimations := make(map[Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
 	for _, behavior := range behaviors {
 		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))

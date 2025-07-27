@@ -30,6 +30,10 @@ func (a *Animation) SetFrameTime(frameTime int) {
 	a.frameTime = frameTime
 }
 
+func (a *Animation) FrameTime() int {
+	return a.frameTime
+}
+
 func (a *Animation) FrameCount() int {
 	return a.frameSheet.Bounds().Dx() / a.frameWidth
 }
@@ -50,9 +54,8 @@ func (a *Animation) Update() bool {
 }
 
 func (a *Animation) GetFrameImage(i int) *ebiten.Image {
-	sx := (i % (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameWidth
-	sy := (i / (a.frameSheet.Bounds().Dx() / a.frameWidth)) * a.frameHeight
-	return a.frameSheet.SubImage(image.Rect(sx, sy, sx+a.frameWidth, sy+a.frameHeight)).(*ebiten.Image)
+	x := (i % a.FrameCount()) * a.frameWidth
+	return a.frameSheet.SubImage(image.Rect(x, 0, x+a.frameWidth, a.frameHeight)).(*ebiten.Image)
 }
 
 func (a *Animation) Draw(screen *ebiten.Image, options ebiten.DrawImageOptions) {
