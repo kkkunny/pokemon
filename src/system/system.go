@@ -50,7 +50,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 	}, nil
 }
 
-func (s *System) OnAction(action input.Action) error {
+func (s *System) OnAction(action input.KeyInputAction) error {
 	if !s.dialogue.Display() {
 		drawInfo := &person.UpdateInfo{World: s.world}
 		err := s.self.OnAction(s.ctx, action, drawInfo)
@@ -64,7 +64,7 @@ func (s *System) OnAction(action input.Action) error {
 			}
 		}
 
-		if action == input.ActionEnum.A {
+		if action == input.KeyInputActionEnum.A.Pressed() {
 			x, y := s.self.Position()
 			targetX, targetY := person.GetNextPositionByDirection(s.self.Direction(), x, y)
 			targetMap, targetX, targetY, _ := s.world.GetActualPosition(targetX, targetY)
@@ -95,7 +95,7 @@ func (s *System) OnAction(action input.Action) error {
 				}
 			}
 		}
-	} else if s.dialogue.StreamDone() && action == input.ActionEnum.A {
+	} else if s.dialogue.StreamDone() && action == input.KeyInputActionEnum.A.Pressed() {
 		s.dialogue.SetDisplay(false)
 	}
 	return nil

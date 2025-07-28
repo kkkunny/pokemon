@@ -17,11 +17,11 @@ import (
 	"github.com/kkkunny/pokemon/src/sprite"
 )
 
-var actionToDirection = map[input.Action]consts.Direction{
-	input.ActionEnum.MoveUp:    consts.DirectionEnum.Up,
-	input.ActionEnum.MoveDown:  consts.DirectionEnum.Down,
-	input.ActionEnum.MoveLeft:  consts.DirectionEnum.Left,
-	input.ActionEnum.MoveRight: consts.DirectionEnum.Right,
+var actionToDirection = map[input.KeyInputAction]consts.Direction{
+	input.KeyInputActionEnum.MoveUp:    consts.DirectionEnum.Up,
+	input.KeyInputActionEnum.MoveDown:  consts.DirectionEnum.Down,
+	input.KeyInputActionEnum.MoveLeft:  consts.DirectionEnum.Left,
+	input.KeyInputActionEnum.MoveRight: consts.DirectionEnum.Right,
 }
 
 type Self interface {
@@ -52,7 +52,7 @@ func NewSelf(name string) (Self, error) {
 
 func (s *_Self) self() {}
 
-func (s *_Self) OnAction(_ context.Context, action input.Action, info sprite.UpdateInfo) error {
+func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sprite.UpdateInfo) error {
 	if info == nil {
 		return nil
 	}

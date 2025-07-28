@@ -54,7 +54,7 @@ func (i *_Item) GetScript() string {
 	return i.script
 }
 
-func (i *_Item) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInfo) error {
+func (i *_Item) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.UpdateInfo) error {
 	return nil
 }
 

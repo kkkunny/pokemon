@@ -40,7 +40,7 @@ func (g *Game) Name() string {
 }
 
 func (g *Game) Update() error {
-	action, err := g.input.Action()
+	action, err := g.input.KeyInputAction()
 	if err != nil {
 		return err
 	}

@@ -1,19 +1,32 @@
 package input
 
 import (
+	stlval "github.com/kkkunny/stl/value"
 	input "github.com/quasilyte/ebitengine-input"
 	"github.com/tnnmigga/enum"
 )
 
-type Action = input.Action
+type KeyInputAction input.Action
 
-var ActionEnum = enum.New[struct {
-	MoveUp    Action
-	MoveDown  Action
-	MoveLeft  Action
-	MoveRight Action
+func (a KeyInputAction) action() input.Action {
+	return input.Action(a)
+}
 
-	A Action
+func (a KeyInputAction) Pressed() KeyInputAction {
+	return a + 100
+}
+
+func (a KeyInputAction) Released() KeyInputAction {
+	return a + 200
+}
+
+var KeyInputActionEnum = enum.New[struct {
+	MoveUp    KeyInputAction
+	MoveDown  KeyInputAction
+	MoveLeft  KeyInputAction
+	MoveRight KeyInputAction
+
+	A KeyInputAction
 }]()
 
 type System struct {
@@ -27,29 +40,23 @@ func NewSystem() *System {
 		DevicesEnabled: input.AnyDevice,
 	})
 	keymap := input.Keymap{
-		ActionEnum.MoveUp:    {input.KeyGamepadUp, input.KeyW},
-		ActionEnum.MoveDown:  {input.KeyGamepadDown, input.KeyS},
-		ActionEnum.MoveLeft:  {input.KeyGamepadLeft, input.KeyA},
-		ActionEnum.MoveRight: {input.KeyGamepadRight, input.KeyD},
-		ActionEnum.A:         {input.KeyGamepadA, input.KeyJ},
+		KeyInputActionEnum.MoveUp.action():    {input.KeyGamepadUp, input.KeyW},
+		KeyInputActionEnum.MoveDown.action():  {input.KeyGamepadDown, input.KeyS},
+		KeyInputActionEnum.MoveLeft.action():  {input.KeyGamepadLeft, input.KeyA},
+		KeyInputActionEnum.MoveRight.action(): {input.KeyGamepadRight, input.KeyD},
+		KeyInputActionEnum.A.action():         {input.KeyGamepadA, input.KeyJ},
 	}
 	s.actionHandler = s.inputSystem.NewHandler(0, keymap)
 	return s
 }
 
-func (s *System) Action() (*Action, error) {
-	var action *Action
-	switch {
-	case s.actionHandler.ActionIsPressed(ActionEnum.MoveUp):
-		action = &ActionEnum.MoveUp
-	case s.actionHandler.ActionIsPressed(ActionEnum.MoveDown):
-		action = &ActionEnum.MoveDown
-	case s.actionHandler.ActionIsPressed(ActionEnum.MoveLeft):
-		action = &ActionEnum.MoveLeft
-	case s.actionHandler.ActionIsPressed(ActionEnum.MoveRight):
-		action = &ActionEnum.MoveRight
-	case s.actionHandler.ActionIsPressed(ActionEnum.A):
-		action = &ActionEnum.A
+func (s *System) KeyInputAction() (*KeyInputAction, error) {
+	for _, a := range enum.Values[KeyInputAction](KeyInputActionEnum) {
+		if s.actionHandler.ActionIsJustPressed(a.action()) {
+			return stlval.Ptr(a.Pressed()), nil
+		} else if s.actionHandler.ActionIsPressed(a.action()) {
+			return &a, nil
+		}
 	}
-	return action, nil
+	return nil, nil
 }

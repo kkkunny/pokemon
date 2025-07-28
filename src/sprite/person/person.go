@@ -135,7 +135,7 @@ func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
 	return true
 }
 
-func (p *_Person) OnAction(_ context.Context, _ input.Action, _ sprite.UpdateInfo) error {
+func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.UpdateInfo) error {
 	return nil
 }
 

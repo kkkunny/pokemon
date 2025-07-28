@@ -5,10 +5,10 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/lafriks/go-tiled"
-	input "github.com/quasilyte/ebitengine-input"
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/context"
+	"github.com/kkkunny/pokemon/src/input"
 )
 
 type Behavior string
@@ -37,11 +37,11 @@ type Sprite interface {
 	ActionType() ActionType
 	GetScript() string
 	GetText() string
-	
+
 	SetPosition(x, y int)
 	Position() (int, int)
 
-	OnAction(ctx context.Context, action input.Action, info UpdateInfo) error
+	OnAction(ctx context.Context, action input.KeyInputAction, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error
 	Draw(ctx context.Context, screen *ebiten.Image, options ebiten.DrawImageOptions) error
 }
