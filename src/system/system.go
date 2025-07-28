@@ -1,10 +1,7 @@
 package system
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/dialogue"
@@ -12,6 +9,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/person"
+	"github.com/kkkunny/pokemon/src/util/image"
 	"github.com/kkkunny/pokemon/src/voice"
 )
 
@@ -129,9 +127,9 @@ func (s *System) OnUpdate() error {
 	return nil
 }
 
-func (s *System) OnDraw(screen *ebiten.Image) error {
+func (s *System) OnDraw(screen *image.Image) error {
 	// 地图
-	originSizeScreen := ebiten.NewImage(screen.Bounds().Dx()*s.ctx.Config().Scale, screen.Bounds().Dy()*s.ctx.Config().Scale)
+	originSizeScreen := image.NewImage(screen.Width()*s.ctx.Config().Scale, screen.Height()*s.ctx.Config().Scale)
 	err := s.world.Draw(s.ctx, originSizeScreen, []sprite.Sprite{s.self})
 	if err != nil {
 		return err
@@ -139,7 +137,7 @@ func (s *System) OnDraw(screen *ebiten.Image) error {
 
 	var ops ebiten.DrawImageOptions
 	ops.GeoM.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale))
-	ops.GeoM.Translate(float64(screen.Bounds().Dx()/2*(1-s.ctx.Config().Scale)), float64(screen.Bounds().Dy()/2*(1-s.ctx.Config().Scale)))
+	ops.GeoM.Translate(float64(screen.Width()/2*(1-s.ctx.Config().Scale)), float64(screen.Height()/2*(1-s.ctx.Config().Scale)))
 	screen.DrawImage(originSizeScreen, &ops)
 
 	// 地图名
@@ -153,7 +151,5 @@ func (s *System) OnDraw(screen *ebiten.Image) error {
 	if err != nil {
 		return err
 	}
-
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
 	return nil
 }

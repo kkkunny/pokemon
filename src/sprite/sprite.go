@@ -9,6 +9,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Behavior string
@@ -43,7 +44,7 @@ type Sprite interface {
 
 	OnAction(ctx context.Context, action input.KeyInputAction, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error
-	Draw(ctx context.Context, screen *ebiten.Image, options ebiten.DrawImageOptions) error
+	Draw(ctx context.Context, screen *image.Image, options ebiten.DrawImageOptions) error
 }
 
 var spriteCreateFuncMap = make(map[string]func(object *tiled.Object) (Sprite, error))

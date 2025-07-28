@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlval "github.com/kkkunny/stl/value"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type System struct {
@@ -75,7 +75,7 @@ func (s *System) StreamDone() bool {
 	return s.index > len(s.text)-1
 }
 
-func (s *System) Draw(screen *ebiten.Image) error {
+func (s *System) Draw(screen *image.Image) error {
 	if !s.display {
 		return nil
 	}
@@ -84,7 +84,7 @@ func (s *System) Draw(screen *ebiten.Image) error {
 	const outerLayerWidth, innerLayerWidth = 6, 18
 	const fontVSpacing = 10
 
-	screenW, screenH := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
+	screenW, screenH := float64(screen.Width()), float64(screen.Height())
 	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), "好")
 	_, fontH := float64((bounds.Max.X - bounds.Min.X).Floor()), float64((bounds.Max.Y - bounds.Min.Y).Floor())
 	bgW, bgH := float64(screenW)-bgHInterval*2, fontH*2+fontVSpacing*2+innerLayerWidth*2
@@ -92,9 +92,9 @@ func (s *System) Draw(screen *ebiten.Image) error {
 
 	// 背景
 	x, y := float64(bgHInterval), screenH-bgH-bgVInterval
-	vector.DrawFilledRect(screen, float32(x), float32(y), float32(bgW), float32(bgH), util.NewRGBColor(248, 248, 255), false)
-	vector.StrokeRect(screen, float32(x+outerLayerWidth), float32(y+outerLayerWidth), float32(bgW-innerLayerWidth+outerLayerWidth), float32(bgH-innerLayerWidth+outerLayerWidth), innerLayerWidth, util.NewRGBColor(176, 196, 222), false)
-	vector.StrokeRect(screen, float32(x), float32(y), float32(bgW), float32(bgH), outerLayerWidth, util.NewRGBColor(119, 136, 153), false)
+	vector.DrawFilledRect(screen.Image, float32(x), float32(y), float32(bgW), float32(bgH), util.NewRGBColor(248, 248, 255), false)
+	vector.StrokeRect(screen.Image, float32(x+outerLayerWidth), float32(y+outerLayerWidth), float32(bgW-innerLayerWidth+outerLayerWidth), float32(bgH-innerLayerWidth+outerLayerWidth), innerLayerWidth, util.NewRGBColor(176, 196, 222), false)
+	vector.StrokeRect(screen.Image, float32(x), float32(y), float32(bgW), float32(bgH), outerLayerWidth, util.NewRGBColor(119, 136, 153), false)
 
 	// 文字
 	fontColor := util.NewRGBColor(119, 136, 153)
@@ -105,7 +105,7 @@ func (s *System) Draw(screen *ebiten.Image) error {
 		var textOps text.DrawOptions
 		textOps.ColorScale.ScaleWithColor(fontColor)
 		textOps.GeoM.Translate(x, y)
-		text.Draw(screen, string(s.lines[len(s.lines)-1]), s.fontFace, &textOps)
+		text.Draw(screen.Image, string(s.lines[len(s.lines)-1]), s.fontFace, &textOps)
 
 		y += fontH + fontVSpacing
 	}
@@ -120,7 +120,7 @@ func (s *System) Draw(screen *ebiten.Image) error {
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(fontColor)
 	textOps.GeoM.Translate(x, y)
-	text.Draw(screen, string(renderText), s.fontFace, &textOps)
+	text.Draw(screen.Image, string(renderText), s.fontFace, &textOps)
 
 	if s.StreamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Now().Sub(s.lastUpdateTime) < s.displayInterval) {
 		return nil

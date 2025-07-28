@@ -19,6 +19,7 @@ import (
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/item"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 func init() {
@@ -140,7 +141,7 @@ func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.U
 }
 
 func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
-	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Height()
 	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-width
 
 	if p.Moving() && !p.Turning() {
@@ -215,7 +216,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(ctx context.Context, screen *ebiten.Image, ops ebiten.DrawImageOptions) error {
+func (p *_Person) Draw(ctx context.Context, screen *image.Image, ops ebiten.DrawImageOptions) error {
 	x, y := p.PixelPosition(ctx.Config())
 	ops.GeoM.Translate(float64(x), float64(y))
 

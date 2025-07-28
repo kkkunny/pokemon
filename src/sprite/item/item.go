@@ -7,6 +7,7 @@ import (
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 func init() {
@@ -62,7 +63,7 @@ func (i *_Item) Update(_ context.Context, _ sprite.UpdateInfo) error {
 	return nil
 }
 
-func (i *_Item) Draw(_ context.Context, _ *ebiten.Image, _ ebiten.DrawImageOptions) error {
+func (i *_Item) Draw(_ context.Context, _ *image.Image, _ ebiten.DrawImageOptions) error {
 	return nil
 }
 

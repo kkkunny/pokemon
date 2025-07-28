@@ -15,6 +15,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/script"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 var actionToDirection = map[input.KeyInputAction]consts.Direction{
@@ -129,7 +130,7 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (s *_Self) Draw(ctx context.Context, screen *ebiten.Image, _ ebiten.DrawImageOptions) error {
+func (s *_Self) Draw(ctx context.Context, screen *image.Image, _ ebiten.DrawImageOptions) error {
 	x, y := s.PixelPosition(ctx.Config())
 	var ops ebiten.DrawImageOptions
 	ops.GeoM.Translate(float64(x), float64(y))

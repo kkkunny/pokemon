@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	stlval "github.com/kkkunny/stl/value"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
+
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Renderer struct {
@@ -57,7 +58,7 @@ func (r *Renderer) foreachLayerTile(layer *tiled.Layer, fn func(x, y int, layerT
 	}
 }
 
-func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*ebiten.Image, error) {
+func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*image.Image, error) {
 	tilesetPath := tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source)
 	if img := r.cache.GetTileImage(tilesetPath, int(tile.ID)); img != nil {
 		return img, nil
@@ -66,20 +67,20 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*ebiten.Image, error) {
 	tilesetImg := r.cache.GetTilesetImage(tilesetPath)
 	if tilesetImg == nil {
 		var err error
-		tilesetImg, _, err = ebitenutil.NewImageFromFile(tilesetPath)
+		tilesetImg, err = image.NewImageFromFile(tilesetPath)
 		if err != nil {
 			return nil, err
 		}
 		r.cache.AddTilesetImage(tilesetPath, tilesetImg)
 	}
 
-	img := tilesetImg.SubImage(tile.Tileset.GetTileRect(tile.ID)).(*ebiten.Image)
+	img := tilesetImg.SubImageByRect(tile.Tileset.GetTileRect(tile.ID))
 	r.cache.AddTileImage(tilesetPath, int(tile.ID), img)
 
 	return img, nil
 }
 
-func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options ebiten.DrawImageOptions) error {
+func (r *Renderer) renderLayer(target *image.Image, layer *tiled.Layer, options ebiten.DrawImageOptions) error {
 	var retErr error
 	r.foreachLayerTile(layer, func(x, y int, layerTile *tiled.LayerTile) bool {
 		err := func() error {
@@ -122,7 +123,7 @@ func (r *Renderer) renderLayer(target *ebiten.Image, layer *tiled.Layer, options
 	return retErr
 }
 
-func (r *Renderer) RenderLayer(target *ebiten.Image, id int, options ebiten.DrawImageOptions) error {
+func (r *Renderer) RenderLayer(target *image.Image, id int, options ebiten.DrawImageOptions) error {
 	if id >= len(r.m.Layers) {
 		return render.ErrOutOfBounds
 	}

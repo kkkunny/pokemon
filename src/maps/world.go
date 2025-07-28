@@ -19,6 +19,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type World struct {
@@ -84,7 +85,7 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 	return nil
 }
 
-func (w *World) Draw(ctx context.Context, screen *ebiten.Image, sprites []sprite.Sprite) error {
+func (w *World) Draw(ctx context.Context, screen *image.Image, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
@@ -185,7 +186,7 @@ func (w *World) CheckCollision(x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(ctx context.Context, screen *ebiten.Image) error {
+func (w *World) DrawMapName(ctx context.Context, screen *image.Image) error {
 	height := ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
@@ -204,19 +205,19 @@ func (w *World) DrawMapName(ctx context.Context, screen *ebiten.Image) error {
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage(ctx context.Context) *ebiten.Image {
+func (w *World) getMapNameDisplayImage(ctx context.Context) *image.Image {
 	width, height := float32(ctx.Config().ScreenWidth)/3, float32(ctx.Config().ScreenHeight)/7
-	img := ebiten.NewImage(int(width), int(height))
+	img := image.NewImage(int(width), int(height))
 
-	vector.DrawFilledRect(img, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
-	vector.StrokeRect(img, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
-	vector.StrokeRect(img, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
+	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
+	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
+	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
 
 	mapName := ctx.Localisation().Get(w.currentMap.NameLocKey())
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(color.Black)
 	textOps.GeoM.Translate((float64(width)+10)/2-float64(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (float64(height)-6)/2-float64(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2)
-	text.Draw(img, mapName, w.fontFace, &textOps)
+	text.Draw(img.Image, mapName, w.fontFace, &textOps)
 	return img
 }

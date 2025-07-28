@@ -2,12 +2,12 @@ package person
 
 import (
 	"fmt"
-	"image"
 	"os"
 	"path/filepath"
 
+	"github.com/kkkunny/pokemon/src/util/image"
+
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/animation"
@@ -35,12 +35,12 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 
 	behaviorAnimations := make(map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation, len(behaviors))
 	for _, behavior := range behaviors {
-		behaviorImgSheetRect, _, err := ebitenutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
+		behaviorImgSheetRect, err := image.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
 		if err != nil {
 			return nil, err
 		}
 		var behaviorDirectionAnimations map[consts.Direction]map[Foot]*animation.Animation
-		if behaviorImgSheetRect.Bounds().Dy() == 60 {
+		if behaviorImgSheetRect.Height() == 60 {
 			behaviorDirectionAnimations, err = loadSimplePersonDirectionAnimations(behaviorImgSheetRect)
 		} else {
 			behaviorDirectionAnimations, err = loadCompletePersonDirectionAnimations(behaviorImgSheetRect)
@@ -52,17 +52,17 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 	}
 	return behaviorAnimations, nil
 }
-func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
+func loadSimplePersonDirectionAnimations(imgSheet *image.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
 	directionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
-	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
+	frameW, frameH := imgSheet.Width()/3, imgSheet.Height()/3
 	for i, direction := range []consts.Direction{consts.DirectionEnum.Down, consts.DirectionEnum.Up, consts.DirectionEnum.Left} {
 		y := i * frameH
-		leftFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
-		rightFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
+		leftFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
+		rightFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
 		for j := range 3 {
 			x := j * frameW
-			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH)).(*ebiten.Image)
+			img := imgSheet.SubImage(x, y, frameW, frameH)
 			switch j {
 			case 0:
 				ops := &ebiten.DrawImageOptions{}
@@ -87,13 +87,13 @@ func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Dir
 	}
 
 	left := directionAnimations[consts.DirectionEnum.Left][FootEnum.Left].GetFrameImage(0)
-	right := ebiten.NewImage(frameW, frameH)
+	right := image.NewImage(frameW, frameH)
 	ops := &ebiten.DrawImageOptions{}
 	ops.GeoM.Scale(-1, 1)
 	ops.GeoM.Translate(float64(frameW), 0)
 	right.DrawImage(left, ops)
 
-	leftFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
+	leftFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
 	ops = &ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(0, 0)
 	leftFootAnimationFrameSheet.DrawImage(right, ops)
@@ -101,7 +101,7 @@ func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Dir
 	ops.GeoM.Translate(float64(frameW)*2, 0)
 	leftFootAnimationFrameSheet.DrawImage(directionAnimations[consts.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1), ops)
 
-	rightFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
+	rightFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
 	ops = &ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(0, 0)
 	rightFootAnimationFrameSheet.DrawImage(right, ops)
@@ -115,17 +115,17 @@ func loadSimplePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Dir
 	}
 	return directionAnimations, nil
 }
-func loadCompletePersonDirectionAnimations(imgSheet *ebiten.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
+func loadCompletePersonDirectionAnimations(imgSheet *image.Image) (map[consts.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[consts.Direction](consts.DirectionEnum)
 	directionAnimations := make(map[consts.Direction]map[Foot]*animation.Animation, len(directions))
-	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
+	frameW, frameH := imgSheet.Width()/3, imgSheet.Height()/3
 	for i, direction := range []consts.Direction{consts.DirectionEnum.Down, consts.DirectionEnum.Up, consts.DirectionEnum.Left, consts.DirectionEnum.Right} {
 		y := i * frameH
-		leftFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
-		rightFootAnimationFrameSheet := ebiten.NewImage(2*frameW, frameH)
+		leftFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
+		rightFootAnimationFrameSheet := image.NewImage(2*frameW, frameH)
 		for j := range 3 {
 			x := j * frameW
-			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH)).(*ebiten.Image)
+			img := imgSheet.SubImage(x, y, frameW, frameH)
 			switch j {
 			case 0:
 				ops := &ebiten.DrawImageOptions{}

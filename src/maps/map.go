@@ -11,6 +11,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/util/image"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
@@ -83,7 +84,7 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	return curMap, nil
 }
 
-func (m *Map) DrawBackground(screen *ebiten.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级
@@ -107,7 +108,7 @@ func (m *Map) DrawBackground(screen *ebiten.Image, options ebiten.DrawImageOptio
 	return nil
 }
 
-func (m *Map) DrawForeground(screen *ebiten.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawForeground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	// 找到对象层级

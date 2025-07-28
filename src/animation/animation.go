@@ -1,13 +1,13 @@
 package animation
 
 import (
-	"image"
+	"github.com/kkkunny/pokemon/src/util/image"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Animation struct {
-	frameSheet              *ebiten.Image
+	frameSheet              *image.Image
 	frameWidth, frameHeight int
 	frameTime               int
 	curFrameIndex           int
@@ -15,7 +15,7 @@ type Animation struct {
 	counter int
 }
 
-func NewAnimation(frameSheet *ebiten.Image, frameWidth, frameHeight, frameTime int) *Animation {
+func NewAnimation(frameSheet *image.Image, frameWidth, frameHeight, frameTime int) *Animation {
 	return &Animation{
 		frameSheet:    frameSheet,
 		frameWidth:    frameWidth,
@@ -35,7 +35,7 @@ func (a *Animation) FrameTime() int {
 }
 
 func (a *Animation) FrameCount() int {
-	return a.frameSheet.Bounds().Dx() / a.frameWidth
+	return a.frameSheet.Width() / a.frameWidth
 }
 
 func (a *Animation) Reset() {
@@ -53,12 +53,12 @@ func (a *Animation) Update() bool {
 	return a.counter == 0 && a.curFrameIndex == 0
 }
 
-func (a *Animation) GetFrameImage(i int) *ebiten.Image {
+func (a *Animation) GetFrameImage(i int) *image.Image {
 	x := (i % a.FrameCount()) * a.frameWidth
-	return a.frameSheet.SubImage(image.Rect(x, 0, x+a.frameWidth, a.frameHeight)).(*ebiten.Image)
+	return a.frameSheet.SubImage(x, 0, a.frameWidth, a.frameHeight)
 }
 
-func (a *Animation) Draw(screen *ebiten.Image, options ebiten.DrawImageOptions) {
+func (a *Animation) Draw(screen *image.Image, options ebiten.DrawImageOptions) {
 	frameImg := a.GetFrameImage(a.curFrameIndex)
 	screen.DrawImage(frameImg, &options)
 }
