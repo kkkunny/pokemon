@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlval "github.com/kkkunny/stl/value"
@@ -12,11 +13,14 @@ import (
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type System struct {
+	ctx context.Context
+
 	fontFace        *text.GoXFace
 	displayInterval time.Duration
 
@@ -27,9 +31,9 @@ type System struct {
 	lines          [][]rune
 }
 
-func NewSystem(cfg *config.Config) (*System, error) {
+func NewSystem(ctx context.Context) (*System, error) {
 	// 字体
-	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, cfg.MaterFontName) + ".ttf")
+	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +50,7 @@ func NewSystem(cfg *config.Config) (*System, error) {
 		return nil, err
 	}
 	return &System{
+		ctx:             ctx,
 		displayInterval: time.Millisecond * 150,
 		fontFace:        text.NewGoXFace(fontFace),
 	}, nil
@@ -75,30 +80,46 @@ func (s *System) StreamDone() bool {
 	return s.index > len(s.text)-1
 }
 
+func (s *System) frontSize() (int, int) {
+	displayText := s.ctx.Localisation().Get("game_name")
+	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), displayText)
+	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
+}
+
+func (s *System) getDialogBackground(w, h int) *image.Image {
+	fontW, fontH := s.frontSize()
+	bgW, bgH := fontW*(w+2), fontH*(h+2)
+
+	img := image.NewImage(bgW, bgH)
+	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(119, 136, 153), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(176, 196, 222), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 255), false)
+	return img
+}
+
 func (s *System) Draw(screen *image.Image) error {
 	if !s.display {
 		return nil
 	}
 
-	const bgHInterval, bgVInterval = 40, 30
-	const outerLayerWidth, innerLayerWidth = 6, 18
-	const fontVSpacing = 10
-
+	fontW, fontH := s.frontSize()
 	screenW, screenH := float64(screen.Width()), float64(screen.Height())
-	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), "好")
-	_, fontH := float64((bounds.Max.X - bounds.Min.X).Floor()), float64((bounds.Max.Y - bounds.Min.Y).Floor())
-	bgW, bgH := float64(screenW)-bgHInterval*2, fontH*2+fontVSpacing*2+innerLayerWidth*2
-	fgW, _ := bgW-innerLayerWidth*2, bgH-innerLayerWidth*2
+	hFrontMaxCount, vFrontMaxCount := int(screenW/float64(fontW))-4, int(screenH/float64(fontH))-4
+	if hFrontMaxCount < 2 || vFrontMaxCount < 3 {
+		return nil
+	}
 
 	// 背景
-	x, y := float64(bgHInterval), screenH-bgH-bgVInterval
-	vector.DrawFilledRect(screen.Image, float32(x), float32(y), float32(bgW), float32(bgH), util.NewRGBColor(248, 248, 255), false)
-	vector.StrokeRect(screen.Image, float32(x+outerLayerWidth), float32(y+outerLayerWidth), float32(bgW-innerLayerWidth+outerLayerWidth), float32(bgH-innerLayerWidth+outerLayerWidth), innerLayerWidth, util.NewRGBColor(176, 196, 222), false)
-	vector.StrokeRect(screen.Image, float32(x), float32(y), float32(bgW), float32(bgH), outerLayerWidth, util.NewRGBColor(119, 136, 153), false)
+	bgImg := s.getDialogBackground(hFrontMaxCount, 2)
+	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-float64(fontH)
+	var bgOps ebiten.DrawImageOptions
+	bgOps.GeoM.Translate(x, y)
+	screen.DrawImage(bgImg, &bgOps)
 
 	// 文字
 	fontColor := util.NewRGBColor(119, 136, 153)
-	x, y = x+innerLayerWidth, y+innerLayerWidth+fontVSpacing/2
+
+	x, y = x+float64(fontW)/2+float64(fontW)/4, y+float64(fontH)/2+float64(fontH)/3
 
 	if len(s.lines) != 0 {
 		// 存量行（第一行）
@@ -107,7 +128,7 @@ func (s *System) Draw(screen *image.Image) error {
 		textOps.GeoM.Translate(x, y)
 		text.Draw(screen.Image, string(s.lines[len(s.lines)-1]), s.fontFace, &textOps)
 
-		y += fontH + fontVSpacing
+		y += float64(fontH) + float64(fontH)/3
 	}
 
 	// 输出行（第二行或第一行）
@@ -131,9 +152,7 @@ func (s *System) Draw(screen *image.Image) error {
 	s.index++
 
 	// 换行
-	nextBounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), string(s.text[renderedIndex:s.index]))
-	nextRenderW := float64((nextBounds.Max.X - nextBounds.Min.X).Floor())
-	changeLine := nextRenderW > fgW
+	changeLine := len(renderText) >= hFrontMaxCount
 
 	if s.index <= len(s.text)-1 && s.text[s.index-1] == '\n' {
 		changeLine = true

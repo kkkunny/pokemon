@@ -28,7 +28,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 	// 对话系统
-	ds, err := dialogue.NewSystem(ctx.Config())
+	ds, err := dialogue.NewSystem(ctx)
 	if err != nil {
 		return nil, err
 	}

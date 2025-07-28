@@ -18,7 +18,7 @@ import (
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
-var actionToDirection = map[input.KeyInputAction]consts.Direction{
+var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
 	input.KeyInputActionEnum.MoveUp:    consts.DirectionEnum.Up,
 	input.KeyInputActionEnum.MoveDown:  consts.DirectionEnum.Down,
 	input.KeyInputActionEnum.MoveLeft:  consts.DirectionEnum.Left,
@@ -67,7 +67,7 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 	}
 
 	if s.movable { // 移动
-		nextStepDirection, ok := actionToDirection[action]
+		nextStepDirection, ok := keyInputActionToDirection[action]
 		if ok {
 			if s.direction != nextStepDirection {
 				s.nextStepDirection = nextStepDirection
