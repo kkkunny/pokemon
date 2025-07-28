@@ -15,7 +15,7 @@ func main() {
 		panic(err)
 	}
 	ebiten.SetWindowSize(cfg.ScreenWidth, cfg.ScreenHeight)
-	ebiten.SetWindowTitle("Pokemon")
+	ebiten.SetWindowTitle(game.Name())
 	if err = ebiten.RunGame(game); err != nil {
 		panic(err)
 	}

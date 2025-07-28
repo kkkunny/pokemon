@@ -16,7 +16,7 @@ import (
 	"github.com/kkkunny/pokemon/src/util"
 )
 
-type DialogueSystem struct {
+type System struct {
 	fontFace        *text.GoXFace
 	displayInterval time.Duration
 
@@ -27,7 +27,7 @@ type DialogueSystem struct {
 	lines          [][]rune
 }
 
-func NewDialogueSystem(cfg *config.Config) (*DialogueSystem, error) {
+func NewSystem(cfg *config.Config) (*System, error) {
 	// 字体
 	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, cfg.MaterFontName) + ".ttf")
 	if err != nil {
@@ -45,38 +45,38 @@ func NewDialogueSystem(cfg *config.Config) (*DialogueSystem, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DialogueSystem{
+	return &System{
 		displayInterval: time.Millisecond * 150,
 		fontFace:        text.NewGoXFace(fontFace),
 	}, nil
 }
 
-func (d *DialogueSystem) SetDisplay(v bool) {
-	d.display = v
+func (s *System) SetDisplay(v bool) {
+	s.display = v
 }
 
-func (d *DialogueSystem) Display() bool {
-	return d.display
+func (s *System) Display() bool {
+	return s.display
 }
 
-func (d *DialogueSystem) ResetText(s string) {
-	d.text = []rune(s)
-	d.index = 0
-	d.lines = nil
-	d.lastUpdateTime = time.Time{}
+func (s *System) ResetText(text string) {
+	s.text = []rune(text)
+	s.index = 0
+	s.lines = nil
+	s.lastUpdateTime = time.Time{}
 }
 
-func (d *DialogueSystem) DisplayText(s string) {
-	d.ResetText(s)
-	d.SetDisplay(true)
+func (s *System) DisplayText(text string) {
+	s.ResetText(text)
+	s.SetDisplay(true)
 }
 
-func (d *DialogueSystem) StreamDone() bool {
-	return d.index > len(d.text)-1
+func (s *System) StreamDone() bool {
+	return s.index > len(s.text)-1
 }
 
-func (d *DialogueSystem) Draw(screen *ebiten.Image) error {
-	if !d.display {
+func (s *System) Draw(screen *ebiten.Image) error {
+	if !s.display {
 		return nil
 	}
 
@@ -85,7 +85,7 @@ func (d *DialogueSystem) Draw(screen *ebiten.Image) error {
 	const fontVSpacing = 10
 
 	screenW, screenH := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
-	bounds, _ := font.BoundString(d.fontFace.UnsafeInternal(), "好")
+	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), "好")
 	_, fontH := float64((bounds.Max.X - bounds.Min.X).Floor()), float64((bounds.Max.Y - bounds.Min.Y).Floor())
 	bgW, bgH := float64(screenW)-bgHInterval*2, fontH*2+fontVSpacing*2+innerLayerWidth*2
 	fgW, _ := bgW-innerLayerWidth*2, bgH-innerLayerWidth*2
@@ -100,48 +100,48 @@ func (d *DialogueSystem) Draw(screen *ebiten.Image) error {
 	fontColor := util.NewRGBColor(119, 136, 153)
 	x, y = x+innerLayerWidth, y+innerLayerWidth+fontVSpacing/2
 
-	if len(d.lines) != 0 {
+	if len(s.lines) != 0 {
 		// 存量行（第一行）
 		var textOps text.DrawOptions
 		textOps.ColorScale.ScaleWithColor(fontColor)
 		textOps.GeoM.Translate(x, y)
-		text.Draw(screen, string(d.lines[len(d.lines)-1]), d.fontFace, &textOps)
+		text.Draw(screen, string(s.lines[len(s.lines)-1]), s.fontFace, &textOps)
 
 		y += fontH + fontVSpacing
 	}
 
 	// 输出行（第二行或第一行）
 	var renderedIndex int
-	for _, line := range d.lines {
+	for _, line := range s.lines {
 		renderedIndex += len(line)
 	}
-	renderText := d.text[renderedIndex:d.index]
+	renderText := s.text[renderedIndex:s.index]
 
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(fontColor)
 	textOps.GeoM.Translate(x, y)
-	text.Draw(screen, string(renderText), d.fontFace, &textOps)
+	text.Draw(screen, string(renderText), s.fontFace, &textOps)
 
-	if d.StreamDone() || (d.lastUpdateTime != stlval.Default[time.Time]() && time.Now().Sub(d.lastUpdateTime) < d.displayInterval) {
+	if s.StreamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Now().Sub(s.lastUpdateTime) < s.displayInterval) {
 		return nil
 	}
 
 	// 更新
-	d.lastUpdateTime = time.Now()
-	d.index++
+	s.lastUpdateTime = time.Now()
+	s.index++
 
 	// 换行
-	nextBounds, _ := font.BoundString(d.fontFace.UnsafeInternal(), string(d.text[renderedIndex:d.index]))
+	nextBounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), string(s.text[renderedIndex:s.index]))
 	nextRenderW := float64((nextBounds.Max.X - nextBounds.Min.X).Floor())
 	changeLine := nextRenderW > fgW
 
-	if d.index <= len(d.text)-1 && d.text[d.index-1] == '\n' {
+	if s.index <= len(s.text)-1 && s.text[s.index-1] == '\n' {
 		changeLine = true
-		renderText = d.text[renderedIndex:d.index]
-		d.index++
+		renderText = s.text[renderedIndex:s.index]
+		s.index++
 	}
 	if changeLine {
-		d.lines = append(d.lines, renderText)
+		s.lines = append(s.lines, renderText)
 	}
 	return nil
 }

@@ -13,6 +13,6 @@ func NewConfig() *Config {
 		ScreenHeight:  480,
 		Scale:         1,
 		TileSize:      16,
-		MaterFontName: "ark-pixel-12px-monospaced-zh_cn",
+		MaterFontName: "fusion-pixel-12px-monospaced-zh_hans",
 	}
 }

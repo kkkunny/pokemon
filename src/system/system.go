@@ -20,7 +20,7 @@ type System struct {
 	world          *maps.World
 	self           person.Self
 	mapVoicePlayer *voice.Player
-	dialogue       *dialogue.DialogueSystem
+	dialogue       *dialogue.System
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -30,7 +30,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 	// 对话系统
-	ds, err := dialogue.NewDialogueSystem(ctx.Config())
+	ds, err := dialogue.NewSystem(ctx.Config())
 	if err != nil {
 		return nil, err
 	}

@@ -35,6 +35,10 @@ func NewGame(cfg *config.Config) (*Game, error) {
 	}, err
 }
 
+func (g *Game) Name() string {
+	return g.loc.Get("game_name")
+}
+
 func (g *Game) Update() error {
 	action, err := g.input.Action()
 	if err != nil {
