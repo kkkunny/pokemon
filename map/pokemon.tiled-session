@@ -5,9 +5,9 @@
     },
     "activeFile": "maps/Pallet_Town.tmx",
     "expandedProjectPaths": [
-        ".",
+        "tile",
         "maps",
-        "tile"
+        "."
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {

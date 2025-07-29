@@ -1,6 +1,9 @@
 package system
 
 import (
+	"image/color"
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/kkkunny/pokemon/src/context"
@@ -9,6 +12,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/person"
+	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/image"
 	"github.com/kkkunny/pokemon/src/voice"
 )
@@ -19,6 +23,8 @@ type System struct {
 	self           person.Self
 	mapVoicePlayer *voice.Player
 	dialogue       *dialogue.System
+
+	time time.Time // 游戏世界时间
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -45,6 +51,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 		self:           self,
 		mapVoicePlayer: voice.NewPlayer(),
 		dialogue:       ds,
+		time:           time.Now(),
 	}, nil
 }
 
@@ -113,6 +120,9 @@ func (s *System) OnUpdate() error {
 		}
 	}
 
+	// 时间
+	s.time = s.time.Add(time.Minute)
+
 	// 主角
 	drawInfo := &person.UpdateInfo{World: s.world}
 	err := s.self.Update(s.ctx, drawInfo)
@@ -125,6 +135,30 @@ func (s *System) OnUpdate() error {
 		return err
 	}
 	return nil
+}
+
+func (s *System) getSkyMaskColor() color.Color {
+	hour := s.time.Hour()
+	switch {
+	case 0 <= hour && hour < 2:
+		return util.NewRGBAColor(0, 0, 0, 180)
+	case 2 <= hour && hour < 4:
+		return util.NewRGBAColor(0, 0, 32, 128)
+	case 4 <= hour && hour < 8:
+		return util.NewRGBAColor(255, 200, 128, 40)
+	case 8 <= hour && hour < 15:
+		return util.NewRGBAColor(255, 255, 255, 0)
+	case 15 <= hour && hour < 17:
+		return util.NewRGBAColor(255, 255, 200, 20)
+	case 17 <= hour && hour < 18:
+		return util.NewRGBAColor(255, 128, 64, 80)
+	case 18 <= hour && hour < 20:
+		return util.NewRGBAColor(0, 0, 32, 128)
+	case 20 <= hour && hour < 24:
+		return util.NewRGBAColor(0, 0, 0, 180)
+	default:
+		return util.NewRGBAColor(255, 255, 255, 0)
+	}
 }
 
 func (s *System) OnDraw(screen *image.Image) error {
@@ -146,10 +180,14 @@ func (s *System) OnDraw(screen *image.Image) error {
 		return err
 	}
 
+	// 天色
+	screen.Overlay(s.getSkyMaskColor())
+
 	// 对话
 	err = s.dialogue.Draw(screen)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

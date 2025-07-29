@@ -2,6 +2,7 @@ package image
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -45,4 +46,10 @@ func (i *Image) SubImageByRect(r image.Rectangle) *Image {
 
 func (i *Image) DrawImage(img *Image, options *ebiten.DrawImageOptions) {
 	i.Image.DrawImage(img.Image, options)
+}
+
+func (i *Image) Overlay(c color.Color) {
+	mask := NewImage(i.Width(), i.Height())
+	mask.Fill(c)
+	i.DrawImage(mask, nil)
 }
