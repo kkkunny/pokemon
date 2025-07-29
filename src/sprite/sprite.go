@@ -25,9 +25,9 @@ var BehaviorEnum = enum.New[struct {
 type ActionType string
 
 var ActionTypeEnum = enum.New[struct {
-	None     ActionType `enum:""`
-	Script   ActionType `enum:"script"`
-	Dialogue ActionType `enum:"dialogue"`
+	None   ActionType `enum:""`
+	Script ActionType `enum:"script"`
+	Label  ActionType `enum:"label"`
 }]()
 
 type UpdateInfo interface {

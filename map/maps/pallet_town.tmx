@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="9">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="14">
  <properties>
   <property name="name" value="pallet_town"/>
   <property name="song" value="pallet_town.ogg"/>
@@ -137,10 +137,34 @@
     <property name="script" value="person_random_talk"/>
    </properties>
   </object>
-  <object id="8" type="label" x="144.559" y="176.051" width="14.9831" height="15.8155">
+  <object id="8" type="label" x="64.3717" y="111.957" width="14.9831" height="15.8155">
    <properties>
-    <property name="action_type" value="dialogue"/>
+    <property name="action_type" value="label"/>
+    <property name="text" value="your_home_desc"/>
+   </properties>
+  </object>
+  <object id="9" type="label" x="144.282" y="174.109" width="14.9831" height="15.8155">
+   <properties>
+    <property name="action_type" value="label"/>
     <property name="text" value="pallet_town_desc"/>
+   </properties>
+  </object>
+  <object id="10" type="label" x="208.376" y="111.957" width="14.9831" height="15.8155">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="your_opponent_home_desc"/>
+   </properties>
+  </object>
+  <object id="11" type="label" x="256.377" y="256.516" width="14.9831" height="15.8155">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="samuel_oak_professor_home_desc"/>
+   </properties>
+  </object>
+  <object id="12" type="label" x="79.9098" y="223.775" width="14.9831" height="15.8155">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="trainer_tips.1"/>
    </properties>
   </object>
  </objectgroup>

@@ -87,7 +87,7 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 					// if err != nil {
 					// 	return err
 					// }
-				case sprite.ActionTypeEnum.Dialogue:
+				case sprite.ActionTypeEnum.Label:
 					text := s.ctx.Localisation().Get(targetSprite.GetText())
 					s.dialogue.DisplayText(text)
 				}

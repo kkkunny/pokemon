@@ -86,14 +86,14 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) getDialogBackground(w, h int) *image.Image {
+func (s *System) getLabelBackground(w, h int) *image.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
 	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(119, 136, 153), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(176, 196, 222), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 255), false)
+	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(104, 112, 120), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(200, 200, 216), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
 	return img
 }
 
@@ -110,14 +110,14 @@ func (s *System) Draw(screen *image.Image) error {
 	}
 
 	// 背景
-	bgImg := s.getDialogBackground(hFrontMaxCount, 2)
+	bgImg := s.getLabelBackground(hFrontMaxCount, 2)
 	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-float64(fontH)
 	var bgOps ebiten.DrawImageOptions
 	bgOps.GeoM.Translate(x, y)
 	screen.DrawImage(bgImg, &bgOps)
 
 	// 文字
-	fontColor := util.NewRGBColor(119, 136, 153)
+	fontColor := util.NewRGBColor(100, 100, 100)
 
 	x, y = x+float64(fontW)/2+float64(fontW)/4, y+float64(fontH)/2+float64(fontH)/3
 
