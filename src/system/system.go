@@ -1,6 +1,7 @@
 package system
 
 import (
+	"fmt"
 	"image/color"
 	"time"
 
@@ -154,23 +155,21 @@ func (s *System) OnUpdate() error {
 }
 
 func (s *System) getSkyMaskColor() color.Color {
-	hour := s.time.Hour()
+	hour, minute := float64(s.time.Hour()), float64(s.time.Minute())
+	hour += minute / 60
+
 	switch {
-	case 0 <= hour && hour < 2:
+	case hour < 4:
 		return util.NewRGBAColor(0, 0, 0, 180)
-	case 2 <= hour && hour < 4:
-		return util.NewRGBAColor(0, 0, 32, 128)
-	case 4 <= hour && hour < 8:
-		return util.NewRGBAColor(255, 200, 128, 40)
-	case 8 <= hour && hour < 15:
+	case 4 <= hour && hour < 10:
+		return util.GradientColor(util.NewRGBAColor(0, 0, 0, 180), util.NewRGBAColor(255, 255, 255, 0), (hour-4)/6)
+	case 10 <= hour && hour < 15:
 		return util.NewRGBAColor(255, 255, 255, 0)
 	case 15 <= hour && hour < 17:
-		return util.NewRGBAColor(255, 255, 200, 20)
+		return util.GradientColor(util.NewRGBAColor(255, 255, 255, 0), util.NewRGBAColor(255, 128, 64, 80), (hour-15)/2)
 	case 17 <= hour && hour < 18:
-		return util.NewRGBAColor(255, 128, 64, 80)
-	case 18 <= hour && hour < 20:
-		return util.NewRGBAColor(0, 0, 32, 128)
-	case 20 <= hour && hour < 24:
+		return util.GradientColor(util.NewRGBAColor(255, 128, 64, 80), util.NewRGBAColor(0, 0, 0, 180), (hour-17)/1)
+	case 18 <= hour:
 		return util.NewRGBAColor(0, 0, 0, 180)
 	default:
 		return util.NewRGBAColor(255, 255, 255, 0)

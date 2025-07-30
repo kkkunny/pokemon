@@ -9,3 +9,22 @@ func NewRGBColor(r, g, b uint8) *color.NRGBA {
 func NewRGBAColor(r, g, b, a uint8) *color.NRGBA {
 	return &color.NRGBA{R: r, G: g, B: b, A: a}
 }
+
+// 线性插值函数
+func lerp(a, b uint8, t float64) uint8 {
+	return uint8(float64(a)*(1-t) + float64(b)*t)
+}
+
+// GradientColor 计算两个颜色之间的渐变色
+func GradientColor(from, to color.Color, percent float64) color.Color {
+	r1, g1, b1, a1 := from.RGBA()
+	r2, g2, b2, a2 := to.RGBA()
+
+	// RGBA() 返回的是 uint32，需要转换为 uint8
+	r := lerp(uint8(r1>>8), uint8(r2>>8), percent)
+	g := lerp(uint8(g1>>8), uint8(g2>>8), percent)
+	b := lerp(uint8(b1>>8), uint8(b2>>8), percent)
+	a := lerp(uint8(a1>>8), uint8(a2>>8), percent)
+
+	return &color.RGBA{R: r, G: g, B: b, A: a}
+}
