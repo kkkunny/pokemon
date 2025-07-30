@@ -12,15 +12,11 @@ import (
 
 func init() {
 	sprite.RegisterCreateFunc([]string{"label"}, func(object *tiled.Object) (sprite.Sprite, error) {
-		labelObj, err := NewItem()
+		item, err := NewItemByTile(object)
 		if err != nil {
 			return nil, err
 		}
-		label := labelObj.(*_Item)
-		label.actionType = sprite.ActionType(object.Properties.GetString("action_type"))
-		label.script = object.Properties.GetString("script")
-		label.text = object.Properties.GetString("text")
-		return labelObj, nil
+		return item, nil
 	})
 }
 
@@ -37,6 +33,14 @@ type _Item struct {
 
 func NewItem() (Item, error) {
 	return &_Item{}, nil
+}
+
+func NewItemByTile(object *tiled.Object) (Item, error) {
+	return &_Item{
+		actionType: sprite.ActionType(object.Properties.GetString("action_type")),
+		script:     object.Properties.GetString("script"),
+		text:       object.Properties.GetString("text"),
+	}, nil
 }
 
 func (i *_Item) ActionType() sprite.ActionType {

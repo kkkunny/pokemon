@@ -38,7 +38,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 	if err != nil {
 		return nil, err
 	}
-	ds.DisplayText("欢迎来到口袋妖怪世界！开始属于你的冒险吧！")
+	ds.DisplayLabel("欢迎来到口袋妖怪世界！开始属于你的冒险吧！")
 	// 主角
 	self, err := person.NewSelf("master")
 	if err != nil {
@@ -75,6 +75,7 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 			targetMap, targetX, targetY, _ := s.world.GetActualPosition(targetX, targetY)
 			targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
 			if ok {
+				s.self.SetActionSprite(targetSprite)
 				switch targetSprite.ActionType() {
 				case sprite.ActionTypeEnum.Script:
 					// scriptName := targetSprite.GetScript()
@@ -96,11 +97,26 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 					// }
 				case sprite.ActionTypeEnum.Label:
 					text := s.ctx.Localisation().Get(targetSprite.GetText())
-					s.dialogue.DisplayText(text)
+					s.dialogue.DisplayLabel(text)
+				case sprite.ActionTypeEnum.Dialogue:
+					movableSprite, ok := targetSprite.(sprite.MovableSprite)
+					if ok {
+						movableSprite.SetMovable(false)
+					}
+					text := s.ctx.Localisation().Get(targetSprite.GetText())
+					s.dialogue.DisplayDialogue(text)
 				}
 			}
 		}
 	} else if s.dialogue.StreamDone() && action == input.KeyInputActionEnum.A.Pressed() {
+		actionSprite := s.self.ActionSprite()
+		if actionSprite != nil {
+			s.self.SetActionSprite(nil)
+			movableSprite, ok := actionSprite.(sprite.MovableSprite)
+			if ok {
+				movableSprite.SetMovable(true)
+			}
+		}
 		s.dialogue.SetDisplay(false)
 	}
 	return nil

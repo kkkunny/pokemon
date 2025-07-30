@@ -132,9 +132,9 @@
  <objectgroup id="8" name="6">
   <object id="1" type="person" x="208.376" y="271.637" width="14.9831" height="15.8155">
    <properties>
-    <property name="conversation" value="conversation.1"/>
+    <property name="action_type" value="dialogue"/>
     <property name="image" value="person1"/>
-    <property name="script" value="person_random_talk"/>
+    <property name="text" value="trainer_tips.1"/>
    </properties>
   </object>
   <object id="8" type="label" x="64.3717" y="111.957" width="14.9831" height="15.8155">

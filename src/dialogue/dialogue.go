@@ -25,6 +25,7 @@ type System struct {
 	displayInterval time.Duration
 
 	display        bool
+	isDialogue     bool
 	text           []rune
 	index          int
 	lastUpdateTime time.Time
@@ -64,15 +65,29 @@ func (s *System) Display() bool {
 	return s.display
 }
 
-func (s *System) ResetText(text string) {
+func (s *System) SetLabel(text string) {
+	s.isDialogue = false
 	s.text = []rune(text)
 	s.index = 0
 	s.lines = nil
 	s.lastUpdateTime = time.Time{}
 }
 
-func (s *System) DisplayText(text string) {
-	s.ResetText(text)
+func (s *System) DisplayLabel(text string) {
+	s.SetLabel(text)
+	s.SetDisplay(true)
+}
+
+func (s *System) SetDialogue(text string) {
+	s.isDialogue = true
+	s.text = []rune(text)
+	s.index = 0
+	s.lines = nil
+	s.lastUpdateTime = time.Time{}
+}
+
+func (s *System) DisplayDialogue(text string) {
+	s.SetDialogue(text)
 	s.SetDisplay(true)
 }
 
@@ -97,6 +112,17 @@ func (s *System) getLabelBackground(w, h int) *image.Image {
 	return img
 }
 
+func (s *System) getDialogueBackground(w, h int) *image.Image {
+	fontW, fontH := s.frontSize()
+	bgW, bgH := fontW*(w+2), fontH*(h+2)
+
+	img := image.NewImage(bgW, bgH)
+	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(160, 208, 224), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(224, 240, 248), false)
+	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	return img
+}
+
 func (s *System) Draw(screen *image.Image) error {
 	if !s.display {
 		return nil
@@ -110,7 +136,7 @@ func (s *System) Draw(screen *image.Image) error {
 	}
 
 	// 背景
-	bgImg := s.getLabelBackground(hFrontMaxCount, 2)
+	bgImg := stlval.Ternary(s.isDialogue, s.getDialogueBackground, s.getLabelBackground)(hFrontMaxCount, 2)
 	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-float64(fontH)
 	var bgOps ebiten.DrawImageOptions
 	bgOps.GeoM.Translate(x, y)

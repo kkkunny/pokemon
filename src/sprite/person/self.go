@@ -27,11 +27,14 @@ var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
 
 type Self interface {
 	Person
-	self()
+	ActionSprite() sprite.Sprite
+	SetActionSprite(sp sprite.Sprite)
 }
 
 type _Self struct {
 	_Person
+
+	actionSprite sprite.Sprite
 }
 
 func NewSelf(name string) (Self, error) {
@@ -50,8 +53,6 @@ func NewSelf(name string) (Self, error) {
 	person.SetPosition(6, 8)
 	return &_Self{_Person: *person}, nil
 }
-
-func (s *_Self) self() {}
 
 func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sprite.UpdateInfo) error {
 	if info == nil {
@@ -154,6 +155,14 @@ func (s *_Self) Draw(ctx context.Context, screen *image.Image, _ ebiten.DrawImag
 		a.Draw(screen, ops)
 	}
 	return nil
+}
+
+func (s *_Self) ActionSprite() sprite.Sprite {
+	return s.actionSprite
+}
+
+func (s *_Self) SetActionSprite(sp sprite.Sprite) {
+	s.actionSprite = sp
 }
 
 var luaModuleToGo = map[string]map[string]lua.LGFunction{

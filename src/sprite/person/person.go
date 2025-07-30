@@ -2,10 +2,7 @@ package person
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
-	"os"
-	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
@@ -24,12 +21,11 @@ import (
 
 func init() {
 	sprite.RegisterCreateFunc([]string{"person"}, func(object *tiled.Object) (sprite.Sprite, error) {
-		personObj, err := NewPerson(object.Properties.GetString("image"))
+		person, err := NewPersonByTile(object)
 		if err != nil {
 			return nil, err
 		}
-		// person := personObj.(*_Person)
-		return personObj, nil
+		return person, nil
 	})
 }
 
@@ -54,20 +50,35 @@ type _Person struct {
 }
 
 func NewPerson(name string) (Person, error) {
-	dirpath := filepath.Join("./resource/map_item/people", name)
-	dirinfo, err := os.Stat(dirpath)
-	if err != nil {
-		return nil, err
-	} else if !dirinfo.IsDir() {
-		return nil, fmt.Errorf("can not found trainer `%s`", name)
-	}
-
 	behaviorAnimations, err := loadPersonAnimations(name, sprite.BehaviorEnum.Walk)
 	if err != nil {
 		return nil, err
 	}
 
 	itemSprite, err := item.NewItem()
+	if err != nil {
+		return nil, err
+	}
+
+	return &_Person{
+		Item:               itemSprite,
+		behaviorAnimations: behaviorAnimations,
+		direction:          consts.DirectionEnum.Down,
+		movable:            true,
+		nextStepDirection:  consts.DirectionEnum.Down,
+		moveStartingFoot:   FootEnum.Left,
+		speed:              1,
+	}, nil
+}
+
+func NewPersonByTile(object *tiled.Object) (Person, error) {
+	imgName := object.Properties.GetString("image")
+	behaviorAnimations, err := loadPersonAnimations(imgName, sprite.BehaviorEnum.Walk)
+	if err != nil {
+		return nil, err
+	}
+
+	itemSprite, err := item.NewItemByTile(object)
 	if err != nil {
 		return nil, err
 	}
