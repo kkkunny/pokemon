@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="14">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="24" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="30">
  <properties>
   <property name="name" value="pallet_town"/>
   <property name="song" value="pallet_town.ogg"/>
-  <property name="up" value="Route_1"/>
+  <property name="up" value="route_1"/>
  </properties>
  <tileset firstgid="1" source="../tile/ground.tsx"/>
  <tileset firstgid="481" source="../tile/decorate.tsx"/>
  <tileset firstgid="1381" source="../tile/land_decoration.tsx"/>
  <tileset firstgid="1861" source="../tile/building.tsx"/>
+ <tileset firstgid="1921" source="../tile/sprite.tsx"/>
  <layer id="1" name="1" width="24" height="20">
   <data encoding="csv">
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -130,42 +131,48 @@
 </data>
  </layer>
  <objectgroup id="8" name="6">
-  <object id="1" type="person" x="208.376" y="271.637" width="14.9831" height="15.8155">
+  <object id="24" type="person" x="217" y="285">
    <properties>
     <property name="action_type" value="dialogue"/>
     <property name="image" value="person1"/>
     <property name="text" value="trainer_tips.1"/>
    </properties>
+   <point/>
   </object>
-  <object id="8" type="label" x="64.3717" y="111.957" width="14.9831" height="15.8155">
+  <object id="25" type="label" x="72" y="122.667">
    <properties>
     <property name="action_type" value="label"/>
     <property name="text" value="your_home_desc"/>
    </properties>
+   <point/>
   </object>
-  <object id="9" type="label" x="144.282" y="174.109" width="14.9831" height="15.8155">
-   <properties>
-    <property name="action_type" value="label"/>
-    <property name="text" value="pallet_town_desc"/>
-   </properties>
-  </object>
-  <object id="10" type="label" x="208.376" y="111.957" width="14.9831" height="15.8155">
+  <object id="26" type="label" x="216" y="124.667">
    <properties>
     <property name="action_type" value="label"/>
     <property name="text" value="your_opponent_home_desc"/>
    </properties>
+   <point/>
   </object>
-  <object id="11" type="label" x="256.377" y="256.516" width="14.9831" height="15.8155">
+  <object id="27" type="label" x="152" y="187">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="samuel_oak_professor_home_desc"/>
+    <property name="text" value="pallet_town_desc"/>
    </properties>
+   <point/>
   </object>
-  <object id="12" type="label" x="79.9098" y="223.775" width="14.9831" height="15.8155">
+  <object id="28" type="label" x="88.3333" y="236">
    <properties>
     <property name="action_type" value="label"/>
     <property name="text" value="trainer_tips.1"/>
    </properties>
+   <point/>
+  </object>
+  <object id="29" type="label" x="263.667" y="266.333">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="samuel_oak_professor_home_desc"/>
+   </properties>
+   <point/>
   </object>
  </objectgroup>
  <layer id="9" name="7" width="24" height="20">

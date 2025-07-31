@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/Pallet_Town.tmx",
+    "activeFile": "maps/pallet_town.tmx",
     "expandedProjectPaths": [
         "tile",
         "maps",
@@ -17,24 +17,27 @@
             "scale": 3.6040625,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 218.22596028786958,
-                "y": 159.95838030000868
+                "x": 190.2020289603746,
+                "y": 12.62464233070321
             }
         },
         "maps/Route_1.tmx": {
             "scale": 3.6040625,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 218.22596028786958,
-                "y": 800.0693661666522
+                "x": 206.29497962368853,
+                "y": 586.4215728778289
             }
         },
         "maps/pallet_town.tmx": {
-            "scale": 3.6040625,
+            "expandedObjectLayers": [
+                8
+            ],
+            "scale": 3,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 212.95413162230122,
-                "y": 159.95838030000868
+                "x": 184.16666666666669,
+                "y": 147.16666666666666
             }
         },
         "maps/pallet_town2.tmx": {
@@ -52,6 +55,18 @@
                 "x": 212.95413162230122,
                 "y": 159.95838030000868
             }
+        },
+        "maps/route_1.tmx": {
+            "scale": 1.80203125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 191.7280846267233,
+                "y": 811.0292204977022
+            }
+        },
+        "maps/sprite.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "tile/building.tsx": {
             "dynamicWrapping": false,
@@ -76,6 +91,10 @@
         "tile/land_decoration.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "tile/sprite.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         }
     },
     "frame.defaultDuration": 300,
@@ -91,22 +110,26 @@
     "map.tileWidth": 16,
     "map.width": 24,
     "openFiles": [
-        "maps/Pallet_Town.tmx",
-        "maps/Route_1.tmx"
+        "maps/route_1.tmx",
+        "maps/pallet_town.tmx",
+        "tile/sprite.tsx",
+        "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "string",
+    "property.type": "int",
     "recentFiles": [
+        "maps/route_1.tmx",
+        "tile/land_decoration.tsx",
+        "tile/sprite.tsx",
+        "maps/pallet_town.tmx",
+        "tile/ground.tsx",
+        "tile/decorate.tsx",
+        "tile/building.tsx",
+        "maps/sprite.tsx",
         "maps/Route_1.tmx",
         "maps/Pallet_Town.tmx",
-        "tile/decorate.tsx",
-        "tile/land_decoration.tsx",
-        "tile/ground.tsx",
-        "tile/building.tsx",
         "tile/default.tsx",
-        "maps/pallet_town3.tmx",
-        "maps/pallet_town2.tmx",
-        "maps/pallet_town.tmx"
+        "maps/pallet_town3.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

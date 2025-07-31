@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"image/color"
 	"time"
 
@@ -30,7 +29,7 @@ type System struct {
 
 func NewSystem(ctx context.Context) (*System, error) {
 	// 地图
-	world, err := maps.NewWorld(ctx.Config(), "Pallet_Town")
+	world, err := maps.NewWorld(ctx.Config(), "pallet_town")
 	if err != nil {
 		return nil, err
 	}
