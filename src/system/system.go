@@ -56,6 +56,8 @@ func NewSystem(ctx context.Context) (*System, error) {
 }
 
 func (s *System) OnAction(action input.KeyInputAction) error {
+	s.dialogue.SetFastMode(false)
+
 	if !s.dialogue.Display() {
 		drawInfo := &person.UpdateInfo{World: s.world}
 		err := s.self.OnAction(s.ctx, action, drawInfo)
@@ -118,6 +120,8 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 			}
 		}
 		s.dialogue.SetDisplay(false)
+	} else if action == input.KeyInputActionEnum.A {
+		s.dialogue.SetFastMode(true)
 	}
 	return nil
 }

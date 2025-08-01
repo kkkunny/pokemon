@@ -18,12 +18,18 @@ import (
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
+const (
+	normalDisplayInterval   = time.Millisecond * 150
+	fastModeDisplayInterval = time.Millisecond * 50
+)
+
 type System struct {
 	ctx context.Context
 
 	fontFace        *text.GoXFace
 	displayInterval time.Duration
 
+	// 显示文字的必备属性
 	display        bool
 	isDialogue     bool
 	text           []rune
@@ -52,7 +58,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 	}
 	return &System{
 		ctx:             ctx,
-		displayInterval: time.Millisecond * 150,
+		displayInterval: normalDisplayInterval,
 		fontFace:        text.NewGoXFace(fontFace),
 	}, nil
 }
@@ -189,4 +195,12 @@ func (s *System) Draw(screen *image.Image) error {
 		s.lines = append(s.lines, renderText)
 	}
 	return nil
+}
+
+func (s *System) SetFastMode(v bool) {
+	s.displayInterval = stlval.Ternary(v, fastModeDisplayInterval, normalDisplayInterval)
+}
+
+func (s *System) FastMode() bool {
+	return s.displayInterval != normalDisplayInterval
 }
