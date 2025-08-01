@@ -55,6 +55,14 @@ func (i *_Item) SetPosition(x int, y int) {
 	i.pos = [2]int{x, y}
 }
 
+func (i *_Item) Collision() bool {
+	return true
+}
+
+func (i *_Item) CollisionPosition() (int, int) {
+	return i.Position()
+}
+
 func (i *_Item) GetScript() string {
 	return i.script
 }

@@ -42,6 +42,8 @@ type Sprite interface {
 
 	SetPosition(x, y int)
 	Position() (int, int)
+	Collision() bool
+	CollisionPosition() (int, int)
 
 	OnAction(ctx context.Context, action input.KeyInputAction, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error

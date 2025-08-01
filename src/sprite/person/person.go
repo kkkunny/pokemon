@@ -133,10 +133,6 @@ func (p *_Person) Position() (int, int) {
 	return p.pos[0], p.pos[1]
 }
 
-func (p *_Person) NextStepPosition() (int, int) {
-	return p.nextStepPos[0], p.nextStepPos[1]
-}
-
 // SetNextStepDirection 设置下一步方向，每次只可前进一格
 // 设置时不会校验下一个是否可移动，会在Update时校验
 func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
@@ -266,4 +262,12 @@ func (p *_Person) SetMovable(movable bool) {
 
 func (p *_Person) Movable() bool {
 	return p.movable
+}
+
+func (p *_Person) Collision() bool {
+	return true
+}
+
+func (p *_Person) CollisionPosition() (int, int) {
+	return p.nextStepPos[0], p.nextStepPos[1]
 }
