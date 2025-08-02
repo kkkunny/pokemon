@@ -72,7 +72,7 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 		if ok {
 			if s.direction != nextStepDirection {
 				s.nextStepDirection = nextStepDirection
-			} else if x, y := GetNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+			} else if x, y := GetNextPositionByDirection(nextStepDirection, s.pos[0], s.pos[1]); !updateInfo.World.CheckCollision(s.direction, x, y) {
 				s.SetNextStepDirection(nextStepDirection)
 			}
 		}

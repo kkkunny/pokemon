@@ -116,6 +116,11 @@
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="90">
+  <properties>
+   <property name="allow_direction" value="left"/>
+  </properties>
+ </tile>
  <tile id="91">
   <properties>
    <property name="collision" type="bool" value="true"/>
@@ -139,6 +144,11 @@
  <tile id="96">
   <properties>
    <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="97">
+  <properties>
+   <property name="allow_direction" value="right"/>
   </properties>
  </tile>
  <tile id="98">

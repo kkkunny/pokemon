@@ -167,7 +167,7 @@ func (m *Map) SongFilepath() (string, bool) {
 	return m.songFilepath, m.songFilepath != ""
 }
 
-func (m *Map) CheckCollision(x, y int) bool {
+func (m *Map) CheckCollision(d consts.Direction, x, y int) bool {
 	for _, s := range m.sprites {
 		if !s.Collision() {
 			continue
@@ -187,7 +187,11 @@ func (m *Map) CheckCollision(x, y int) bool {
 		if err != nil {
 			continue
 		}
-		return tileDef.Properties.GetBool("collision")
+		if tileDef.Properties.GetBool("collision") {
+			return true
+		} else if allowDirectionStr := tileDef.Properties.GetString("allow_direction"); allowDirectionStr != "" {
+			return d != -consts.ParseDirection(allowDirectionStr)
+		}
 	}
 	return false
 }

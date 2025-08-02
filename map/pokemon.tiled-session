@@ -153,7 +153,7 @@
         "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "bool",
+    "property.type": "string",
     "recentFiles": [
         "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house1.tmx",

@@ -188,7 +188,7 @@
  </tile>
  <tile id="49">
   <properties>
-   <property name="collision" type="bool" value="false"/>
+   <property name="allow_direction" value="down"/>
   </properties>
  </tile>
  <tile id="50">
@@ -223,7 +223,7 @@
  </tile>
  <tile id="56">
   <properties>
-   <property name="collision" type="bool" value="false"/>
+   <property name="allow_direction" value="down"/>
   </properties>
  </tile>
  <tile id="57">

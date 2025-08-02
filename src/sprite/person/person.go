@@ -216,7 +216,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		}
 		if p.direction != nextStepDirection && rand.IntN(500) > 250 {
 			p.nextStepDirection = nextStepDirection
-		} else if x, y := GetNextPositionByDirection(nextStepDirection, p.pos[0], p.pos[1]); !updateInfo.World.CheckCollision(x, y) {
+		} else if x, y := GetNextPositionByDirection(nextStepDirection, p.pos[0], p.pos[1]); !updateInfo.World.CheckCollision(p.direction, x, y) {
 			p.SetNextStepDirection(nextStepDirection)
 		}
 	}

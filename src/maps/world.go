@@ -207,7 +207,7 @@ func (w *World) CurrentMap() *Map {
 	return w.currentMap
 }
 
-func (w *World) CheckCollision(x, y int) bool {
+func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
 	if [2]int{x, y} == w.selfPos {
 		return true
 	}
@@ -215,7 +215,7 @@ func (w *World) CheckCollision(x, y int) bool {
 	if !ok {
 		return true
 	}
-	return targetMap.CheckCollision(x, y)
+	return targetMap.CheckCollision(d, x, y)
 }
 
 // DrawMapName 绘制地图名
