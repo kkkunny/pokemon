@@ -160,9 +160,6 @@ func (m *Map) ID() string {
 }
 
 func (m *Map) Name() string {
-	if m.define.Properties == nil {
-		return ""
-	}
 	return m.ctx.Localisation().Get(m.define.Properties.GetString("id"))
 }
 
@@ -204,9 +201,6 @@ func (m *Map) AdjacentMaps() map[consts.Direction]string {
 	}
 	maps := make(map[consts.Direction]string, len(directions))
 	for direction, attr := range directions {
-		if m.define.Properties == nil {
-			continue
-		}
 		mapName := m.define.Properties.GetString(attr)
 		if mapName == "" {
 			continue
@@ -268,4 +262,8 @@ func (m *Map) GetHoles() []*tiled.Object {
 			return o.Type == "hole"
 		})
 	})
+}
+
+func (m *Map) Indoor() bool {
+	return m.define.Properties.GetBool("indoor")
 }

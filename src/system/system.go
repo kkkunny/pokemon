@@ -199,7 +199,9 @@ func (s *System) OnDraw(screen *image.Image) error {
 	}
 
 	// 天色
-	screen.Overlay(s.getSkyMaskColor())
+	if !s.world.CurrentMap().Indoor() {
+		screen.Overlay(s.getSkyMaskColor())
+	}
 
 	// 对话
 	err = s.dialogue.Draw(screen)

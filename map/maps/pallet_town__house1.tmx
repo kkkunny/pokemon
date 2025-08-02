@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="12" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="1">
+ <properties>
+  <property name="indoor" type="bool" value="true"/>
+ </properties>
  <tileset firstgid="1" source="../tile/inner_ground.tsx"/>
  <tileset firstgid="901" source="../tile/inner_land_decoration.tsx"/>
  <tileset firstgid="1801" source="../tile/inner_decorate.tsx"/>

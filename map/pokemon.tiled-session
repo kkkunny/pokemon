@@ -104,6 +104,7 @@
             "scaleInEditor": 1
         },
         "tile/inner_land_decoration.tsx": {
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "tile/land_decoration.tsx": {
@@ -136,8 +137,9 @@
         "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "string",
+    "property.type": "bool",
     "recentFiles": [
+        "maps/pallet_town__house1.tmx",
         "tile/inner_land_decoration.tsx",
         "tile/decorate.tsx",
         "tile/land_decoration.tsx",
@@ -148,8 +150,7 @@
         "tile/building.tsx",
         "tile/sprite.tsx",
         "tile/ground.tsx",
-        "maps/sprite.tsx",
-        "maps/Route_1.tmx"
+        "maps/sprite.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
