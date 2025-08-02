@@ -114,7 +114,10 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		} else {
 			s.moveCounter = 0
 			targetMap, targetX, targetY, _ := updateInfo.World.GetActualPosition(s.nextStepPos[0], s.nextStepPos[1])
-			updateInfo.World.MoveTo(targetMap)
+			err := updateInfo.World.MoveTo(targetMap.ID())
+			if err != nil {
+				return err
+			}
 			s.nextStepPos = [2]int{targetX, targetY}
 			s.pos = s.nextStepPos
 			s.moveStartingFoot = -s.moveStartingFoot

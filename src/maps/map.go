@@ -29,7 +29,7 @@ var ObjectLayerTypeEnum = enum.New[struct {
 
 type Map struct {
 	ctx          context.Context
-	name         string
+	id           string
 	define       *tiled.Map
 	tileCache    *render.TileCache
 	adjacentMaps map[consts.Direction]*Map
@@ -37,19 +37,19 @@ type Map struct {
 	sprites      []sprite.Sprite
 }
 
-func NewMap(ctx context.Context, tileCache *render.TileCache, name string) (*Map, error) {
-	return newMapWithAdjacent(ctx, tileCache, name, make(map[string]*Map))
+func NewMap(ctx context.Context, tileCache *render.TileCache, id string) (*Map, error) {
+	return newMapWithAdjacent(ctx, tileCache, id, make(map[string]*Map))
 }
 
-func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, name string, existMap map[string]*Map) (*Map, error) {
+func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id string, existMap map[string]*Map) (*Map, error) {
 	// 缓存
-	curMap := existMap[name]
+	curMap := existMap[id]
 	if curMap != nil {
 		return curMap, nil
 	}
 
 	// 地图
-	mapTMX, err := tiled.LoadFile(fmt.Sprintf("map/maps/%s.tmx", name))
+	mapTMX, err := tiled.LoadFile(fmt.Sprintf("map/maps/%s.tmx", id))
 	if err != nil {
 		return nil, err
 	}
@@ -59,16 +59,18 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, name s
 
 	curMap = &Map{
 		ctx:       ctx,
-		name:      name,
+		id:        id,
 		define:    mapTMX,
 		tileCache: tileCache,
 	}
-	existMap[name] = curMap
+	existMap[id] = curMap
 
 	// 音频
-	songFileName := mapTMX.Properties.GetString("song")
-	if songFileName != "" {
-		curMap.songFilepath = filepath.Join(config.VoicePath, "map", songFileName)
+	if mapTMX.Properties != nil {
+		songFileName := mapTMX.Properties.GetString("song")
+		if songFileName != "" {
+			curMap.songFilepath = filepath.Join(config.VoicePath, "map", songFileName)
+		}
 	}
 
 	// 精灵
@@ -153,8 +155,15 @@ func (m *Map) Size() (w int, h int) {
 	return m.define.Width, m.define.Height
 }
 
+func (m *Map) ID() string {
+	return m.id
+}
+
 func (m *Map) Name() string {
-	return m.ctx.Localisation().Get(m.define.Properties.GetString("name"))
+	if m.define.Properties == nil {
+		return ""
+	}
+	return m.ctx.Localisation().Get(m.define.Properties.GetString("id"))
 }
 
 func (m *Map) SongFilepath() (string, bool) {
@@ -195,6 +204,9 @@ func (m *Map) AdjacentMaps() map[consts.Direction]string {
 	}
 	maps := make(map[consts.Direction]string, len(directions))
 	for direction, attr := range directions {
+		if m.define.Properties == nil {
+			continue
+		}
 		mapName := m.define.Properties.GetString(attr)
 		if mapName == "" {
 			continue
@@ -245,4 +257,15 @@ func (m *Map) GetSpriteByPosition(x, y int) (sprite.Sprite, bool) {
 		}
 	}
 	return nil, false
+}
+
+func (m *Map) GetHoles() []*tiled.Object {
+	splitLayers := stlslices.Filter(m.define.ObjectGroups, func(_ int, og *tiled.ObjectGroup) bool {
+		return og.Class == ObjectLayerTypeEnum.Split
+	})
+	return stlslices.FlatMap(splitLayers, func(_ int, ob *tiled.ObjectGroup) []*tiled.Object {
+		return stlslices.Filter(ob.Objects, func(_ int, o *tiled.Object) bool {
+			return o.Type == "hole"
+		})
+	})
 }

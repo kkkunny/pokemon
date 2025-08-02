@@ -31,6 +31,7 @@
         },
         "maps/pallet_town.tmx": {
             "expandedObjectLayers": [
+                10,
                 8
             ],
             "scale": 3,
@@ -54,6 +55,14 @@
             "viewCenter": {
                 "x": 212.95413162230122,
                 "y": 159.95838030000868
+            }
+        },
+        "maps/pallet_town__house1.tmx": {
+            "scale": 7.208125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 95.93340848001388,
+                "y": 79.97919015000434
             }
         },
         "maps/route_1.tmx": {
@@ -88,6 +97,15 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "tile/inner_decorate.tsx": {
+            "scaleInEditor": 1
+        },
+        "tile/inner_ground.tsx": {
+            "scaleInEditor": 1
+        },
+        "tile/inner_land_decoration.tsx": {
+            "scaleInEditor": 1
+        },
         "tile/land_decoration.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 1,
@@ -105,12 +123,12 @@
     "loadedWorlds": [
         "W:/code/go/github.com/kkkunny/pokemon/map/maps/Kanto.world"
     ],
-    "map.height": 40,
+    "map.height": 10,
     "map.lastUsedFormat": "tmx",
     "map.renderOrder": "0",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
-    "map.width": 24,
+    "map.width": 12,
     "openFiles": [
         "maps/route_1.tmx",
         "maps/pallet_town.tmx",
@@ -118,20 +136,20 @@
         "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
-    "property.type": "int",
+    "property.type": "string",
     "recentFiles": [
-        "tile/building.tsx",
+        "tile/inner_land_decoration.tsx",
+        "tile/decorate.tsx",
         "tile/land_decoration.tsx",
         "maps/route_1.tmx",
-        "tile/sprite.tsx",
+        "tile/inner_ground.tsx",
+        "tile/inner_decorate.tsx",
         "maps/pallet_town.tmx",
+        "tile/building.tsx",
+        "tile/sprite.tsx",
         "tile/ground.tsx",
-        "tile/decorate.tsx",
         "maps/sprite.tsx",
-        "maps/Route_1.tmx",
-        "maps/Pallet_Town.tmx",
-        "tile/default.tsx",
-        "maps/pallet_town3.tmx"
+        "maps/Route_1.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

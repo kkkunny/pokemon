@@ -25,23 +25,22 @@ import (
 type World struct {
 	ctx             context.Context
 	tileCache       *render.TileCache
+	mapCache        map[string]*Map
 	currentMap      *Map
 	pos             [2]int
 	firstRenderTime time.Time
-	// 切换地图
+
+	// 地图名
 	nameMoveSpeed   int           // 地图名移动速度
 	fontFace        *text.GoXFace // 显示地图名
 	nameMoveCounter int           // 地图名移动计数器
+
 	// 缓存地图碰撞
 	selfPos [2]int // 主角所在当前地图位置
 }
 
 func NewWorld(ctx context.Context, initMapName string) (*World, error) {
 	tileCache := render.NewTileCache()
-	enterMap, err := NewMap(ctx, tileCache, initMapName)
-	if err != nil {
-		return nil, err
-	}
 	// 字体
 	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
 	if err != nil {
@@ -62,27 +61,47 @@ func NewWorld(ctx context.Context, initMapName string) (*World, error) {
 	w := &World{
 		ctx:           ctx,
 		tileCache:     tileCache,
+		mapCache:      make(map[string]*Map),
 		nameMoveSpeed: 1,
 		fontFace:      text.NewGoXFace(fontFace),
 	}
-	w.MoveTo(enterMap)
-	return w, nil
+	return w, w.MoveTo(initMapName)
 }
 
 func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
+	// 全局精灵
+	var selfX, selfY int
 	for _, s := range sprites {
 		if !s.Collision() {
 			continue
 		}
+		selfX, selfY = s.Position()
 		x, y := s.CollisionPosition()
 		w.selfPos = [2]int{x, y}
 	}
-
+	// 地图精灵
 	for _, s := range w.CurrentMap().Sprites() {
 		err := s.Update(ctx, info)
 		if err != nil {
 			return err
 		}
+	}
+
+	// 洞
+	for _, hole := range w.currentMap.GetHoles() {
+		x, y := int(hole.X+hole.Width/2)/w.ctx.Config().TileSize, int(hole.Y+hole.Height/2)/w.ctx.Config().TileSize
+		if selfX != x || selfY != y {
+			continue
+		}
+		toMap, toX, toY := hole.Properties.GetString("to_map"), hole.Properties.GetInt("to_x"), hole.Properties.GetInt("to_y")
+		err := w.MoveTo(toMap)
+		if err != nil {
+			return err
+		}
+		for _, s := range sprites {
+			s.SetPosition(toX, toY)
+		}
+		break
 	}
 	return nil
 }
@@ -160,12 +179,24 @@ func (w *World) MovePixelPosTo(x, y int) {
 	w.pos = [2]int{x, y}
 }
 
-func (w *World) MoveTo(targetMap *Map) {
-	if w.currentMap == targetMap {
-		return
+func (w *World) MoveTo(id string) error {
+	if w.currentMap != nil && w.currentMap.id == id {
+		return nil
 	}
+
+	targetMap := w.mapCache[id]
+	if targetMap == nil {
+		var err error
+		targetMap, err = NewMap(w.ctx, w.tileCache, id)
+		if err != nil {
+			return err
+		}
+		w.mapCache[id] = targetMap
+	}
+
 	w.currentMap = targetMap
 	w.nameMoveCounter = 0
+	return nil
 }
 
 func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
@@ -194,6 +225,11 @@ func (w *World) DrawMapName(screen *image.Image) error {
 		return nil
 	}
 
+	img, ok := w.getMapNameDisplayImage()
+	if !ok {
+		return nil
+	}
+
 	var ops ebiten.DrawImageOptions
 	if w.nameMoveCounter < height {
 		ops.GeoM.Translate(10, float64(w.nameMoveCounter-height))
@@ -202,12 +238,12 @@ func (w *World) DrawMapName(screen *image.Image) error {
 	} else {
 		ops.GeoM.Translate(10, -float64(w.nameMoveCounter%height))
 	}
-	screen.DrawImage(w.getMapNameDisplayImage(), &ops)
+	screen.DrawImage(img, &ops)
 	w.nameMoveCounter += w.nameMoveSpeed
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage() *image.Image {
+func (w *World) getMapNameDisplayImage() (*image.Image, bool) {
 	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
 	img := image.NewImage(int(width), int(height))
 
@@ -216,10 +252,14 @@ func (w *World) getMapNameDisplayImage() *image.Image {
 	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
 
 	mapName := w.currentMap.Name()
+	if mapName == "" {
+		return nil, false
+	}
+
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(color.Black)
 	textOps.GeoM.Translate((float64(width)+10)/2-float64(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (float64(height)-6)/2-float64(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2)
 	text.Draw(img.Image, mapName, w.fontFace, &textOps)
-	return img
+	return img, true
 }
