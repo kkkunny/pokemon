@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	stlslices "github.com/kkkunny/stl/container/slices"
 	"github.com/lafriks/go-tiled"
+	"github.com/tnnmigga/enum"
 
+	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util/image"
@@ -17,7 +20,15 @@ import (
 	"github.com/kkkunny/pokemon/src/consts"
 )
 
+type ObjectLayerType = string
+
+var ObjectLayerTypeEnum = enum.New[struct {
+	Sprite ObjectLayerType `enum:"sprite"`
+	Split  ObjectLayerType `enum:"split"`
+}]()
+
 type Map struct {
+	ctx          context.Context
 	name         string
 	define       *tiled.Map
 	tileCache    *render.TileCache
@@ -26,11 +37,11 @@ type Map struct {
 	sprites      []sprite.Sprite
 }
 
-func NewMap(cfg *config.Config, tileCache *render.TileCache, name string) (*Map, error) {
-	return newMapWithAdjacent(cfg, tileCache, name, make(map[string]*Map))
+func NewMap(ctx context.Context, tileCache *render.TileCache, name string) (*Map, error) {
+	return newMapWithAdjacent(ctx, tileCache, name, make(map[string]*Map))
 }
 
-func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name string, existMap map[string]*Map) (*Map, error) {
+func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, name string, existMap map[string]*Map) (*Map, error) {
 	// 缓存
 	curMap := existMap[name]
 	if curMap != nil {
@@ -42,11 +53,12 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	if err != nil {
 		return nil, err
 	}
-	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != cfg.TileSize {
+	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != ctx.Config().TileSize {
 		return nil, errors.New("map tile is not valid")
 	}
 
 	curMap = &Map{
+		ctx:       ctx,
 		name:      name,
 		define:    mapTMX,
 		tileCache: tileCache,
@@ -61,8 +73,11 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 
 	// 精灵
 	for _, objectGroup := range mapTMX.ObjectGroups {
+		if objectGroup.Class != ObjectLayerTypeEnum.Sprite {
+			continue
+		}
 		for _, object := range objectGroup.Objects {
-			x, y := int(object.X)/cfg.TileSize, int(object.Y)/cfg.TileSize
+			x, y := int(object.X)/ctx.Config().TileSize, int(object.Y)/ctx.Config().TileSize
 			spriteObj, err := sprite.NewSprite(object)
 			if err != nil {
 				return nil, err
@@ -75,7 +90,7 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	adjacentMaps := curMap.AdjacentMaps()
 	curMap.adjacentMaps = make(map[consts.Direction]*Map, len(adjacentMaps))
 	for direction, mapName := range adjacentMaps {
-		directionMap, err := newMapWithAdjacent(cfg, tileCache, mapName, existMap)
+		directionMap, err := newMapWithAdjacent(ctx, tileCache, mapName, existMap)
 		if err != nil {
 			return nil, err
 		}
@@ -84,18 +99,24 @@ func newMapWithAdjacent(cfg *config.Config, tileCache *render.TileCache, name st
 	return curMap, nil
 }
 
+func (m *Map) getSpriteLayerName() string {
+	var layerName string
+	for _, layer := range m.define.Layers {
+		layerName = max(layerName, layer.Name)
+	}
+	spritesLayers := stlslices.Filter(m.define.ObjectGroups, func(_ int, og *tiled.ObjectGroup) bool {
+		return og.Class == ObjectLayerTypeEnum.Sprite
+	})
+	if len(spritesLayers) > 0 {
+		layerName = spritesLayers[0].Name
+	}
+	return layerName
+}
+
 func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
-	// 找到对象层级
-	var objectLayerName string
-	for _, layer := range m.define.Layers {
-		objectLayerName = max(objectLayerName, layer.Name)
-	}
-	if len(m.define.ObjectGroups) > 0 {
-		objectLayerName = m.define.ObjectGroups[0].Name
-	}
-
+	objectLayerName := m.getSpriteLayerName()
 	for i, layer := range m.define.Layers {
 		if layer.Name > objectLayerName {
 			continue
@@ -111,15 +132,7 @@ func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOption
 func (m *Map) DrawForeground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
-	// 找到对象层级
-	var objectLayerName string
-	for _, layer := range m.define.Layers {
-		objectLayerName = max(objectLayerName, layer.Name)
-	}
-	if len(m.define.ObjectGroups) > 0 {
-		objectLayerName = m.define.ObjectGroups[0].Name
-	}
-
+	objectLayerName := m.getSpriteLayerName()
 	for i, layer := range m.define.Layers {
 		if layer.Name <= objectLayerName {
 			continue
@@ -140,8 +153,8 @@ func (m *Map) Size() (w int, h int) {
 	return m.define.Width, m.define.Height
 }
 
-func (m *Map) NameLocKey() string {
-	return m.define.Properties.GetString("name")
+func (m *Map) Name() string {
+	return m.ctx.Localisation().Get(m.define.Properties.GetString("name"))
 }
 
 func (m *Map) SongFilepath() (string, bool) {

@@ -34,10 +34,10 @@
                 8
             ],
             "scale": 3,
-            "selectedLayer": 5,
+            "selectedLayer": 7,
             "viewCenter": {
-                "x": 184.16666666666669,
-                "y": 147.16666666666666
+                "x": 263.83333333333326,
+                "y": 207.16666666666666
             }
         },
         "maps/pallet_town2.tmx": {
@@ -89,10 +89,12 @@
             "scaleInEditor": 1
         },
         "tile/land_decoration.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "tile/sprite.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         }
@@ -118,13 +120,13 @@
     "project": "pokemon.tiled-project",
     "property.type": "int",
     "recentFiles": [
-        "maps/route_1.tmx",
+        "tile/building.tsx",
         "tile/land_decoration.tsx",
+        "maps/route_1.tmx",
         "tile/sprite.tsx",
         "maps/pallet_town.tmx",
         "tile/ground.tsx",
         "tile/decorate.tsx",
-        "tile/building.tsx",
         "maps/sprite.tsx",
         "maps/Route_1.tmx",
         "maps/Pallet_Town.tmx",

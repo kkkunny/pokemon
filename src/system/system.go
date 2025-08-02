@@ -29,7 +29,7 @@ type System struct {
 
 func NewSystem(ctx context.Context) (*System, error) {
 	// 地图
-	world, err := maps.NewWorld(ctx.Config(), "pallet_town")
+	world, err := maps.NewWorld(ctx, "pallet_town")
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (s *System) OnDraw(screen *image.Image) error {
 	screen.DrawImage(originSizeScreen, &ops)
 
 	// 地图名
-	err = s.world.DrawMapName(s.ctx, screen)
+	err = s.world.DrawMapName(screen)
 	if err != nil {
 		return err
 	}

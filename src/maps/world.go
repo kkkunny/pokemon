@@ -23,6 +23,7 @@ import (
 )
 
 type World struct {
+	ctx             context.Context
 	tileCache       *render.TileCache
 	currentMap      *Map
 	pos             [2]int
@@ -35,14 +36,14 @@ type World struct {
 	selfPos [2]int // 主角所在当前地图位置
 }
 
-func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
+func NewWorld(ctx context.Context, initMapName string) (*World, error) {
 	tileCache := render.NewTileCache()
-	enterMap, err := NewMap(cfg, tileCache, initMapName)
+	enterMap, err := NewMap(ctx, tileCache, initMapName)
 	if err != nil {
 		return nil, err
 	}
 	// 字体
-	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, cfg.MaterFontName) + ".ttf")
+	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +60,7 @@ func NewWorld(cfg *config.Config, initMapName string) (*World, error) {
 		return nil, err
 	}
 	w := &World{
+		ctx:           ctx,
 		tileCache:     tileCache,
 		nameMoveSpeed: 1,
 		fontFace:      text.NewGoXFace(fontFace),
@@ -186,8 +188,8 @@ func (w *World) CheckCollision(x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(ctx context.Context, screen *image.Image) error {
-	height := ctx.Config().ScreenHeight / 7
+func (w *World) DrawMapName(screen *image.Image) error {
+	height := w.ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
 	}
@@ -200,20 +202,20 @@ func (w *World) DrawMapName(ctx context.Context, screen *image.Image) error {
 	} else {
 		ops.GeoM.Translate(10, -float64(w.nameMoveCounter%height))
 	}
-	screen.DrawImage(w.getMapNameDisplayImage(ctx), &ops)
+	screen.DrawImage(w.getMapNameDisplayImage(), &ops)
 	w.nameMoveCounter += w.nameMoveSpeed
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage(ctx context.Context) *image.Image {
-	width, height := float32(ctx.Config().ScreenWidth)/3, float32(ctx.Config().ScreenHeight)/7
+func (w *World) getMapNameDisplayImage() *image.Image {
+	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
 	img := image.NewImage(int(width), int(height))
 
 	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
 	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
 	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
 
-	mapName := ctx.Localisation().Get(w.currentMap.NameLocKey())
+	mapName := w.currentMap.Name()
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(color.Black)
