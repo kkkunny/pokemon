@@ -244,17 +244,17 @@ func (w *World) DrawMapName(screen *image.Image) error {
 }
 
 func (w *World) getMapNameDisplayImage() (*image.Image, bool) {
+	mapName := w.currentMap.Name()
+	if mapName == "" {
+		return nil, false
+	}
+
 	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
 	img := image.NewImage(int(width), int(height))
 
 	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
 	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
 	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
-
-	mapName := w.currentMap.Name()
-	if mapName == "" {
-		return nil, false
-	}
 
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
 	var textOps text.DrawOptions

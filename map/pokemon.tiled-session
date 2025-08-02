@@ -58,11 +58,25 @@
             }
         },
         "maps/pallet_town__house1.tmx": {
+            "expandedObjectLayers": [
+                8
+            ],
             "scale": 7.208125,
-            "selectedLayer": 0,
+            "selectedLayer": 6,
             "viewCenter": {
                 "x": 95.93340848001388,
                 "y": 79.97919015000434
+            }
+        },
+        "maps/pallet_town__house1_2.tmx": {
+            "expandedObjectLayers": [
+                7
+            ],
+            "scale": 8.009027777777778,
+            "selectedLayer": 5,
+            "viewCenter": {
+                "x": 87.96323593167432,
+                "y": 71.98127113500391
             }
         },
         "maps/route_1.tmx": {
@@ -98,9 +112,11 @@
             "scaleInEditor": 1
         },
         "tile/inner_decorate.tsx": {
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "tile/inner_ground.tsx": {
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "tile/inner_land_decoration.tsx": {
@@ -124,12 +140,12 @@
     "loadedWorlds": [
         "W:/code/go/github.com/kkkunny/pokemon/map/maps/Kanto.world"
     ],
-    "map.height": 10,
+    "map.height": 9,
     "map.lastUsedFormat": "tmx",
     "map.renderOrder": "0",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
-    "map.width": 12,
+    "map.width": 11,
     "openFiles": [
         "maps/route_1.tmx",
         "maps/pallet_town.tmx",
@@ -139,18 +155,18 @@
     "project": "pokemon.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house1.tmx",
+        "maps/pallet_town.tmx",
+        "tile/inner_decorate.tsx",
+        "tile/inner_ground.tsx",
         "tile/inner_land_decoration.tsx",
         "tile/decorate.tsx",
         "tile/land_decoration.tsx",
         "maps/route_1.tmx",
-        "tile/inner_ground.tsx",
-        "tile/inner_decorate.tsx",
-        "maps/pallet_town.tmx",
         "tile/building.tsx",
         "tile/sprite.tsx",
-        "tile/ground.tsx",
-        "maps/sprite.tsx"
+        "tile/ground.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

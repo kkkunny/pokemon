@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="11" height="9" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="2">
+ <properties>
+  <property name="indoor" type="bool" value="true"/>
+ </properties>
+ <tileset firstgid="1" source="../tile/inner_ground.tsx"/>
+ <tileset firstgid="901" source="../tile/inner_land_decoration.tsx"/>
+ <tileset firstgid="1801" source="../tile/inner_decorate.tsx"/>
+ <layer id="1" name="1" width="11" height="9">
+  <data encoding="csv">
+2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,
+2,3,3,3,3,3,3,2,2,3,3,
+2,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3
+</data>
+ </layer>
+ <layer id="2" name="2" width="11" height="9">
+  <data encoding="csv">
+908,908,908,908,908,908,908,908,908,908,908,
+938,938,938,938,938,938,938,938,938,938,938,
+0,0,0,0,0,0,0,0,0,904,0,
+0,0,0,0,0,0,0,0,0,934,0,
+0,0,0,901,902,902,902,903,0,0,0,
+0,0,0,931,932,932,932,933,0,0,0,
+0,0,0,931,932,932,932,933,0,0,0,
+0,0,0,961,962,962,962,963,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="3" width="11" height="9">
+  <data encoding="csv">
+1813,1814,1815,1816,1817,0,0,0,0,0,1808,
+1843,1844,1845,1846,1847,0,0,1867,1868,0,1838,
+1873,1874,1875,1876,1877,0,0,1897,1898,0,0,
+0,0,0,0,0,1805,0,1927,1928,0,0,
+1810,1811,1812,0,0,1835,0,0,0,0,0,
+1840,1841,1842,0,0,1865,0,0,0,0,0,
+1870,1871,1872,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="4" name="4" width="11" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+1869,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,1809,0,0,0,0,0,
+0,0,0,0,0,1839,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="5" name="5" class="sprite"/>
+ <layer id="6" name="6" width="11" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,1805,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,1901,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="7" name="分割层" class="split">
+  <object id="1" type="hole" x="128.972" y="32.7052" width="14" height="14">
+   <properties>
+    <property name="to_map" value="pallet_town__house1"/>
+    <property name="to_x" type="int" value="9"/>
+    <property name="to_y" type="int" value="2"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

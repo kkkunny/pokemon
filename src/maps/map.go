@@ -160,7 +160,7 @@ func (m *Map) ID() string {
 }
 
 func (m *Map) Name() string {
-	return m.ctx.Localisation().Get(m.define.Properties.GetString("id"))
+	return m.ctx.Localisation().Get(m.define.Properties.GetString("name"))
 }
 
 func (m *Map) SongFilepath() (string, bool) {

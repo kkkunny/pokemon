@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="12" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="12" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="3">
  <properties>
   <property name="indoor" type="bool" value="true"/>
  </properties>
@@ -77,4 +77,20 @@
 0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="8" name="分割层" class="split">
+  <object id="1" type="hole" x="161.282" y="32.6774" width="14" height="14">
+   <properties>
+    <property name="to_map" value="pallet_town__house1_2"/>
+    <property name="to_x" type="int" value="9"/>
+    <property name="to_y" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="2" type="hole" x="48.7704" y="141.582" width="14" height="14">
+   <properties>
+    <property name="to_map" value="pallet_town"/>
+    <property name="to_x" type="int" value="6"/>
+    <property name="to_y" type="int" value="8"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>
