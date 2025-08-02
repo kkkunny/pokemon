@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="13" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="10">
+ <properties>
+  <property name="indoor" type="bool" value="true"/>
+ </properties>
+ <tileset firstgid="1" source="../tile/inner_ground.tsx"/>
+ <tileset firstgid="901" source="../tile/inner_land_decoration.tsx"/>
+ <tileset firstgid="1801" source="../tile/inner_decorate.tsx"/>
+ <layer id="1" name="1" width="13" height="10">
+  <data encoding="csv">
+2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+2,3,3,3,3,3,3,3,3,3,3,3,3,
+1,1,1,1,31,1,1,1,1,1,1,1,1
+</data>
+ </layer>
+ <layer id="2" name="2" width="13" height="10">
+  <data encoding="csv">
+908,908,908,908,908,908,908,908,908,908,908,908,908,
+938,938,938,938,938,938,938,938,938,938,938,938,938,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,901,902,902,902,902,903,0,0,0,
+0,0,0,0,931,932,932,932,932,933,0,0,0,
+0,0,0,0,931,932,932,932,932,933,0,0,0,
+0,0,0,0,961,962,962,962,962,963,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,905,906,907,0,0,0,0,0,0,0,
+0,0,0,935,936,937,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="3" width="13" height="10">
+  <data encoding="csv">
+0,0,1803,1804,0,1805,1806,1807,0,1900,0,1816,1817,
+1801,1802,1833,1834,0,1835,1836,1837,0,1930,0,1846,1847,
+1831,1832,1863,1864,0,1865,0,0,0,0,0,1876,1877,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,1893,1894,1895,1923,0,0,0,0,
+0,0,0,0,0,1893,1924,1925,1923,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1866,0,0,0,0,0,0,0,0,0,0,0,1866,
+1896,0,0,0,0,0,0,0,0,0,0,0,1896,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="4" name="4" width="13" height="10">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,1899,0,0,0,0,0,0,0,0,0,
+0,0,0,1929,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="5" name="5" class="sprite">
+  <object id="2" type="label" x="8.75234" y="27.6463">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="stove_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="3" type="label" x="24.7288" y="25.2845">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="stove_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="4" type="label" x="55.0147" y="26.1181">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="cupboard_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="5" type="label" x="40.4275" y="25.5624">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="cupboard_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="6" type="label" x="87.6623" y="26.1181">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="tv_desc.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="7" type="label" x="184.91" y="25.0067">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="8" type="label" x="199.22" y="24.8678">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="9" type="label" x="151.985" y="24.5899">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="picture_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <layer id="6" name="6" width="13" height="10">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1866,0,0,0,0,0,0,0,0,0,0,0,1866,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="7" name="分割层" class="split">
+  <object id="1" type="hole" x="64.8247" y="144.985" width="14" height="14">
+   <properties>
+    <property name="to_map" value="pallet_town"/>
+    <property name="to_x" type="int" value="15"/>
+    <property name="to_y" type="int" value="8"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

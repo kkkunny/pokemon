@@ -6,7 +6,17 @@
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="8">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
  <tile id="37">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="38">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>

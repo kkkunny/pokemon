@@ -73,28 +73,28 @@
   <object id="5" type="label" x="52.9958" y="26.7753">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="cupboard_desc"/>
+    <property name="text" value="cupboard_desc.1"/>
    </properties>
    <point/>
   </object>
   <object id="6" type="label" x="24.1394" y="25.2493">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="stove_desc"/>
+    <property name="text" value="stove_desc.1"/>
    </properties>
    <point/>
   </object>
   <object id="7" type="label" x="39.9549" y="26.9141">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="cupboard_desc"/>
+    <property name="text" value="cupboard_desc.1"/>
    </properties>
    <point/>
   </object>
   <object id="8" type="label" x="8.18521" y="26.0817">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="stove_desc"/>
+    <property name="text" value="stove_desc.1"/>
    </properties>
    <point/>
   </object>

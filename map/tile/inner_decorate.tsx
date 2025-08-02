@@ -26,27 +26,7 @@
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="12">
-  <properties>
-   <property name="collision" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="13">
-  <properties>
-   <property name="collision" type="bool" value="true"/>
-  </properties>
- </tile>
  <tile id="14">
-  <properties>
-   <property name="collision" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="15">
-  <properties>
-   <property name="collision" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="16">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
@@ -172,6 +152,76 @@
   </properties>
  </tile>
  <tile id="127">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="131">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="132">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="133">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="151">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="158">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="159">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="160">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="180">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="184">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="185">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="186">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="187">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="216">
+  <properties>
+   <property name="collision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="217">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>

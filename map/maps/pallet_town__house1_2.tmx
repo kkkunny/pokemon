@@ -11,7 +11,7 @@
 2,2,2,2,2,2,2,2,2,2,2,
 2,2,2,2,2,2,2,2,2,2,2,
 2,2,2,2,2,2,2,2,2,2,2,
-2,3,3,3,3,3,3,2,2,3,3,
+2,3,3,3,3,3,3,2,2,4,3,
 2,3,3,3,3,3,3,3,3,3,3,
 2,3,3,3,3,3,3,3,3,3,3,
 2,3,3,3,3,3,3,3,3,3,3,
@@ -62,21 +62,21 @@
   <object id="2" type="label" x="39.4555" y="25.5961">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="dressing_table_desc"/>
+    <property name="text" value="dressing_table_desc.1"/>
    </properties>
    <point/>
   </object>
   <object id="3" type="label" x="70.92" y="24.7221">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="bookcase_desc"/>
+    <property name="text" value="bookcase_desc.1"/>
    </properties>
    <point/>
   </object>
   <object id="4" type="label" x="57.1855" y="24.847">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="bookcase_desc"/>
+    <property name="text" value="bookcase_desc.1"/>
    </properties>
    <point/>
   </object>
@@ -90,7 +90,7 @@
   <object id="6" type="label" x="87.7759" y="90.8974">
    <properties>
     <property name="action_type" value="label"/>
-    <property name="text" value="famicom_desc"/>
+    <property name="text" value="famicom_desc.1"/>
    </properties>
    <point/>
   </object>

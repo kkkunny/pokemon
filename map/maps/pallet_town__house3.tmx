@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="13" height="14" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="27">
+ <properties>
+  <property name="indoor" type="bool" value="true"/>
+ </properties>
+ <tileset firstgid="1" source="../tile/inner_ground.tsx"/>
+ <tileset firstgid="901" source="../tile/inner_land_decoration.tsx"/>
+ <tileset firstgid="1801" source="../tile/inner_decorate.tsx"/>
+ <layer id="1" name="1" width="13" height="14">
+  <data encoding="csv">
+32,32,32,32,32,32,32,32,32,32,32,32,32,
+32,32,32,32,32,32,32,32,32,32,32,32,32,
+35,32,32,32,32,32,32,32,32,32,32,32,32,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+35,32,32,32,32,34,34,34,32,32,32,32,32,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+33,34,34,34,34,34,34,34,34,34,34,34,34,
+1,1,1,1,1,1,31,1,1,1,1,1,1
+</data>
+ </layer>
+ <layer id="2" name="2" width="13" height="14">
+  <data encoding="csv">
+909,909,909,909,909,909,909,909,909,909,909,909,909,
+939,939,939,939,939,939,939,939,939,939,939,939,939,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,905,906,907,0,0,0,0,0,
+0,0,0,0,0,935,936,937,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="3" width="13" height="14">
+  <data encoding="csv">
+1951,0,1902,1903,1904,1814,1953,1953,1954,1955,1956,1955,1956,
+1981,1982,1932,1933,1934,1844,1983,1983,1984,1985,1986,1985,1986,
+2011,2012,1962,1963,1964,1874,0,0,0,2015,2016,2015,2016,
+1952,1957,1958,0,0,0,0,0,0,0,0,0,0,
+1952,1987,1988,0,0,0,0,0,1959,1960,1961,0,0,
+0,2017,2018,0,0,0,0,0,1989,1990,1991,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1955,1955,1956,1955,1956,0,0,0,1955,1956,1955,1956,1956,
+1985,1985,1986,1985,1986,0,0,0,1985,1986,1985,1986,1986,
+2015,2015,2016,2015,2016,0,0,0,2015,2016,2015,2016,2016,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1866,0,0,0,0,0,0,0,0,0,0,0,1866,
+1896,0,0,0,0,0,0,0,0,0,0,0,1896,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="5" name="4" class="sprite">
+  <object id="2" type="label" x="72.0576" y="139.065">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="3" type="label" x="56.1311" y="137.706">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="4" type="label" x="40.0104" y="137.511">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="5" type="label" x="25.0551" y="136.929">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="6" type="label" x="8.35169" y="138.288">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="7" type="label" x="135.958" y="138.288">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="8" type="label" x="153.632" y="137.9">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="9" type="label" x="169.559" y="139.065">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="10" type="label" x="184.32" y="138.677">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="11" type="label" x="200.246" y="139.454">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="12" type="label" x="40.2046" y="73.0287">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="13" type="label" x="24.4724" y="87.7898">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="14" type="label" x="40.0104" y="85.0707">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="15" type="label" x="25.0551" y="73.0287">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="16" type="label" x="7.57479" y="26.4146">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="17" type="label" x="24.6666" y="26.2204">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="machine_desc.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="18" type="label" x="54.9658" y="24.6666">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="computer_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="19" type="label" x="40.0104" y="25.2493">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="computer_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="20" type="label" x="120.808" y="21.559">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="trainer_tips.3"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="21" type="label" x="103.522" y="21.559">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="trainer_tips.3"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="22" type="label" x="152.273" y="25.6377">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="23" type="label" x="166.451" y="25.6377">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="24" type="label" x="184.32" y="25.2493">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="25" type="label" x="200.635" y="25.832">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc.1"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <layer id="6" name="5" width="13" height="14">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1957,1958,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1955,1955,1956,1955,1956,0,0,0,1955,1956,1955,1956,1956,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+1866,0,0,0,0,0,0,0,0,0,0,0,1866,
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="4" name="分割层" class="split">
+  <object id="26" type="hole" x="96.9105" y="209.173" width="14" height="14">
+   <properties>
+    <property name="to_map" value="pallet_town"/>
+    <property name="to_x" type="int" value="16"/>
+    <property name="to_y" type="int" value="14"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
