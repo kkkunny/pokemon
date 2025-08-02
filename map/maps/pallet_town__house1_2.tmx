@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="11" height="9" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="2">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="11" height="9" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="7">
  <properties>
   <property name="indoor" type="bool" value="true"/>
  </properties>
@@ -58,7 +58,43 @@
 0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="5" name="5" class="sprite"/>
+ <objectgroup id="5" name="5" class="sprite">
+  <object id="2" type="label" x="39.4555" y="25.5961">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="dressing_table_desc"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="3" type="label" x="70.92" y="24.7221">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="4" type="label" x="57.1855" y="24.847">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="bookcase_desc"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="5" type="label" x="168.185" y="20.7266">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="trainer_tips.2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="6" type="label" x="87.7759" y="90.8974">
+   <properties>
+    <property name="action_type" value="label"/>
+    <property name="text" value="famicom_desc"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
  <layer id="6" name="6" width="11" height="9">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,

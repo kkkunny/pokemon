@@ -110,6 +110,8 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 				}
 			}
 		}
+	} else if s.dialogue.WaitForContinue() && action == input.KeyInputActionEnum.A.Pressed() {
+		s.dialogue.Continue()
 	} else if s.dialogue.StreamDone() && action == input.KeyInputActionEnum.A.Pressed() {
 		actionSprite := s.self.ActionSprite()
 		if actionSprite != nil {

@@ -3,6 +3,7 @@ package dialogue
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,6 +14,7 @@ import (
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/image"
@@ -20,13 +22,14 @@ import (
 
 const (
 	normalDisplayInterval   = time.Millisecond * 150
-	fastModeDisplayInterval = time.Millisecond * 50
+	fastModeDisplayInterval = time.Millisecond * 30
 )
 
 type System struct {
 	ctx context.Context
 
 	fontFace        *text.GoXFace
+	emojiFontFace   *text.GoXFace
 	displayInterval time.Duration
 
 	// 显示文字的必备属性
@@ -35,7 +38,7 @@ type System struct {
 	text           []rune
 	index          int
 	lastUpdateTime time.Time
-	lines          [][]rune
+	waitFrame      int
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -56,10 +59,28 @@ func NewSystem(ctx context.Context) (*System, error) {
 	if err != nil {
 		return nil, err
 	}
+	// emoji字体
+	fontBytes, err = os.ReadFile(filepath.Join(config.FontsPath, "NotoEmoji-VariableFont_wght") + ".ttf")
+	if err != nil {
+		return nil, err
+	}
+	fontInst, err = opentype.Parse(fontBytes)
+	if err != nil {
+		return nil, err
+	}
+	emojiFontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
+		Size:    32,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &System{
 		ctx:             ctx,
 		displayInterval: normalDisplayInterval,
 		fontFace:        text.NewGoXFace(fontFace),
+		emojiFontFace:   text.NewGoXFace(emojiFontFace),
 	}, nil
 }
 
@@ -75,7 +96,6 @@ func (s *System) SetLabel(text string) {
 	s.isDialogue = false
 	s.text = []rune(text)
 	s.index = 0
-	s.lines = nil
 	s.lastUpdateTime = time.Time{}
 }
 
@@ -88,7 +108,6 @@ func (s *System) SetDialogue(text string) {
 	s.isDialogue = true
 	s.text = []rune(text)
 	s.index = 0
-	s.lines = nil
 	s.lastUpdateTime = time.Time{}
 }
 
@@ -129,6 +148,27 @@ func (s *System) getDialogueBackground(w, h int) *image.Image {
 	return img
 }
 
+func (s *System) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) {
+	var beginIndex, curIndex int
+	for _, ch := range text {
+		if ch == '\n' {
+			lines = append(lines, text[beginIndex:curIndex])
+			curIndex++
+			beginIndex = curIndex
+		} else if curIndex-beginIndex >= maxLineCount {
+			lines = append(lines, text[beginIndex:curIndex])
+			beginIndex = curIndex
+			curIndex++
+		} else {
+			curIndex++
+		}
+	}
+	if curIndex > beginIndex {
+		lines = append(lines, text[beginIndex:curIndex])
+	}
+	return lines
+}
+
 func (s *System) Draw(screen *image.Image) error {
 	if !s.display {
 		return nil
@@ -153,47 +193,49 @@ func (s *System) Draw(screen *image.Image) error {
 
 	x, y = x+float64(fontW)/2+float64(fontW)/4, y+float64(fontH)/2+float64(fontH)/3
 
-	if len(s.lines) != 0 {
+	lines := s.splitDoneLines(s.text[:stlval.Ternary(s.index < len(s.text), s.index+1, s.index)], hFrontMaxCount)
+	if len(lines) > 1 {
 		// 存量行（第一行）
 		var textOps text.DrawOptions
 		textOps.ColorScale.ScaleWithColor(fontColor)
 		textOps.GeoM.Translate(x, y)
-		text.Draw(screen.Image, string(s.lines[len(s.lines)-1]), s.fontFace, &textOps)
+		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{consts.WaitForContinueChar}), "", -1)
+		text.Draw(screen.Image, renderStr, s.fontFace, &textOps)
 
 		y += float64(fontH) + float64(fontH)/3
 	}
 
 	// 输出行（第二行或第一行）
-	var renderedIndex int
-	for _, line := range s.lines {
-		renderedIndex += len(line)
-	}
-	renderText := s.text[renderedIndex:s.index]
+	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{consts.WaitForContinueChar}), "", -1)
 
 	var textOps text.DrawOptions
 	textOps.ColorScale.ScaleWithColor(fontColor)
 	textOps.GeoM.Translate(x, y)
-	text.Draw(screen.Image, string(renderText), s.fontFace, &textOps)
+	text.Draw(screen.Image, renderStr, s.fontFace, &textOps)
 
-	if s.StreamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Now().Sub(s.lastUpdateTime) < s.displayInterval) {
+	if s.WaitForContinue() {
+		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
+		x += float64((bounds.Max.X - bounds.Min.X).Round())
+		y += float64((fontH/5)*2 + s.waitFrame)
+		waitFont := string([]rune{consts.WaitForContinueChar})
+		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
+		waitFontHeight := (bounds.Max.Y - bounds.Min.Y).Round()
+		y -= float64(waitFontHeight) / 2
+		var waitOps text.DrawOptions
+		waitOps.ColorScale.ScaleWithColor(util.NewRGBColor(224, 8, 8))
+		waitOps.GeoM.Translate(x, y)
+		text.Draw(screen.Image, waitFont, s.emojiFontFace, &waitOps)
+		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
+			s.waitFrame = (s.waitFrame + 1) % 3
+			s.lastUpdateTime = time.Now()
+		}
+		return nil
+	} else if s.StreamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Since(s.lastUpdateTime) < s.displayInterval) {
 		return nil
 	}
 
-	// 更新
 	s.lastUpdateTime = time.Now()
 	s.index++
-
-	// 换行
-	changeLine := len(renderText) >= hFrontMaxCount
-
-	if s.index <= len(s.text)-1 && s.text[s.index-1] == '\n' {
-		changeLine = true
-		renderText = s.text[renderedIndex:s.index]
-		s.index++
-	}
-	if changeLine {
-		s.lines = append(s.lines, renderText)
-	}
 	return nil
 }
 
@@ -203,4 +245,18 @@ func (s *System) SetFastMode(v bool) {
 
 func (s *System) FastMode() bool {
 	return s.displayInterval != normalDisplayInterval
+}
+
+func (s *System) WaitForContinue() bool {
+	if !s.Display() || s.index >= len(s.text) {
+		return false
+	}
+	return s.text[s.index] == consts.WaitForContinueChar
+}
+
+func (s *System) Continue() {
+	if !s.WaitForContinue() {
+		return
+	}
+	s.index++
 }

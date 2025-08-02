@@ -35,7 +35,7 @@
                 8
             ],
             "scale": 3,
-            "selectedLayer": 7,
+            "selectedLayer": 5,
             "viewCenter": {
                 "x": 263.83333333333326,
                 "y": 207.16666666666666
@@ -62,7 +62,7 @@
                 8
             ],
             "scale": 7.208125,
-            "selectedLayer": 6,
+            "selectedLayer": 4,
             "viewCenter": {
                 "x": 95.93340848001388,
                 "y": 79.97919015000434
@@ -70,10 +70,11 @@
         },
         "maps/pallet_town__house1_2.tmx": {
             "expandedObjectLayers": [
+                5,
                 7
             ],
             "scale": 8.009027777777778,
-            "selectedLayer": 5,
+            "selectedLayer": 4,
             "viewCenter": {
                 "x": 87.96323593167432,
                 "y": 71.98127113500391
@@ -157,14 +158,14 @@
     "recentFiles": [
         "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house1.tmx",
-        "maps/pallet_town.tmx",
         "tile/inner_decorate.tsx",
+        "tile/building.tsx",
+        "maps/pallet_town.tmx",
         "tile/inner_ground.tsx",
         "tile/inner_land_decoration.tsx",
         "tile/decorate.tsx",
         "tile/land_decoration.tsx",
         "maps/route_1.tmx",
-        "tile/building.tsx",
         "tile/sprite.tsx",
         "tile/ground.tsx"
     ],
