@@ -37,8 +37,10 @@ type World struct {
 	fontFace        *text.GoXFace // 显示地图名
 	nameMoveCounter int           // 地图名移动计数器
 
-	// 缓存地图碰撞
+	// 地图碰撞缓存
 	selfPos [2]int // 主角所在当前地图位置
+
+	onBattleStart func(site string) error // 战斗开始回调
 }
 
 func NewWorld(ctx context.Context, initMapName string) (*World, error) {
@@ -68,6 +70,10 @@ func NewWorld(ctx context.Context, initMapName string) (*World, error) {
 		fontFace:      text.NewGoXFace(fontFace),
 	}
 	return w, w.MoveTo(initMapName)
+}
+
+func (w *World) SetOnBattleStart(f func(site string) error) {
+	w.onBattleStart = f
 }
 
 func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
@@ -103,7 +109,22 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 		for _, s := range sprites {
 			s.SetPosition(toX, toY)
 		}
-		break
+		return nil
+	}
+
+	for _, objectLayer := range w.currentMap.define.ObjectGroups {
+		if objectLayer.Class != ObjectLayerTypeEnum.Split {
+			continue
+		}
+		for _, object := range objectLayer.Objects {
+			if object.Type != "gunting_ground" {
+				continue
+			}
+			if float64(selfX*ctx.Config().TileSize) >= object.X && float64(selfX+1*ctx.Config().TileSize) <= object.X+object.Width &&
+				float64(selfY*ctx.Config().TileSize) >= object.Y && float64(selfY+1*ctx.Config().TileSize) <= object.Y+object.Width {
+				return w.onBattleStart(object.Properties.GetString("battle_site"))
+			}
+		}
 	}
 	return nil
 }

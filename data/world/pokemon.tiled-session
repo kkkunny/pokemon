@@ -31,14 +31,14 @@
         },
         "maps/pallet_town.tmx": {
             "expandedObjectLayers": [
-                10,
-                8
+                8,
+                10
             ],
             "scale": 3,
             "selectedLayer": 7,
             "viewCenter": {
                 "x": 263.83333333333326,
-                "y": 207.16666666666666
+                "y": -87.83333333333334
             }
         },
         "maps/pallet_town2.tmx": {
@@ -106,11 +106,14 @@
             }
         },
         "maps/route_1.tmx": {
-            "scale": 1.80203125,
-            "selectedLayer": 0,
+            "expandedObjectLayers": [
+                6
+            ],
+            "scale": 3,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 191.7280846267233,
-                "y": 811.0292204977022
+                "x": 208.16666666666669,
+                "y": 599.8333333333333
             }
         },
         "maps/sprite.tsx": {
@@ -164,7 +167,7 @@
     "last.imagePath": "W:/code/go/github.com/kkkunny/pokemon/map/tile",
     "last.worldFilePath": "W:/code/go/github.com/kkkunny/pokemon/map/maps",
     "loadedWorlds": [
-        "W:/code/go/github.com/kkkunny/pokemon/map/maps/Kanto.world"
+        "W:/code/go/github.com/kkkunny/pokemon/data/world/maps/Kanto.world"
     ],
     "map.height": 14,
     "map.lastUsedFormat": "tmx",
