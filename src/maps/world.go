@@ -20,6 +20,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
@@ -142,7 +143,7 @@ func (w *World) getNeedDrawMap() (map[*Map]ebiten.DrawImageOptions, map[*Map]ima
 	return map2Ops, map2Rect
 }
 
-func (w *World) Draw(ctx context.Context, screen *imgutil.Image, sprites []sprite.Sprite) error {
+func (w *World) OnDraw(ctx context.Context, screen *imgutil.Image, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
@@ -232,7 +233,7 @@ func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(screen *imgutil.Image) error {
+func (w *World) DrawMapName(drawer draw.Drawer) error {
 	height := w.ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
@@ -243,15 +244,17 @@ func (w *World) DrawMapName(screen *imgutil.Image) error {
 		return nil
 	}
 
-	var ops ebiten.DrawImageOptions
 	if w.nameMoveCounter < height {
-		ops.GeoM.Translate(10, float64(w.nameMoveCounter-height))
+		drawer = drawer.Move(10, w.nameMoveCounter-height)
 	} else if w.nameMoveCounter < height*3 {
-		ops.GeoM.Translate(10, 0)
+		drawer = drawer.Move(10, 0)
 	} else {
-		ops.GeoM.Translate(10, -float64(w.nameMoveCounter%height))
+		drawer = drawer.Move(10, -w.nameMoveCounter%height)
 	}
-	screen.DrawImage(img, &ops)
+	err := drawer.DrawImage(img)
+	if err != nil {
+		return err
+	}
 	w.nameMoveCounter += w.nameMoveSpeed
 	return nil
 }

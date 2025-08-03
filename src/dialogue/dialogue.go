@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlval "github.com/kkkunny/stl/value"
@@ -17,6 +16,7 @@ import (
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
@@ -169,62 +169,59 @@ func (s *System) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) 
 	return lines
 }
 
-func (s *System) Draw(screen *image.Image) error {
+func (s *System) OnDraw(drawer draw.Drawer) error {
 	if !s.display {
 		return nil
 	}
 
 	fontW, fontH := s.frontSize()
-	screenW, screenH := float64(screen.Width()), float64(screen.Height())
-	hFrontMaxCount, vFrontMaxCount := int(screenW/float64(fontW))-4, int(screenH/float64(fontH))-4
+	screenW, screenH := drawer.Size()
+	hFrontMaxCount, vFrontMaxCount := int(float64(screenW)/float64(fontW))-4, int(float64(screenH)/float64(fontH))-4
 	if hFrontMaxCount < 2 || vFrontMaxCount < 3 {
 		return nil
 	}
 
 	// 背景
 	bgImg := stlval.Ternary(s.isDialogue, s.getDialogueBackground, s.getLabelBackground)(hFrontMaxCount, 2)
-	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-float64(fontH)
-	var bgOps ebiten.DrawImageOptions
-	bgOps.GeoM.Translate(x, y)
-	screen.DrawImage(bgImg, &bgOps)
+	x, y := (screenW-bgImg.Width())/2, screenH-bgImg.Height()-fontH
+	err := drawer.Move(x, y).DrawImage(bgImg)
+	if err != nil {
+		return err
+	}
 
 	// 文字
 	fontColor := util.NewRGBColor(100, 100, 100)
 
-	x, y = x+float64(fontW)/2+float64(fontW)/4, y+float64(fontH)/2+float64(fontH)/3
+	x, y = x+fontW/2+fontW/4, y+fontH/2+fontH/3
 
 	lines := s.splitDoneLines(s.text[:stlval.Ternary(s.index < len(s.text), s.index+1, s.index)], hFrontMaxCount)
 	if len(lines) > 1 {
 		// 存量行（第一行）
-		var textOps text.DrawOptions
-		textOps.ColorScale.ScaleWithColor(fontColor)
-		textOps.GeoM.Translate(x, y)
 		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{consts.WaitForContinueChar}), "", -1)
-		text.Draw(screen.Image, renderStr, s.fontFace, &textOps)
+		err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
+		if err != nil {
+			return err
+		}
 
-		y += float64(fontH) + float64(fontH)/3
+		y += fontH + fontH/3
 	}
 
 	// 输出行（第二行或第一行）
 	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{consts.WaitForContinueChar}), "", -1)
-
-	var textOps text.DrawOptions
-	textOps.ColorScale.ScaleWithColor(fontColor)
-	textOps.GeoM.Translate(x, y)
-	text.Draw(screen.Image, renderStr, s.fontFace, &textOps)
+	err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
+	if err != nil {
+		return err
+	}
 
 	if s.WaitForContinue() {
 		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
-		x += float64((bounds.Max.X - bounds.Min.X).Round())
-		y += float64((fontH/5)*2 + s.waitFrame)
-		waitFont := string([]rune{consts.WaitForContinueChar})
+		x += (bounds.Max.X - bounds.Min.X).Round()
+		y += (fontH/5)*2 + s.waitFrame
+		waitString := string([]rune{consts.WaitForContinueChar})
 		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
 		waitFontHeight := (bounds.Max.Y - bounds.Min.Y).Round()
-		y -= float64(waitFontHeight) / 2
-		var waitOps text.DrawOptions
-		waitOps.ColorScale.ScaleWithColor(util.NewRGBColor(224, 8, 8))
-		waitOps.GeoM.Translate(x, y)
-		text.Draw(screen.Image, waitFont, s.emojiFontFace, &waitOps)
+		y -= waitFontHeight / 2
+		err = drawer.Move(x, y).ScaleWithColor(util.NewRGBColor(224, 8, 8)).DrawText(waitString, s.emojiFontFace)
 		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
 			s.waitFrame = (s.waitFrame + 1) % 3
 			s.lastUpdateTime = time.Now()

@@ -11,7 +11,7 @@ import (
 	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system"
-	"github.com/kkkunny/pokemon/src/util/image"
+	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 type Game struct {
@@ -58,7 +58,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	err := g.sys.OnDraw(image.WrapImage(screen))
+	err := g.sys.OnDraw(draw.NewDrawerFromEbiten(screen))
 	if err != nil {
 		panic(err)
 	}

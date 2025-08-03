@@ -4,8 +4,6 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
-
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/dialogue"
 	"github.com/kkkunny/pokemon/src/input"
@@ -13,6 +11,7 @@ import (
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 	"github.com/kkkunny/pokemon/src/voice"
 )
@@ -181,32 +180,38 @@ func (s *System) getSkyMaskColor() color.Color {
 	}
 }
 
-func (s *System) OnDraw(screen *image.Image) error {
+func (s *System) OnDraw(drawer draw.Drawer) error {
+	w, h := drawer.Size()
+
 	// 地图
-	originSizeScreen := image.NewImage(screen.Width()*s.ctx.Config().Scale, screen.Height()*s.ctx.Config().Scale)
-	err := s.world.Draw(s.ctx, originSizeScreen, []sprite.Sprite{s.self})
+	mapImage := image.NewImage(w*s.ctx.Config().Scale, h*s.ctx.Config().Scale)
+	err := s.world.OnDraw(s.ctx, mapImage, []sprite.Sprite{s.self})
 	if err != nil {
 		return err
 	}
 
-	var ops ebiten.DrawImageOptions
-	ops.GeoM.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale))
-	ops.GeoM.Translate(float64(screen.Width()/2*(1-s.ctx.Config().Scale)), float64(screen.Height()/2*(1-s.ctx.Config().Scale)))
-	screen.DrawImage(originSizeScreen, &ops)
-
 	// 天色
 	if !s.world.CurrentMap().Indoor() {
-		screen.Overlay(s.getSkyMaskColor())
+		mapImage.Overlay(s.getSkyMaskColor())
+	}
+
+	// 地图位置和大小
+	err = drawer.
+		Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)).
+		Move(w/2*(1-s.ctx.Config().Scale), h/2*(1-s.ctx.Config().Scale)).
+		DrawImage(mapImage)
+	if err != nil {
+		return err
 	}
 
 	// 地图名
-	err = s.world.DrawMapName(screen)
+	err = s.world.DrawMapName(drawer)
 	if err != nil {
 		return err
 	}
 
 	// 对话
-	err = s.dialogue.Draw(screen)
+	err = s.dialogue.OnDraw(drawer)
 	if err != nil {
 		return err
 	}
