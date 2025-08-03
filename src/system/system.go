@@ -7,17 +7,17 @@ import (
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/dialogue"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/voice"
+	"github.com/kkkunny/pokemon/src/world"
 )
 
 type System struct {
 	ctx            context.Context
-	world          *maps.World
+	world          *world.World
 	self           person.Self
 	mapVoicePlayer *voice.Player
 	dialogue       *dialogue.System
@@ -27,7 +27,7 @@ type System struct {
 
 func NewSystem(ctx context.Context) (*System, error) {
 	// 地图
-	world, err := maps.NewWorld(ctx, "pallet_town")
+	world, err := world.NewWorld(ctx, "pallet_town")
 	if err != nil {
 		return nil, err
 	}

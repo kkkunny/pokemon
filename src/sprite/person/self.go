@@ -11,10 +11,10 @@ import (
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/script"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util/draw"
+	"github.com/kkkunny/pokemon/src/world"
 )
 
 var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
@@ -191,7 +191,7 @@ var luaModuleToGo = map[string]map[string]lua.LGFunction{
 	},
 }
 
-func loadScriptFileWithSelf(w *maps.World, this sprite.Sprite, master *_Self, name string) (rt *lua.LState, err error) {
+func loadScriptFileWithSelf(w *world.World, this sprite.Sprite, master *_Self, name string) (rt *lua.LState, err error) {
 	rt, err = script.LoadScriptFile(name)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package maps
+package world
 
 import (
 	"image"
@@ -17,11 +17,11 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
+	"github.com/kkkunny/pokemon/src/world/render"
 )
 
 type World struct {

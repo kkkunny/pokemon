@@ -1,9 +1,9 @@
 package person
 
-import "github.com/kkkunny/pokemon/src/maps"
+import "github.com/kkkunny/pokemon/src/world"
 
 type UpdateInfo struct {
-	World *maps.World
+	World *world.World
 }
 
 func (i *UpdateInfo) UpdateInfo() {}

@@ -1,8 +1,7 @@
-package maps
+package world
 
 import (
 	"errors"
-	"fmt"
 	"image"
 	"path/filepath"
 	"time"
@@ -14,9 +13,9 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util/draw"
+	"github.com/kkkunny/pokemon/src/world/render"
 )
 
 type ObjectLayerType = string
@@ -47,7 +46,7 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id str
 	}
 
 	// 地图
-	mapTMX, err := tiled.LoadFile(fmt.Sprintf("map/maps/%s.tmx", id))
+	mapTMX, err := tiled.LoadFile(filepath.Join(config.MapsPath, id+".tmx"))
 	if err != nil {
 		return nil, err
 	}
