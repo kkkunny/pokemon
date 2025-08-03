@@ -10,6 +10,7 @@ import (
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/pokemon"
 	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
