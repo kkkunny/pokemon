@@ -3,6 +3,7 @@ package maps
 import (
 	"errors"
 	"fmt"
+	"image"
 	"path/filepath"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
-	"github.com/kkkunny/pokemon/src/util/image"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
@@ -115,7 +116,7 @@ func (m *Map) getSpriteLayerName() string {
 	return layerName
 }
 
-func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawBackground(screen *imgutil.Image, rect image.Rectangle, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
@@ -123,7 +124,7 @@ func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOption
 		if layer.Name > objectLayerName {
 			continue
 		}
-		err := renderer.RenderLayer(screen, i, options)
+		err := renderer.RenderRectLayer(screen, i, rect, options)
 		if err != nil {
 			return err
 		}
@@ -131,7 +132,7 @@ func (m *Map) DrawBackground(screen *image.Image, options ebiten.DrawImageOption
 	return nil
 }
 
-func (m *Map) DrawForeground(screen *image.Image, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawForeground(screen *imgutil.Image, rect image.Rectangle, options ebiten.DrawImageOptions, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
@@ -139,7 +140,7 @@ func (m *Map) DrawForeground(screen *image.Image, options ebiten.DrawImageOption
 		if layer.Name <= objectLayerName {
 			continue
 		}
-		err := renderer.RenderLayer(screen, i, options)
+		err := renderer.RenderRectLayer(screen, i, rect, options)
 		if err != nil {
 			return err
 		}

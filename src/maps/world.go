@@ -1,6 +1,7 @@
 package maps
 
 import (
+	"image"
 	"image/color"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/util"
-	"github.com/kkkunny/pokemon/src/util/image"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 type World struct {
@@ -106,19 +107,17 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 	return nil
 }
 
-func (w *World) Draw(ctx context.Context, screen *image.Image, sprites []sprite.Sprite) error {
-	now := time.Now()
-	var defaultTime time.Time
-	if w.firstRenderTime == defaultTime {
-		w.firstRenderTime = now
-	}
-
-	drawMaps := make(map[*Map]ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
+// 获取需要绘制的地图信息（参数、范围）
+func (w *World) getNeedDrawMap() (map[*Map]ebiten.DrawImageOptions, map[*Map]image.Rectangle) {
+	map2Ops := make(map[*Map]ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
+	map2Rect := make(map[*Map]image.Rectangle, len(w.currentMap.adjacentMaps)+1)
 
 	x, y := float64(w.pos[0]), float64(w.pos[1])
 	var ops ebiten.DrawImageOptions
 	ops.GeoM.Translate(x, y)
-	drawMaps[w.currentMap] = ops
+	map2Ops[w.currentMap] = ops
+	mw, mh := w.currentMap.Size()
+	map2Rect[w.currentMap] = image.Rect(0, 0, mw, mh)
 
 	currentMapW, currentMapH := w.currentMap.PixelSize()
 	for direction, adjacentMap := range w.currentMap.adjacentMaps {
@@ -136,12 +135,25 @@ func (w *World) Draw(ctx context.Context, screen *image.Image, sprites []sprite.
 		}
 		var adjacentMapOps ebiten.DrawImageOptions
 		adjacentMapOps.GeoM.Translate(adjacentMapX, adjacentMapY)
-		drawMaps[adjacentMap] = adjacentMapOps
+		map2Ops[adjacentMap] = adjacentMapOps
+		mw, mh = w.currentMap.Size()
+		map2Rect[adjacentMap] = image.Rect(0, 0, mw, mh)
+	}
+	return map2Ops, map2Rect
+}
+
+func (w *World) Draw(ctx context.Context, screen *imgutil.Image, sprites []sprite.Sprite) error {
+	now := time.Now()
+	var defaultTime time.Time
+	if w.firstRenderTime == defaultTime {
+		w.firstRenderTime = now
 	}
 
+	map2Ops, map2Rect := w.getNeedDrawMap()
+
 	// 背景
-	for drawMap, ops := range drawMaps {
-		err := drawMap.DrawBackground(screen, ops, now.Sub(w.firstRenderTime))
+	for drawMap, ops := range map2Ops {
+		err := drawMap.DrawBackground(screen, map2Rect[drawMap], ops, now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -159,15 +171,16 @@ func (w *World) Draw(ctx context.Context, screen *image.Image, sprites []sprite.
 		drawSprites.Push(y, s)
 	}
 	spritePairs := drawSprites.ToSlice()
+	cuMapOps := map2Ops[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err := spritePairs[i].E2().Draw(ctx, screen, ops)
+		err := spritePairs[i].E2().Draw(ctx, screen, cuMapOps)
 		if err != nil {
 			return err
 		}
 	}
 	// 前景
-	for drawMap, ops := range drawMaps {
-		err := drawMap.DrawForeground(screen, ops, now.Sub(w.firstRenderTime))
+	for drawMap, ops := range map2Ops {
+		err := drawMap.DrawForeground(screen, map2Rect[drawMap], ops, now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -219,7 +232,7 @@ func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(screen *image.Image) error {
+func (w *World) DrawMapName(screen *imgutil.Image) error {
 	height := w.ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
@@ -243,14 +256,14 @@ func (w *World) DrawMapName(screen *image.Image) error {
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage() (*image.Image, bool) {
+func (w *World) getMapNameDisplayImage() (*imgutil.Image, bool) {
 	mapName := w.currentMap.Name()
 	if mapName == "" {
 		return nil, false
 	}
 
 	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
-	img := image.NewImage(int(width), int(height))
+	img := imgutil.NewImage(int(width), int(height))
 
 	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
 	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)

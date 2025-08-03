@@ -1,6 +1,7 @@
 package render
 
 import (
+	"image"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -8,7 +9,7 @@ import (
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
 
-	"github.com/kkkunny/pokemon/src/util/image"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Renderer struct {
@@ -58,7 +59,7 @@ func (r *Renderer) foreachLayerTile(layer *tiled.Layer, fn func(x, y int, layerT
 	}
 }
 
-func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*image.Image, error) {
+func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
 	tilesetPath := tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source)
 	if img := r.cache.GetTileImage(tilesetPath, int(tile.ID)); img != nil {
 		return img, nil
@@ -67,7 +68,7 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*image.Image, error) {
 	tilesetImg := r.cache.GetTilesetImage(tilesetPath)
 	if tilesetImg == nil {
 		var err error
-		tilesetImg, err = image.NewImageFromFile(tilesetPath)
+		tilesetImg, err = imgutil.NewImageFromFile(tilesetPath)
 		if err != nil {
 			return nil, err
 		}
@@ -80,14 +81,14 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*image.Image, error) {
 	return img, nil
 }
 
-func (r *Renderer) renderLayer(target *image.Image, layer *tiled.Layer, options ebiten.DrawImageOptions) error {
+func (r *Renderer) renderLayer(target *imgutil.Image, layer *tiled.Layer, rect image.Rectangle, options ebiten.DrawImageOptions) error {
+	// TODO: 可优化，foreach函数里直接不遍历rect外的坐标
 	var retErr error
 	r.foreachLayerTile(layer, func(x, y int, layerTile *tiled.LayerTile) bool {
+		if layerTile == nil || layerTile.IsNil() || x < rect.Min.X || x > rect.Max.X || y < rect.Min.Y || y > rect.Max.Y {
+			return true
+		}
 		err := func() error {
-			if layerTile == nil || layerTile.IsNil() {
-				return nil
-			}
-
 			// 动画
 			if layerTile.Tileset != nil {
 				tileDef, err := layerTile.Tileset.GetTilesetTile(layerTile.ID)
@@ -123,9 +124,13 @@ func (r *Renderer) renderLayer(target *image.Image, layer *tiled.Layer, options 
 	return retErr
 }
 
-func (r *Renderer) RenderLayer(target *image.Image, id int, options ebiten.DrawImageOptions) error {
+func (r *Renderer) RenderLayer(target *imgutil.Image, id int, options ebiten.DrawImageOptions) error {
+	return r.RenderRectLayer(target, id, image.Rect(0, 0, r.m.Width, r.m.Height), options)
+}
+
+func (r *Renderer) RenderRectLayer(target *imgutil.Image, id int, rect image.Rectangle, options ebiten.DrawImageOptions) error {
 	if id >= len(r.m.Layers) {
 		return render.ErrOutOfBounds
 	}
-	return r.renderLayer(target, r.m.Layers[id], options)
+	return r.renderLayer(target, r.m.Layers[id], rect, options)
 }

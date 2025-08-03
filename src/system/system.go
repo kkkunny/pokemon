@@ -194,15 +194,15 @@ func (s *System) OnDraw(screen *image.Image) error {
 	ops.GeoM.Translate(float64(screen.Width()/2*(1-s.ctx.Config().Scale)), float64(screen.Height()/2*(1-s.ctx.Config().Scale)))
 	screen.DrawImage(originSizeScreen, &ops)
 
+	// 天色
+	if !s.world.CurrentMap().Indoor() {
+		screen.Overlay(s.getSkyMaskColor())
+	}
+
 	// 地图名
 	err = s.world.DrawMapName(screen)
 	if err != nil {
 		return err
-	}
-
-	// 天色
-	if !s.world.CurrentMap().Indoor() {
-		screen.Overlay(s.getSkyMaskColor())
 	}
 
 	// 对话
