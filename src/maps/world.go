@@ -9,6 +9,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	stlmaps "github.com/kkkunny/stl/container/maps"
 	"github.com/kkkunny/stl/container/pqueue"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -28,7 +29,7 @@ type World struct {
 	tileCache       *render.TileCache
 	mapCache        map[string]*Map
 	currentMap      *Map
-	pixPos          [2]float64
+	pixPos          [2]int
 	firstRenderTime time.Time
 
 	// 地图名
@@ -108,34 +109,63 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 }
 
 // 获取需要绘制的地图信息（参数、范围）
-func (w *World) getNeedDrawMap(drawer draw.Drawer) (map[*Map]draw.Drawer, map[*Map]image.Rectangle) {
-	map2Drawer := make(map[*Map]draw.Drawer, len(w.currentMap.adjacentMaps)+1)
-	map2Rect := make(map[*Map]image.Rectangle, len(w.currentMap.adjacentMaps)+1)
+func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle, error) {
+	map2Pos := make(map[*Map]image.Point, 5)
+	map2Rect := make(map[*Map]image.Rectangle, 5)
 
-	x, y := w.pixPos[0]/float64(w.ctx.Config().Scale), w.pixPos[1]/float64(w.ctx.Config().Scale)
-	map2Drawer[w.currentMap] = drawer.Move(x, y)
-	mw, mh := w.currentMap.Size()
-	map2Rect[w.currentMap] = image.Rect(0, 0, mw, mh)
+	var loopFn func(m *Map, pixX, pixY int) error
+	loopFn = func(m *Map, pixX, pixY int) error {
+		map2Pos[m] = image.Pt(pixX, pixY)
+		x0, y0 := max(0-pixX, 0)/w.ctx.Config().TileSize, max(0-pixY, 0)/w.ctx.Config().TileSize
+		mapPixWidth, mapPixHeight := m.PixelSize()
+		mapWidth, mapHeight := m.Size()
+		x1, y1 := mapWidth-max((pixX+mapPixWidth)*w.ctx.Config().Scale-w.ctx.Config().ScreenWidth, 0)/(w.ctx.Config().TileSize*w.ctx.Config().Scale), mapHeight-max((pixY+mapPixHeight)*w.ctx.Config().Scale-w.ctx.Config().ScreenHeight, 0)/(w.ctx.Config().TileSize*w.ctx.Config().Scale)
+		map2Rect[m] = image.Rect(x0, y0, x1, y1)
 
-	currentMapW, currentMapH := w.currentMap.PixelSize()
-	for direction, adjacentMap := range w.currentMap.adjacentMaps {
-		width, height := adjacentMap.PixelSize()
-		adjacentMapX, adjacentMapY := x, y
-		switch direction {
-		case consts.DirectionEnum.Up:
-			adjacentMapY -= float64(height)
-		case consts.DirectionEnum.Down:
-			adjacentMapY += float64(currentMapH)
-		case consts.DirectionEnum.Left:
-			adjacentMapX -= float64(width)
-		case consts.DirectionEnum.Right:
-			adjacentMapX += float64(currentMapW)
+		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d consts.Direction, id string) bool {
+			switch d {
+			case consts.DirectionEnum.Up:
+				return pixY > 0
+			case consts.DirectionEnum.Down:
+				return (pixY+mapPixHeight)*w.ctx.Config().Scale < w.ctx.Config().ScreenHeight
+			case consts.DirectionEnum.Left:
+				return pixX > 0
+			case consts.DirectionEnum.Right:
+				return (pixX+mapPixWidth)*w.ctx.Config().Scale < w.ctx.Config().ScreenWidth
+			default:
+				return false
+			}
+		})
+
+		for d, adjacentMapID := range needDrawAdjacentMaps {
+			adjacentMap, err := w.loadMap(adjacentMapID)
+			if err != nil {
+				return err
+			} else if stlmaps.ContainKey(map2Pos, adjacentMap) {
+				continue
+			}
+			adjacentPixX, adjacentPixY := pixX, pixY
+			adjacentPixWidth, adjacentPixHeight := adjacentMap.PixelSize()
+			switch d {
+			case consts.DirectionEnum.Up:
+				adjacentPixY -= adjacentPixHeight
+			case consts.DirectionEnum.Down:
+				adjacentPixY += mapPixHeight
+			case consts.DirectionEnum.Left:
+				adjacentPixX -= adjacentPixWidth
+			case consts.DirectionEnum.Right:
+				adjacentPixX += mapPixWidth
+			}
+			loopFn(adjacentMap, adjacentPixX, adjacentPixY)
 		}
-		map2Drawer[adjacentMap] = drawer.Move(adjacentMapX, adjacentMapY)
-		mw, mh = w.currentMap.Size()
-		map2Rect[adjacentMap] = image.Rect(0, 0, mw, mh)
+		return nil
 	}
-	return map2Drawer, map2Rect
+	err := loopFn(w.currentMap, w.pixPos[0], w.pixPos[1])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return map2Pos, map2Rect, nil
 }
 
 func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
@@ -145,11 +175,14 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 		w.firstRenderTime = now
 	}
 
-	map2Drawer, map2Rect := w.getNeedDrawMap(drawer)
+	map2Pos, map2Rect, err := w.getNeedDrawMap()
+	if err != nil {
+		return err
+	}
 
 	// 背景
-	for drawMap, drawer := range map2Drawer {
-		err := drawMap.DrawBackground(drawer, map2Rect[drawMap], now.Sub(w.firstRenderTime))
+	for drawMap, pos := range map2Pos {
+		err := drawMap.DrawBackground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -167,15 +200,16 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 		drawSprites.Push(y, s)
 	}
 	spritePairs := drawSprites.ToSlice()
+	currentMapPos := map2Pos[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err := spritePairs[i].E2().Draw(w.ctx, map2Drawer[w.currentMap])
+		err := spritePairs[i].E2().Draw(w.ctx, drawer.Move(float64(currentMapPos.X), float64(currentMapPos.Y)))
 		if err != nil {
 			return err
 		}
 	}
 	// 前景
-	for drawMap, drawer := range map2Drawer {
-		err := drawMap.DrawForeground(drawer, map2Rect[drawMap], now.Sub(w.firstRenderTime))
+	for drawMap, pos := range map2Pos {
+		err := drawMap.DrawForeground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -183,32 +217,78 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 	return nil
 }
 
-func (w *World) MovePixelPosTo(x, y float64) {
-	w.pixPos = [2]float64{x, y}
+func (w *World) MovePixelPosTo(x, y int) {
+	w.pixPos = [2]int{x, y}
+}
+
+func (w *World) loadMap(id string) (*Map, error) {
+	if m := w.mapCache[id]; m != nil {
+		return m, nil
+	}
+	targetMap, err := NewMap(w.ctx, w.tileCache, id)
+	if err != nil {
+		return nil, err
+	}
+	w.mapCache[id] = targetMap
+	return targetMap, nil
 }
 
 func (w *World) MoveTo(id string) error {
 	if w.currentMap != nil && w.currentMap.id == id {
 		return nil
 	}
-
-	targetMap := w.mapCache[id]
-	if targetMap == nil {
-		var err error
-		targetMap, err = NewMap(w.ctx, w.tileCache, id)
-		if err != nil {
-			return err
-		}
-		w.mapCache[id] = targetMap
+	targetMap, err := w.loadMap(id)
+	if err != nil {
+		return err
 	}
-
 	w.currentMap = targetMap
 	w.nameMoveCounter = 0
 	return nil
 }
 
 func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
-	return w.currentMap.GetActualPosition(x, y)
+	curMap := w.currentMap
+	for {
+		adjacentMaps := curMap.AdjacentMaps()
+		if y < 0 {
+			upMapID, ok := adjacentMaps[consts.DirectionEnum.Up]
+			if !ok || !stlmaps.ContainKey(w.mapCache, upMapID) {
+				return nil, 0, 0, false
+			}
+			upMap := w.mapCache[upMapID]
+			x, y = x, y+upMap.define.Height
+			curMap = upMap
+			continue
+		} else if y >= curMap.define.Height {
+			downMapID, ok := adjacentMaps[consts.DirectionEnum.Down]
+			if !ok || !stlmaps.ContainKey(w.mapCache, downMapID) {
+				return nil, 0, 0, false
+			}
+			downMap := w.mapCache[downMapID]
+			x, y = x, y-curMap.define.Height
+			curMap = downMap
+			continue
+		} else if x < 0 {
+			leftMapID, ok := adjacentMaps[consts.DirectionEnum.Left]
+			if !ok || !stlmaps.ContainKey(w.mapCache, leftMapID) {
+				return nil, 0, 0, false
+			}
+			leftMap := w.mapCache[leftMapID]
+			x, y = x+leftMap.define.Width, y
+			curMap = leftMap
+			continue
+		} else if x >= curMap.define.Width {
+			rightMapID, ok := adjacentMaps[consts.DirectionEnum.Right]
+			if !ok || !stlmaps.ContainKey(w.mapCache, rightMapID) {
+				return nil, 0, 0, false
+			}
+			rightMap := w.mapCache[rightMapID]
+			x, y = x-curMap.define.Width, y
+			curMap = rightMap
+			continue
+		}
+		return curMap, x, y, true
+	}
 }
 
 func (w *World) CurrentMap() *Map {

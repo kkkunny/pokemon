@@ -180,8 +180,6 @@ func (s *System) getSkyMaskColor() color.Color {
 }
 
 func (s *System) OnDraw(drawer draw.Drawer) error {
-	// w, h := drawer.Size()
-
 	// 地图
 	err := s.world.OnDraw(
 		drawer.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)),

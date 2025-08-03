@@ -127,7 +127,8 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	// 更新地图位置
 	pixX, pixY := s._Person.PixelPosition(ctx.Config())
 	selfPixX, selfPixY := s.PixelPosition(ctx.Config())
-	updateInfo.World.MovePixelPosTo(selfPixX-pixX*float64(ctx.Config().Scale), selfPixY-pixY*float64(ctx.Config().Scale))
+	mapPixX, mapPixY := (selfPixX-pixX*float64(ctx.Config().Scale))/float64(ctx.Config().Scale), (selfPixY-pixY*float64(ctx.Config().Scale))/float64(ctx.Config().Scale)
+	updateInfo.World.MovePixelPosTo(int(mapPixX), int(mapPixY))
 	return nil
 }
 

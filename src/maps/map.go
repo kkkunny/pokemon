@@ -31,7 +31,6 @@ type Map struct {
 	id           string
 	define       *tiled.Map
 	tileCache    *render.TileCache
-	adjacentMaps map[consts.Direction]*Map
 	songFilepath string
 	sprites      []sprite.Sprite
 }
@@ -86,16 +85,6 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id str
 			spriteObj.SetPosition(x, y)
 			curMap.sprites = append(curMap.sprites, spriteObj)
 		}
-	}
-
-	adjacentMaps := curMap.AdjacentMaps()
-	curMap.adjacentMaps = make(map[consts.Direction]*Map, len(adjacentMaps))
-	for direction, mapName := range adjacentMaps {
-		directionMap, err := newMapWithAdjacent(ctx, tileCache, mapName, existMap)
-		if err != nil {
-			return nil, err
-		}
-		curMap.adjacentMaps[direction] = directionMap
 	}
 	return curMap, nil
 }
@@ -196,15 +185,9 @@ func (m *Map) CheckCollision(d consts.Direction, x, y int) bool {
 }
 
 func (m *Map) AdjacentMaps() map[consts.Direction]string {
-	directions := map[consts.Direction]string{
-		consts.DirectionEnum.Up:    "up",
-		consts.DirectionEnum.Down:  "down",
-		consts.DirectionEnum.Left:  "left",
-		consts.DirectionEnum.Right: "right",
-	}
-	maps := make(map[consts.Direction]string, len(directions))
-	for direction, attr := range directions {
-		mapName := m.define.Properties.GetString(attr)
+	maps := make(map[consts.Direction]string, len(enum.Values[consts.Direction](consts.DirectionEnum)))
+	for _, direction := range enum.Values[consts.Direction](consts.DirectionEnum) {
+		mapName := m.define.Properties.GetString(direction.String())
 		if mapName == "" {
 			continue
 		}
@@ -215,35 +198,6 @@ func (m *Map) AdjacentMaps() map[consts.Direction]string {
 
 func (m *Map) Sprites() []sprite.Sprite {
 	return m.sprites
-}
-
-func (m *Map) GetActualPosition(x, y int) (*Map, int, int, bool) {
-	if y < 0 {
-		upMap := m.adjacentMaps[consts.DirectionEnum.Up]
-		if upMap == nil {
-			return nil, 0, 0, false
-		}
-		return upMap.GetActualPosition(x, y+upMap.define.Height)
-	} else if y >= m.define.Height {
-		downMap := m.adjacentMaps[consts.DirectionEnum.Down]
-		if downMap == nil {
-			return nil, 0, 0, false
-		}
-		return downMap.GetActualPosition(x, y-m.define.Height)
-	} else if x < 0 {
-		leftMap := m.adjacentMaps[consts.DirectionEnum.Left]
-		if leftMap == nil {
-			return nil, 0, 0, false
-		}
-		return leftMap.GetActualPosition(x+leftMap.define.Width, y)
-	} else if x >= m.define.Width {
-		rightMap := m.adjacentMaps[consts.DirectionEnum.Right]
-		if rightMap == nil {
-			return nil, 0, 0, false
-		}
-		return rightMap.GetActualPosition(x-m.define.Width, y)
-	}
-	return m, x, y, true
 }
 
 func (m *Map) GetSpriteByPosition(x, y int) (sprite.Sprite, bool) {
