@@ -4,11 +4,10 @@ import (
 	"image"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	stlval "github.com/kkkunny/stl/value"
 	"github.com/lafriks/go-tiled"
 	"github.com/lafriks/go-tiled/render"
 
+	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
@@ -81,7 +80,7 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
 	return img, nil
 }
 
-func (r *Renderer) renderLayer(target *imgutil.Image, layer *tiled.Layer, rect image.Rectangle, options ebiten.DrawImageOptions) error {
+func (r *Renderer) renderLayer(drawer draw.Drawer, layer *tiled.Layer, rect image.Rectangle) error {
 	// TODO: 可优化，foreach函数里直接不遍历rect外的坐标
 	var retErr error
 	r.foreachLayerTile(layer, func(x, y int, layerTile *tiled.LayerTile) bool {
@@ -110,9 +109,10 @@ func (r *Renderer) renderLayer(target *imgutil.Image, layer *tiled.Layer, rect i
 				// TODO
 				panic("unexpected opacity")
 			} else {
-				ops := *stlval.Ptr(options)
-				ops.GeoM.Translate(float64(x*r.m.TileWidth), float64(y*r.m.TileHeight))
-				target.DrawImage(img, &ops)
+				err = drawer.Move(float64(x*r.m.TileWidth), float64(y*r.m.TileHeight)).DrawImage(img)
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		}()
@@ -124,13 +124,13 @@ func (r *Renderer) renderLayer(target *imgutil.Image, layer *tiled.Layer, rect i
 	return retErr
 }
 
-func (r *Renderer) RenderLayer(target *imgutil.Image, id int, options ebiten.DrawImageOptions) error {
-	return r.RenderRectLayer(target, id, image.Rect(0, 0, r.m.Width, r.m.Height), options)
+func (r *Renderer) RenderLayer(drawer draw.Drawer, id int) error {
+	return r.RenderRectLayer(drawer, id, image.Rect(0, 0, r.m.Width, r.m.Height))
 }
 
-func (r *Renderer) RenderRectLayer(target *imgutil.Image, id int, rect image.Rectangle, options ebiten.DrawImageOptions) error {
+func (r *Renderer) RenderRectLayer(drawer draw.Drawer, id int, rect image.Rectangle) error {
 	if id >= len(r.m.Layers) {
 		return render.ErrOutOfBounds
 	}
-	return r.renderLayer(target, r.m.Layers[id], rect, options)
+	return r.renderLayer(drawer, r.m.Layers[id], rect)
 }

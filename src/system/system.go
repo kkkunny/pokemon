@@ -12,7 +12,6 @@ import (
 	"github.com/kkkunny/pokemon/src/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/util/image"
 	"github.com/kkkunny/pokemon/src/voice"
 )
 
@@ -181,27 +180,23 @@ func (s *System) getSkyMaskColor() color.Color {
 }
 
 func (s *System) OnDraw(drawer draw.Drawer) error {
-	w, h := drawer.Size()
+	// w, h := drawer.Size()
 
 	// 地图
-	mapImage := image.NewImage(w*s.ctx.Config().Scale, h*s.ctx.Config().Scale)
-	err := s.world.OnDraw(s.ctx, mapImage, []sprite.Sprite{s.self})
+	err := s.world.OnDraw(
+		drawer.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)),
+		[]sprite.Sprite{s.self},
+	)
 	if err != nil {
 		return err
 	}
 
 	// 天色
 	if !s.world.CurrentMap().Indoor() {
-		mapImage.Overlay(s.getSkyMaskColor())
-	}
-
-	// 地图位置和大小
-	err = drawer.
-		Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)).
-		Move(w/2*(1-s.ctx.Config().Scale), h/2*(1-s.ctx.Config().Scale)).
-		DrawImage(mapImage)
-	if err != nil {
-		return err
+		err = drawer.OverlayColor(s.getSkyMaskColor())
+		if err != nil {
+			return err
+		}
 	}
 
 	// 地图名

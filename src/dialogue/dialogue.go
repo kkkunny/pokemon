@@ -174,16 +174,18 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 		return nil
 	}
 
-	fontW, fontH := s.frontSize()
-	screenW, screenH := drawer.Size()
-	hFrontMaxCount, vFrontMaxCount := int(float64(screenW)/float64(fontW))-4, int(float64(screenH)/float64(fontH))-4
+	_fontW, _fontH := s.frontSize()
+	fontW, fontH := float64(_fontW), float64(_fontH)
+	_screenW, _screenH := drawer.Size()
+	screenW, screenH := float64(_screenW), float64(_screenH)
+	hFrontMaxCount, vFrontMaxCount := int(screenW/fontW)-4, int(screenH/fontH)-4
 	if hFrontMaxCount < 2 || vFrontMaxCount < 3 {
 		return nil
 	}
 
 	// 背景
 	bgImg := stlval.Ternary(s.isDialogue, s.getDialogueBackground, s.getLabelBackground)(hFrontMaxCount, 2)
-	x, y := (screenW-bgImg.Width())/2, screenH-bgImg.Height()-fontH
+	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-fontH
 	err := drawer.Move(x, y).DrawImage(bgImg)
 	if err != nil {
 		return err
@@ -215,12 +217,11 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 
 	if s.WaitForContinue() {
 		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
-		x += (bounds.Max.X - bounds.Min.X).Round()
-		y += (fontH/5)*2 + s.waitFrame
+		x += float64((bounds.Max.X - bounds.Min.X).Round())
+		y += (fontH/5)*2 + float64(s.waitFrame)
 		waitString := string([]rune{consts.WaitForContinueChar})
 		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
-		waitFontHeight := (bounds.Max.Y - bounds.Min.Y).Round()
-		y -= waitFontHeight / 2
+		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
 		err = drawer.Move(x, y).ScaleWithColor(util.NewRGBColor(224, 8, 8)).DrawText(waitString, s.emojiFontFace)
 		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
 			s.waitFrame = (s.waitFrame + 1) % 3

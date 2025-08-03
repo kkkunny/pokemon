@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/rand/v2"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	stlval "github.com/kkkunny/stl/value"
 	"github.com/lafriks/go-tiled"
@@ -16,7 +15,7 @@ import (
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/sprite"
 	"github.com/kkkunny/pokemon/src/sprite/item"
-	"github.com/kkkunny/pokemon/src/util/image"
+	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 func init() {
@@ -147,20 +146,20 @@ func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.U
 	return nil
 }
 
-func (p *_Person) PixelPosition(cfg *config.Config) (x, y int) {
+func (p *_Person) PixelPosition(cfg *config.Config) (x, y float64) {
 	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Height()
-	x, y = p.pos[0]*cfg.TileSize, (p.pos[1]+1)*cfg.TileSize-width
+	x, y = float64(p.pos[0]*cfg.TileSize), float64((p.pos[1]+1)*cfg.TileSize-width)
 
 	if p.Moving() && !p.Turning() {
 		switch p.nextStepDirection {
 		case consts.DirectionEnum.Up:
-			y -= p.moveCounter
+			y -= float64(p.moveCounter)
 		case consts.DirectionEnum.Down:
-			y += p.moveCounter
+			y += float64(p.moveCounter)
 		case consts.DirectionEnum.Left:
-			x -= p.moveCounter
+			x -= float64(p.moveCounter)
 		case consts.DirectionEnum.Right:
-			x += p.moveCounter
+			x += float64(p.moveCounter)
 		}
 	}
 
@@ -223,9 +222,9 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(ctx context.Context, screen *image.Image, ops ebiten.DrawImageOptions) error {
+func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
 	x, y := p.PixelPosition(ctx.Config())
-	ops.GeoM.Translate(float64(x), float64(y))
+	drawer = drawer.Move(float64(x), float64(y))
 
 	if p.Turning() {
 		if p.direction == -p.nextStepDirection {
@@ -240,12 +239,11 @@ func (p *_Person) Draw(ctx context.Context, screen *image.Image, ops ebiten.Draw
 			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		screen.DrawImage(a.GetFrameImage(1), &ops)
+		return drawer.DrawImage(a.GetFrameImage(1))
 	} else {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		a.Draw(screen, ops)
+		return a.Draw(drawer)
 	}
-	return nil
 }
 
 func (p *_Person) Turn(d consts.Direction) bool {

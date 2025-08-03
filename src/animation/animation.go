@@ -1,9 +1,8 @@
 package animation
 
 import (
+	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Animation struct {
@@ -58,7 +57,7 @@ func (a *Animation) GetFrameImage(i int) *image.Image {
 	return a.frameSheet.SubImage(x, 0, a.frameWidth, a.frameHeight)
 }
 
-func (a *Animation) Draw(screen *image.Image, options ebiten.DrawImageOptions) {
+func (a *Animation) Draw(drawer draw.Drawer) error {
 	frameImg := a.GetFrameImage(a.curFrameIndex)
-	screen.DrawImage(frameImg, &options)
+	return drawer.DrawImage(frameImg)
 }

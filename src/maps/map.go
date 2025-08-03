@@ -7,18 +7,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	stlslices "github.com/kkkunny/stl/container/slices"
 	"github.com/lafriks/go-tiled"
 	"github.com/tnnmigga/enum"
 
+	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/maps/render"
 	"github.com/kkkunny/pokemon/src/sprite"
-	imgutil "github.com/kkkunny/pokemon/src/util/image"
-
-	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 type ObjectLayerType = string
@@ -116,7 +114,7 @@ func (m *Map) getSpriteLayerName() string {
 	return layerName
 }
 
-func (m *Map) DrawBackground(screen *imgutil.Image, rect image.Rectangle, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawBackground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
@@ -124,7 +122,7 @@ func (m *Map) DrawBackground(screen *imgutil.Image, rect image.Rectangle, option
 		if layer.Name > objectLayerName {
 			continue
 		}
-		err := renderer.RenderRectLayer(screen, i, rect, options)
+		err := renderer.RenderRectLayer(drawer, i, rect)
 		if err != nil {
 			return err
 		}
@@ -132,7 +130,7 @@ func (m *Map) DrawBackground(screen *imgutil.Image, rect image.Rectangle, option
 	return nil
 }
 
-func (m *Map) DrawForeground(screen *imgutil.Image, rect image.Rectangle, options ebiten.DrawImageOptions, dur time.Duration) error {
+func (m *Map) DrawForeground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
 	renderer := render.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
@@ -140,7 +138,7 @@ func (m *Map) DrawForeground(screen *imgutil.Image, rect image.Rectangle, option
 		if layer.Name <= objectLayerName {
 			continue
 		}
-		err := renderer.RenderRectLayer(screen, i, rect, options)
+		err := renderer.RenderRectLayer(drawer, i, rect)
 		if err != nil {
 			return err
 		}

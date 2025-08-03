@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/kkkunny/stl/container/pqueue"
@@ -29,7 +28,7 @@ type World struct {
 	tileCache       *render.TileCache
 	mapCache        map[string]*Map
 	currentMap      *Map
-	pos             [2]int
+	pixPos          [2]float64
 	firstRenderTime time.Time
 
 	// 地图名
@@ -109,14 +108,12 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 }
 
 // 获取需要绘制的地图信息（参数、范围）
-func (w *World) getNeedDrawMap() (map[*Map]ebiten.DrawImageOptions, map[*Map]image.Rectangle) {
-	map2Ops := make(map[*Map]ebiten.DrawImageOptions, len(w.currentMap.adjacentMaps)+1)
+func (w *World) getNeedDrawMap(drawer draw.Drawer) (map[*Map]draw.Drawer, map[*Map]image.Rectangle) {
+	map2Drawer := make(map[*Map]draw.Drawer, len(w.currentMap.adjacentMaps)+1)
 	map2Rect := make(map[*Map]image.Rectangle, len(w.currentMap.adjacentMaps)+1)
 
-	x, y := float64(w.pos[0]), float64(w.pos[1])
-	var ops ebiten.DrawImageOptions
-	ops.GeoM.Translate(x, y)
-	map2Ops[w.currentMap] = ops
+	x, y := w.pixPos[0]/float64(w.ctx.Config().Scale), w.pixPos[1]/float64(w.ctx.Config().Scale)
+	map2Drawer[w.currentMap] = drawer.Move(x, y)
 	mw, mh := w.currentMap.Size()
 	map2Rect[w.currentMap] = image.Rect(0, 0, mw, mh)
 
@@ -134,27 +131,25 @@ func (w *World) getNeedDrawMap() (map[*Map]ebiten.DrawImageOptions, map[*Map]ima
 		case consts.DirectionEnum.Right:
 			adjacentMapX += float64(currentMapW)
 		}
-		var adjacentMapOps ebiten.DrawImageOptions
-		adjacentMapOps.GeoM.Translate(adjacentMapX, adjacentMapY)
-		map2Ops[adjacentMap] = adjacentMapOps
+		map2Drawer[adjacentMap] = drawer.Move(adjacentMapX, adjacentMapY)
 		mw, mh = w.currentMap.Size()
 		map2Rect[adjacentMap] = image.Rect(0, 0, mw, mh)
 	}
-	return map2Ops, map2Rect
+	return map2Drawer, map2Rect
 }
 
-func (w *World) OnDraw(ctx context.Context, screen *imgutil.Image, sprites []sprite.Sprite) error {
+func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
 		w.firstRenderTime = now
 	}
 
-	map2Ops, map2Rect := w.getNeedDrawMap()
+	map2Drawer, map2Rect := w.getNeedDrawMap(drawer)
 
 	// 背景
-	for drawMap, ops := range map2Ops {
-		err := drawMap.DrawBackground(screen, map2Rect[drawMap], ops, now.Sub(w.firstRenderTime))
+	for drawMap, drawer := range map2Drawer {
+		err := drawMap.DrawBackground(drawer, map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -172,16 +167,15 @@ func (w *World) OnDraw(ctx context.Context, screen *imgutil.Image, sprites []spr
 		drawSprites.Push(y, s)
 	}
 	spritePairs := drawSprites.ToSlice()
-	cuMapOps := map2Ops[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err := spritePairs[i].E2().Draw(ctx, screen, cuMapOps)
+		err := spritePairs[i].E2().Draw(w.ctx, map2Drawer[w.currentMap])
 		if err != nil {
 			return err
 		}
 	}
 	// 前景
-	for drawMap, ops := range map2Ops {
-		err := drawMap.DrawForeground(screen, map2Rect[drawMap], ops, now.Sub(w.firstRenderTime))
+	for drawMap, drawer := range map2Drawer {
+		err := drawMap.DrawForeground(drawer, map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -189,8 +183,8 @@ func (w *World) OnDraw(ctx context.Context, screen *imgutil.Image, sprites []spr
 	return nil
 }
 
-func (w *World) MovePixelPosTo(x, y int) {
-	w.pos = [2]int{x, y}
+func (w *World) MovePixelPosTo(x, y float64) {
+	w.pixPos = [2]float64{x, y}
 }
 
 func (w *World) MoveTo(id string) error {
@@ -245,11 +239,11 @@ func (w *World) DrawMapName(drawer draw.Drawer) error {
 	}
 
 	if w.nameMoveCounter < height {
-		drawer = drawer.Move(10, w.nameMoveCounter-height)
+		drawer = drawer.Move(10, float64(w.nameMoveCounter-height))
 	} else if w.nameMoveCounter < height*3 {
 		drawer = drawer.Move(10, 0)
 	} else {
-		drawer = drawer.Move(10, -w.nameMoveCounter%height)
+		drawer = drawer.Move(10, -float64(w.nameMoveCounter%height))
 	}
 	err := drawer.DrawImage(img)
 	if err != nil {

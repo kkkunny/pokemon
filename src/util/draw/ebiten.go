@@ -49,7 +49,7 @@ func (d *ebitenImage) DrawImage(dst image.Image) error {
 
 	var imageOpts ebiten.DrawImageOptions
 	imageOpts.GeoM.Scale(d.scaleX, d.scaleX)
-	imageOpts.GeoM.Translate(float64(d.x), float64(d.y))
+	imageOpts.GeoM.Translate(d.x, d.y)
 	if d.scaleWithColor != nil {
 		imageOpts.ColorScale.ScaleWithColor(d.scaleWithColor)
 	}
@@ -60,10 +60,17 @@ func (d *ebitenImage) DrawImage(dst image.Image) error {
 func (d *ebitenImage) DrawText(renderText string, fontFace text.Face) error {
 	var textOpts text.DrawOptions
 	textOpts.GeoM.Scale(d.scaleX, d.scaleX)
-	textOpts.GeoM.Translate(float64(d.x), float64(d.y))
+	textOpts.GeoM.Translate(d.x, d.y)
 	if d.scaleWithColor != nil {
 		textOpts.ColorScale.ScaleWithColor(d.scaleWithColor)
 	}
 	text.Draw(d.img, renderText, fontFace, &textOpts)
+	return nil
+}
+
+func (d *ebitenImage) OverlayColor(c color.Color) error {
+	mask := ebiten.NewImage(d.img.Bounds().Dx(), d.img.Bounds().Dy())
+	mask.Fill(c)
+	d.img.DrawImage(mask, nil)
 	return nil
 }

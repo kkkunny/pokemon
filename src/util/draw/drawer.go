@@ -14,4 +14,5 @@ type Drawer interface {
 	Set(x int, y int, clr color.Color)
 	DrawImage(image image.Image) error
 	DrawText(renderText string, fontFace text.Face) error
+	OverlayColor(c color.Color) error
 }

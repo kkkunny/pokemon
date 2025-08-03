@@ -3,7 +3,6 @@ package person
 import (
 	"errors"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	stlval "github.com/kkkunny/stl/value"
 	lua "github.com/yuin/gopher-lua"
@@ -15,7 +14,7 @@ import (
 	"github.com/kkkunny/pokemon/src/maps"
 	"github.com/kkkunny/pokemon/src/script"
 	"github.com/kkkunny/pokemon/src/sprite"
-	"github.com/kkkunny/pokemon/src/util/image"
+	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
@@ -81,9 +80,9 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 	return nil
 }
 
-func (s *_Self) PixelPosition(cfg *config.Config) (x, y int) {
+func (s *_Self) PixelPosition(cfg *config.Config) (x, y float64) {
 	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
-	return cfg.ScreenWidth/2 - bounds.Dx()/2, cfg.ScreenHeight/2 - bounds.Dy()/2
+	return float64(cfg.ScreenWidth)/2 - float64(bounds.Dx()*cfg.Scale)/2, float64(cfg.ScreenHeight)/2 - float64(bounds.Dy()*cfg.Scale)/2
 }
 
 func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
@@ -126,18 +125,15 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	}
 
 	// 更新地图位置
-	x, y := s._Person.PixelPosition(ctx.Config())
-	selfX, selfY := s.PixelPosition(ctx.Config())
-	x = -x + selfX
-	y = -y + selfY
-	updateInfo.World.MovePixelPosTo(x, y)
+	pixX, pixY := s._Person.PixelPosition(ctx.Config())
+	selfPixX, selfPixY := s.PixelPosition(ctx.Config())
+	updateInfo.World.MovePixelPosTo(selfPixX-pixX*float64(ctx.Config().Scale), selfPixY-pixY*float64(ctx.Config().Scale))
 	return nil
 }
 
-func (s *_Self) Draw(ctx context.Context, screen *image.Image, _ ebiten.DrawImageOptions) error {
+func (s *_Self) Draw(ctx context.Context, drawer draw.Drawer) error {
 	x, y := s.PixelPosition(ctx.Config())
-	var ops ebiten.DrawImageOptions
-	ops.GeoM.Translate(float64(x), float64(y))
+	drawer = drawer.At(x/float64(ctx.Config().Scale), y/float64(ctx.Config().Scale))
 
 	if s.Turning() {
 		if s.direction == -s.nextStepDirection {
@@ -152,12 +148,11 @@ func (s *_Self) Draw(ctx context.Context, screen *image.Image, _ ebiten.DrawImag
 			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		screen.DrawImage(a.GetFrameImage(1), &ops)
+		return drawer.DrawImage(a.GetFrameImage(1))
 	} else {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		a.Draw(screen, ops)
+		return a.Draw(drawer)
 	}
-	return nil
 }
 
 func (s *_Self) ActionSprite() sprite.Sprite {
