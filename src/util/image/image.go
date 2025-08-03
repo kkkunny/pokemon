@@ -53,3 +53,11 @@ func (i *Image) Overlay(c color.Color) {
 	mask.Fill(c)
 	i.DrawImage(mask, nil)
 }
+
+func (i *Image) Scale(x, y float64) *Image {
+	newImg := NewImage(int(float64(i.Width())*x), int(float64(i.Height())*y))
+	var opts ebiten.DrawImageOptions
+	opts.GeoM.Scale(x, y)
+	newImg.DrawImage(i, &opts)
+	return newImg
+}

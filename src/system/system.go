@@ -4,8 +4,9 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/kkkunny/pokemon/src/config"
 	stlslices "github.com/kkkunny/stl/container/slices"
+
+	"github.com/kkkunny/pokemon/src/config"
 
 	"github.com/kkkunny/pokemon/src/battle"
 	"github.com/kkkunny/pokemon/src/context"
@@ -75,7 +76,8 @@ func NewSystem(ctx context.Context) (*System, error) {
 		battle:         battleSystem,
 	}
 	s.world.SetOnBattleStart(s.OnBattleStart)
-	return s, nil
+	err = s.OnBattleStart("grassland")
+	return s, err
 }
 
 func (s *System) OnAction(action input.KeyInputAction) error {
@@ -238,7 +240,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 		}
 
 		img := stlslices.First(s.pok.Front.Image)
-		return drawer.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)).DrawImage(img)
+		return drawer.Scale(config.Scale, config.Scale).DrawImage(img)
 	}
 }
 
