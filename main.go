@@ -9,7 +9,6 @@ import (
 
 func main() {
 	cfg := config.NewConfig()
-	cfg.Scale = 2
 	game, err := src.NewGame(cfg)
 	if err != nil {
 		panic(err)

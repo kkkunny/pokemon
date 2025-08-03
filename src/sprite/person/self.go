@@ -82,7 +82,7 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y float64) {
 	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
-	return float64(cfg.ScreenWidth)/2 - float64(bounds.Dx()*cfg.Scale)/2, float64(cfg.ScreenHeight)/2 - float64(bounds.Dy()*cfg.Scale)/2
+	return float64(cfg.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(cfg.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
 }
 
 func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
@@ -95,7 +95,7 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	}
 
 	if s.Turning() {
-		if s.moveCounter < ctx.Config().TileSize {
+		if s.moveCounter < config.TileSize {
 			s.moveCounter += 2
 		} else {
 			s.moveCounter = 0
@@ -104,10 +104,10 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		}
 	} else if s.Moving() {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		a.SetFrameTime(ctx.Config().TileSize / s.speed / a.FrameCount())
+		a.SetFrameTime(config.TileSize / s.speed / a.FrameCount())
 		a.Update()
 
-		diff := ctx.Config().TileSize - s.moveCounter
+		diff := config.TileSize - s.moveCounter
 		if diff > s.speed {
 			s.moveCounter += s.speed
 		} else {
@@ -125,16 +125,16 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	}
 
 	// 更新地图位置
-	pixX, pixY := s._Person.PixelPosition(ctx.Config())
+	pixX, pixY := s._Person.PixelPosition()
 	selfPixX, selfPixY := s.PixelPosition(ctx.Config())
-	mapPixX, mapPixY := (selfPixX-pixX*float64(ctx.Config().Scale))/float64(ctx.Config().Scale), (selfPixY-pixY*float64(ctx.Config().Scale))/float64(ctx.Config().Scale)
+	mapPixX, mapPixY := (selfPixX-pixX*config.Scale)/config.Scale, (selfPixY-pixY*config.Scale)/config.Scale
 	updateInfo.World.MovePixelPosTo(int(mapPixX), int(mapPixY))
 	return nil
 }
 
 func (s *_Self) Draw(ctx context.Context, drawer draw.Drawer) error {
 	x, y := s.PixelPosition(ctx.Config())
-	drawer = drawer.At(x/float64(ctx.Config().Scale), y/float64(ctx.Config().Scale))
+	drawer = drawer.At(x/config.Scale, y/config.Scale)
 
 	if s.Turning() {
 		if s.direction == -s.nextStepDirection {

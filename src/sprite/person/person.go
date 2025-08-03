@@ -146,9 +146,9 @@ func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.U
 	return nil
 }
 
-func (p *_Person) PixelPosition(cfg *config.Config) (x, y float64) {
+func (p *_Person) PixelPosition() (x, y float64) {
 	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Height()
-	x, y = float64(p.pos[0]*cfg.TileSize), float64((p.pos[1]+1)*cfg.TileSize-width)
+	x, y = float64(p.pos[0]*config.TileSize), float64((p.pos[1]+1)*config.TileSize-width)
 
 	if p.Moving() && !p.Turning() {
 		switch p.nextStepDirection {
@@ -176,7 +176,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	}
 
 	if p.Turning() {
-		if p.moveCounter < ctx.Config().TileSize {
+		if p.moveCounter < config.TileSize {
 			p.moveCounter += 2
 		} else {
 			p.moveCounter = 0
@@ -185,10 +185,10 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 		}
 	} else if p.Moving() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		a.SetFrameTime(ctx.Config().TileSize / p.speed / a.FrameCount())
+		a.SetFrameTime(config.TileSize / p.speed / a.FrameCount())
 		a.Update()
 
-		diff := ctx.Config().TileSize - p.moveCounter
+		diff := config.TileSize - p.moveCounter
 		if diff > p.speed {
 			p.moveCounter += p.speed
 		} else {
@@ -223,8 +223,8 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 }
 
 func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
-	x, y := p.PixelPosition(ctx.Config())
-	drawer = drawer.Move(float64(x), float64(y))
+	x, y := p.PixelPosition()
+	drawer = drawer.Move(x, y)
 
 	if p.Turning() {
 		if p.direction == -p.nextStepDirection {

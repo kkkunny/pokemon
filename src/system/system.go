@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/dialogue"
 	"github.com/kkkunny/pokemon/src/input"
@@ -181,10 +182,7 @@ func (s *System) getSkyMaskColor() color.Color {
 
 func (s *System) OnDraw(drawer draw.Drawer) error {
 	// 地图
-	err := s.world.OnDraw(
-		drawer.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)),
-		[]sprite.Sprite{s.self},
-	)
+	err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
 	if err != nil {
 		return err
 	}
