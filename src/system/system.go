@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/kkkunny/pokemon/src/config"
 	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/battle"
@@ -209,7 +210,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 	} else {
 		// 地图
 		err := s.world.OnDraw(
-			drawer.Scale(float64(s.ctx.Config().Scale), float64(s.ctx.Config().Scale)),
+			drawer.Scale(config.Scale, config.Scale),
 			[]sprite.Sprite{s.self},
 		)
 		if err != nil {

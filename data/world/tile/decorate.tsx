@@ -11,6 +11,7 @@
    <frame tileid="6" duration="300"/>
    <frame tileid="7" duration="300"/>
    <frame tileid="8" duration="300"/>
+   <frame tileid="9" duration="300"/>
   </animation>
  </tile>
  <tile id="3">

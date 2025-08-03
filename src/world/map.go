@@ -50,7 +50,7 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id str
 	if err != nil {
 		return nil, err
 	}
-	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != ctx.Config().TileSize {
+	if mapTMX.TileWidth != mapTMX.TileHeight || mapTMX.TileWidth != config.TileSize {
 		return nil, errors.New("map tile is not valid")
 	}
 
@@ -76,7 +76,7 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id str
 			continue
 		}
 		for _, object := range objectGroup.Objects {
-			x, y := int(object.X)/ctx.Config().TileSize, int(object.Y)/ctx.Config().TileSize
+			x, y := int(object.X)/config.TileSize, int(object.Y)/config.TileSize
 			spriteObj, err := sprite.NewSprite(object)
 			if err != nil {
 				return nil, err

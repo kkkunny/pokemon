@@ -97,7 +97,7 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 
 	// 洞
 	for _, hole := range w.currentMap.GetHoles() {
-		x, y := int(hole.X+hole.Width/2)/w.ctx.Config().TileSize, int(hole.Y+hole.Height/2)/w.ctx.Config().TileSize
+		x, y := int(hole.X+hole.Width/2)/config.TileSize, int(hole.Y+hole.Height/2)/config.TileSize
 		if selfX != x || selfY != y {
 			continue
 		}
@@ -120,8 +120,8 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 			if object.Type != "gunting_ground" {
 				continue
 			}
-			if float64(selfX*ctx.Config().TileSize) >= object.X && float64(selfX+1*ctx.Config().TileSize) <= object.X+object.Width &&
-				float64(selfY*ctx.Config().TileSize) >= object.Y && float64(selfY+1*ctx.Config().TileSize) <= object.Y+object.Width {
+			if float64(selfX*config.TileSize) >= object.X && float64(selfX+1*config.TileSize) <= object.X+object.Width &&
+				float64(selfY*config.TileSize) >= object.Y && float64(selfY+1*config.TileSize) <= object.Y+object.Width {
 				return w.onBattleStart(object.Properties.GetString("battle_site"))
 			}
 		}
@@ -137,10 +137,10 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 	var loopFn func(m *Map, pixX, pixY int) error
 	loopFn = func(m *Map, pixX, pixY int) error {
 		map2Pos[m] = image.Pt(pixX, pixY)
-		x0, y0 := max(0-pixX, 0)/w.ctx.Config().TileSize, max(0-pixY, 0)/w.ctx.Config().TileSize
+		x0, y0 := max(0-pixX, 0)/config.TileSize, max(0-pixY, 0)/config.TileSize
 		mapPixWidth, mapPixHeight := m.PixelSize()
 		mapWidth, mapHeight := m.Size()
-		x1, y1 := mapWidth-max((pixX+mapPixWidth)*w.ctx.Config().Scale-w.ctx.Config().ScreenWidth, 0)/(w.ctx.Config().TileSize*w.ctx.Config().Scale), mapHeight-max((pixY+mapPixHeight)*w.ctx.Config().Scale-w.ctx.Config().ScreenHeight, 0)/(w.ctx.Config().TileSize*w.ctx.Config().Scale)
+		x1, y1 := mapWidth-max((pixX+mapPixWidth)*config.Scale-w.ctx.Config().ScreenWidth, 0)/(config.TileSize*config.Scale), mapHeight-max((pixY+mapPixHeight)*config.Scale-w.ctx.Config().ScreenHeight, 0)/(config.TileSize*config.Scale)
 		map2Rect[m] = image.Rect(x0, y0, x1, y1)
 
 		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d consts.Direction, id string) bool {
@@ -148,11 +148,11 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 			case consts.DirectionEnum.Up:
 				return pixY > 0
 			case consts.DirectionEnum.Down:
-				return (pixY+mapPixHeight)*w.ctx.Config().Scale < w.ctx.Config().ScreenHeight
+				return (pixY+mapPixHeight)*config.Scale < w.ctx.Config().ScreenHeight
 			case consts.DirectionEnum.Left:
 				return pixX > 0
 			case consts.DirectionEnum.Right:
-				return (pixX+mapPixWidth)*w.ctx.Config().Scale < w.ctx.Config().ScreenWidth
+				return (pixX+mapPixWidth)*config.Scale < w.ctx.Config().ScreenWidth
 			default:
 				return false
 			}
