@@ -5,8 +5,8 @@
     },
     "activeFile": "maps/pallet_town.tmx",
     "expandedProjectPaths": [
-        "tile",
         "maps",
+        "tile",
         "."
     ],
     "fileStates": {
@@ -31,11 +31,11 @@
         },
         "maps/pallet_town.tmx": {
             "expandedObjectLayers": [
-                10,
-                8
+                8,
+                10
             ],
             "scale": 3,
-            "selectedLayer": 7,
+            "selectedLayer": 1,
             "viewCenter": {
                 "x": 263.83333333333326,
                 "y": 207.16666666666666
@@ -173,26 +173,24 @@
     "map.tileWidth": 16,
     "map.width": 13,
     "openFiles": [
-        "maps/route_1.tmx",
         "maps/pallet_town.tmx",
-        "tile/sprite.tsx",
-        "tile/land_decoration.tsx"
+        "tile/ground.tsx"
     ],
     "project": "pokemon.tiled-project",
     "property.type": "string",
     "recentFiles": [
-        "maps/pallet_town__house1.tmx",
+        "tile/ground.tsx",
         "maps/pallet_town.tmx",
+        "maps/route_1.tmx",
+        "tile/decorate.tsx",
+        "tile/land_decoration.tsx",
+        "maps/pallet_town__house1.tmx",
         "maps/pallet_town__house2.tmx",
         "tile/inner_land_decoration.tsx",
         "tile/inner_decorate.tsx",
         "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house3.tmx",
-        "tile/building.tsx",
-        "tile/inner_ground.tsx",
-        "tile/decorate.tsx",
-        "tile/land_decoration.tsx",
-        "maps/route_1.tmx"
+        "tile/building.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
