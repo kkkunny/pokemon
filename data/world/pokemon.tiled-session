@@ -3,11 +3,11 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/pallet_town.tmx",
+    "activeFile": "tile/land_decoration.tsx",
     "expandedProjectPaths": [
+        ".",
         "maps",
-        "tile",
-        "."
+        "tile"
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {
@@ -35,10 +35,10 @@
                 10
             ],
             "scale": 3,
-            "selectedLayer": 1,
+            "selectedLayer": 7,
             "viewCenter": {
                 "x": 263.83333333333326,
-                "y": 207.16666666666666
+                "y": -87.83333333333334
             }
         },
         "maps/pallet_town2.tmx": {
@@ -106,11 +106,11 @@
             }
         },
         "maps/route_1.tmx": {
-            "scale": 1.80203125,
-            "selectedLayer": 0,
+            "scale": 3,
+            "selectedLayer": -1,
             "viewCenter": {
-                "x": 191.7280846267233,
-                "y": 811.0292204977022
+                "x": 208.16666666666669,
+                "y": 835.8333333333333
             }
         },
         "maps/sprite.tsx": {
@@ -173,24 +173,25 @@
     "map.tileWidth": 16,
     "map.width": 13,
     "openFiles": [
+        "maps/route_1.tmx",
         "maps/pallet_town.tmx",
-        "tile/ground.tsx"
+        "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
     "property.type": "string",
     "recentFiles": [
-        "tile/ground.tsx",
-        "maps/pallet_town.tmx",
         "maps/route_1.tmx",
-        "tile/decorate.tsx",
+        "maps/pallet_town.tmx",
         "tile/land_decoration.tsx",
+        "maps/Route_1.tmx",
         "maps/pallet_town__house1.tmx",
         "maps/pallet_town__house2.tmx",
         "tile/inner_land_decoration.tsx",
         "tile/inner_decorate.tsx",
         "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house3.tmx",
-        "tile/building.tsx"
+        "tile/building.tsx",
+        "tile/inner_ground.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

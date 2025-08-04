@@ -74,7 +74,7 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
 		r.cache.AddTilesetImage(tilesetPath, tilesetImg)
 	}
 
-	img := tilesetImg.SubImageByRect(tile.Tileset.GetTileRect(tile.ID))
+	img := tilesetImg.SubImage(tile.Tileset.GetTileRect(tile.ID))
 	r.cache.AddTileImage(tilesetPath, int(tile.ID), img)
 
 	return img, nil

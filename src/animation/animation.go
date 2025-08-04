@@ -1,12 +1,14 @@
 package animation
 
 import (
+	"image"
+
 	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Animation struct {
-	frameSheet              *image.Image
+	frameSheet              *imgutil.Image
 	frameWidth, frameHeight int
 	frameTime               int
 	curFrameIndex           int
@@ -14,7 +16,7 @@ type Animation struct {
 	counter int
 }
 
-func NewAnimation(frameSheet *image.Image, frameWidth, frameHeight, frameTime int) *Animation {
+func NewAnimation(frameSheet *imgutil.Image, frameWidth, frameHeight, frameTime int) *Animation {
 	return &Animation{
 		frameSheet:    frameSheet,
 		frameWidth:    frameWidth,
@@ -52,9 +54,9 @@ func (a *Animation) Update() bool {
 	return a.counter == 0 && a.curFrameIndex == 0
 }
 
-func (a *Animation) GetFrameImage(i int) *image.Image {
+func (a *Animation) GetFrameImage(i int) *imgutil.Image {
 	x := (i % a.FrameCount()) * a.frameWidth
-	return a.frameSheet.SubImage(x, 0, a.frameWidth, a.frameHeight)
+	return a.frameSheet.SubImage(image.Rect(x, 0, x+a.frameWidth, a.frameHeight))
 }
 
 func (a *Animation) Draw(drawer draw.Drawer) error {

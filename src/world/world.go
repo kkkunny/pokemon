@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	"github.com/kkkunny/stl/container/pqueue"
 	"golang.org/x/image/font"
@@ -339,17 +338,12 @@ func (w *World) getMapNameDisplayImage() (*imgutil.Image, bool) {
 		return nil, false
 	}
 
-	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
-	img := imgutil.NewImage(int(width), int(height))
-
-	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
-	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
-	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
-
+	width, height := w.ctx.Config().ScreenWidth/3, w.ctx.Config().ScreenHeight/7
+	img := imgutil.NewImage(width, height)
+	img.DrawRect(width, height, util.NewRGBColor(248, 248, 255)).Draw()
+	img.DrawRect(width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewRGBColor(176, 196, 222)).Draw()
+	img.DrawRect(width, height, nil).SetBorderWidth(8).SetBorderColor(util.NewRGBColor(119, 136, 153)).Draw()
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
-	var textOps text.DrawOptions
-	textOps.ColorScale.ScaleWithColor(color.Black)
-	textOps.GeoM.Translate((float64(width)+10)/2-float64(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (float64(height)-6)/2-float64(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2)
-	text.Draw(img.Image, mapName, w.fontFace, &textOps)
+	img.DrawText(mapName, w.fontFace, color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
 	return img, true
 }

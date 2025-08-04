@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -126,25 +125,25 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) getLabelBackground(w, h int) *image.Image {
+func (s *System) getLabelBackground(w, h int) *imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
-	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(104, 112, 120), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(200, 200, 216), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	img := imgutil.NewImage(bgW, bgH)
+	img.DrawRect(bgW, bgH, util.NewRGBColor(104, 112, 120)).Draw()
+	img.DrawRect(bgW-fontW/2, bgH-fontH/2, util.NewRGBColor(200, 200, 216)).Move(fontW/4, fontH/4).Draw()
+	img.DrawRect(bgW-fontW, bgH-fontH, util.NewRGBColor(248, 248, 248)).Move(fontW/2, fontH/2).Draw()
 	return img
 }
 
-func (s *System) getDialogueBackground(w, h int) *image.Image {
+func (s *System) getDialogueBackground(w, h int) *imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
-	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(160, 208, 224), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(224, 240, 248), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	img := imgutil.NewImage(bgW, bgH)
+	img.DrawRect(bgW, bgH, util.NewRGBColor(160, 208, 224)).SetRadius(fontW / 2).Draw()
+	img.DrawRect(bgW-fontW/2, bgH-fontH/2, util.NewRGBColor(224, 240, 248)).SetRadius(fontW/2).Move(fontW/4, fontH/4).Draw()
+	img.DrawRect(bgW-fontW, bgH-fontH, util.NewRGBColor(248, 248, 248)).SetRadius(fontW/2).Move(fontW/2, fontH/2).Draw()
 	return img
 }
 

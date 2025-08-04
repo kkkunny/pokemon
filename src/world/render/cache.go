@@ -5,32 +5,32 @@ import (
 )
 
 type TileCache struct {
-	tilesets map[string]*image.Image
-	tiles    map[string]map[int]*image.Image
+	tilesets map[string]*imgutil.Image
+	tiles    map[string]map[int]*imgutil.Image
 }
 
 func NewTileCache() *TileCache {
 	return &TileCache{
-		tilesets: make(map[string]*image.Image),
-		tiles:    make(map[string]map[int]*image.Image),
+		tilesets: make(map[string]*imgutil.Image),
+		tiles:    make(map[string]map[int]*imgutil.Image),
 	}
 }
 
-func (c *TileCache) AddTilesetImage(path string, img *image.Image) {
+func (c *TileCache) AddTilesetImage(path string, img *imgutil.Image) {
 	c.tilesets[path] = img
 }
 
-func (c *TileCache) GetTilesetImage(path string) *image.Image {
+func (c *TileCache) GetTilesetImage(path string) *imgutil.Image {
 	return c.tilesets[path]
 }
 
-func (c *TileCache) AddTileImage(tilesetPath string, index int, img *image.Image) {
+func (c *TileCache) AddTileImage(tilesetPath string, index int, img *imgutil.Image) {
 	if c.tiles[tilesetPath] == nil {
-		c.tiles[tilesetPath] = make(map[int]*image.Image)
+		c.tiles[tilesetPath] = make(map[int]*imgutil.Image)
 	}
 	c.tiles[tilesetPath][index] = img
 }
 
-func (c *TileCache) GetTileImage(tilesetPath string, index int) *image.Image {
+func (c *TileCache) GetTileImage(tilesetPath string, index int) *imgutil.Image {
 	return c.tiles[tilesetPath][index]
 }
