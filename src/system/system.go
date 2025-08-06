@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/dialogue"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/sprite"
-	"github.com/kkkunny/pokemon/src/sprite/person"
+	"github.com/kkkunny/pokemon/src/output/voice"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/dialogue"
+	"github.com/kkkunny/pokemon/src/system/world"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/system/world/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/voice"
-	"github.com/kkkunny/pokemon/src/world"
 )
 
 type System struct {

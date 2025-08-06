@@ -8,20 +8,20 @@ import (
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/script"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/world"
 )
 
-var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
-	input.KeyInputActionEnum.MoveUp:    consts.DirectionEnum.Up,
-	input.KeyInputActionEnum.MoveDown:  consts.DirectionEnum.Down,
-	input.KeyInputActionEnum.MoveLeft:  consts.DirectionEnum.Left,
-	input.KeyInputActionEnum.MoveRight: consts.DirectionEnum.Right,
+var keyInputActionToDirection = map[input.KeyInputAction]util.Direction{
+	input.KeyInputActionEnum.MoveUp:    util.DirectionEnum.Up,
+	input.KeyInputActionEnum.MoveDown:  util.DirectionEnum.Down,
+	input.KeyInputActionEnum.MoveLeft:  util.DirectionEnum.Left,
+	input.KeyInputActionEnum.MoveRight: util.DirectionEnum.Right,
 }
 
 type Self interface {
@@ -139,14 +139,14 @@ func (s *_Self) Draw(ctx context.Context, drawer draw.Drawer) error {
 	if s.Turning() {
 		if s.direction == -s.nextStepDirection {
 			s.moveStartingFoot = FootEnum.Right
-		} else if s.direction == consts.DirectionEnum.Up {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Down {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Left {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Right {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Up {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Down {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Left {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Right {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
 		return drawer.DrawImage(a.GetFrameImage(1))

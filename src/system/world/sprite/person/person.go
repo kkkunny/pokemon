@@ -8,13 +8,13 @@ import (
 	stlval "github.com/kkkunny/stl/value"
 	"github.com/lafriks/go-tiled"
 
-	"github.com/kkkunny/pokemon/src/animation"
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/sprite"
-	"github.com/kkkunny/pokemon/src/sprite/item"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/system/world/sprite/item"
+	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/animation"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
@@ -35,17 +35,17 @@ type Person interface {
 type _Person struct {
 	item.Item
 	// 静态资源
-	behaviorAnimations map[sprite.Behavior]map[consts.Direction]map[Foot]*animation.Animation // 行为动画
+	behaviorAnimations map[sprite.Behavior]map[util.Direction]map[Foot]*animation.Animation // 行为动画
 	// 属性
-	direction consts.Direction // 当前所处方向
+	direction util.Direction // 当前所处方向
 	// 移动
-	movable           bool             // 是否可移动
-	speed             int              // 移动速度
-	moveStartingFoot  Foot             // 移动时的起始脚
-	nextStepDirection consts.Direction // 下一步预期所处方向
-	pos               [2]int           // 当前地块位置
-	nextStepPos       [2]int           // 下一步预期所处的地块位置，用于移动
-	moveCounter       int              // 移动时的计数器，用于显示动画
+	movable           bool           // 是否可移动
+	speed             int            // 移动速度
+	moveStartingFoot  Foot           // 移动时的起始脚
+	nextStepDirection util.Direction // 下一步预期所处方向
+	pos               [2]int         // 当前地块位置
+	nextStepPos       [2]int         // 下一步预期所处的地块位置，用于移动
+	moveCounter       int            // 移动时的计数器，用于显示动画
 }
 
 func NewPerson(name string) (Person, error) {
@@ -62,9 +62,9 @@ func NewPerson(name string) (Person, error) {
 	return &_Person{
 		Item:               itemSprite,
 		behaviorAnimations: behaviorAnimations,
-		direction:          consts.DirectionEnum.Down,
+		direction:          util.DirectionEnum.Down,
 		movable:            true,
-		nextStepDirection:  consts.DirectionEnum.Down,
+		nextStepDirection:  util.DirectionEnum.Down,
 		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
 	}, nil
@@ -85,9 +85,9 @@ func NewPersonByTile(object *tiled.Object) (Person, error) {
 	return &_Person{
 		Item:               itemSprite,
 		behaviorAnimations: behaviorAnimations,
-		direction:          consts.DirectionEnum.Down,
+		direction:          util.DirectionEnum.Down,
 		movable:            true,
-		nextStepDirection:  consts.DirectionEnum.Down,
+		nextStepDirection:  util.DirectionEnum.Down,
 		moveStartingFoot:   FootEnum.Left,
 		speed:              1,
 	}, nil
@@ -108,7 +108,7 @@ func (p *_Person) Busying() bool {
 	return p.Turning() || p.Moving()
 }
 
-func (p *_Person) SetDirection(d consts.Direction) {
+func (p *_Person) SetDirection(d util.Direction) {
 	if p.Busying() {
 		return
 	}
@@ -116,7 +116,7 @@ func (p *_Person) SetDirection(d consts.Direction) {
 	p.nextStepDirection = d
 }
 
-func (p *_Person) Direction() consts.Direction {
+func (p *_Person) Direction() util.Direction {
 	return p.direction
 }
 
@@ -134,7 +134,7 @@ func (p *_Person) Position() (int, int) {
 
 // SetNextStepDirection 设置下一步方向，每次只可前进一格
 // 设置时不会校验下一个是否可移动，会在Update时校验
-func (p *_Person) SetNextStepDirection(d consts.Direction) bool {
+func (p *_Person) SetNextStepDirection(d util.Direction) bool {
 	if !p.Turn(d) {
 		return false
 	}
@@ -152,13 +152,13 @@ func (p *_Person) PixelPosition() (x, y float64) {
 
 	if p.Moving() && !p.Turning() {
 		switch p.nextStepDirection {
-		case consts.DirectionEnum.Up:
+		case util.DirectionEnum.Up:
 			y -= float64(p.moveCounter)
-		case consts.DirectionEnum.Down:
+		case util.DirectionEnum.Down:
 			y += float64(p.moveCounter)
-		case consts.DirectionEnum.Left:
+		case util.DirectionEnum.Left:
 			x -= float64(p.moveCounter)
-		case consts.DirectionEnum.Right:
+		case util.DirectionEnum.Right:
 			x += float64(p.moveCounter)
 		}
 	}
@@ -200,16 +200,16 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 			a.Reset()
 		}
 	} else if p.movable {
-		var nextStepDirection consts.Direction
+		var nextStepDirection util.Direction
 		n := rand.IntN(500)
 		if n >= 499 {
-			nextStepDirection = consts.DirectionEnum.Up
+			nextStepDirection = util.DirectionEnum.Up
 		} else if n >= 498 {
-			nextStepDirection = consts.DirectionEnum.Down
+			nextStepDirection = util.DirectionEnum.Down
 		} else if n >= 497 {
-			nextStepDirection = consts.DirectionEnum.Left
+			nextStepDirection = util.DirectionEnum.Left
 		} else if n >= 496 {
-			nextStepDirection = consts.DirectionEnum.Right
+			nextStepDirection = util.DirectionEnum.Right
 		} else {
 			return nil
 		}
@@ -229,14 +229,14 @@ func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
 	if p.Turning() {
 		if p.direction == -p.nextStepDirection {
 			p.moveStartingFoot = FootEnum.Right
-		} else if p.direction == consts.DirectionEnum.Up {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
-		} else if p.direction == consts.DirectionEnum.Down {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
-		} else if p.direction == consts.DirectionEnum.Left {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
-		} else if p.direction == consts.DirectionEnum.Right {
-			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
+		} else if p.direction == util.DirectionEnum.Up {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
+		} else if p.direction == util.DirectionEnum.Down {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
+		} else if p.direction == util.DirectionEnum.Left {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
+		} else if p.direction == util.DirectionEnum.Right {
+			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
 		return drawer.DrawImage(a.GetFrameImage(1))
@@ -246,7 +246,7 @@ func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
 	}
 }
 
-func (p *_Person) Turn(d consts.Direction) bool {
+func (p *_Person) Turn(d util.Direction) bool {
 	if p.Busying() {
 		return false
 	}

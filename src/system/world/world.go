@@ -14,13 +14,12 @@ import (
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world/render"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
-	"github.com/kkkunny/pokemon/src/world/render"
 )
 
 type World struct {
@@ -121,15 +120,15 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 		x1, y1 := mapWidth-max((pixX+mapPixWidth)*config.Scale-w.ctx.Config().ScreenWidth, 0)/(config.TileSize*config.Scale), mapHeight-max((pixY+mapPixHeight)*config.Scale-w.ctx.Config().ScreenHeight, 0)/(config.TileSize*config.Scale)
 		map2Rect[m] = image.Rect(x0, y0, x1, y1)
 
-		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d consts.Direction, id string) bool {
+		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d util.Direction, id string) bool {
 			switch d {
-			case consts.DirectionEnum.Up:
+			case util.DirectionEnum.Up:
 				return pixY > 0
-			case consts.DirectionEnum.Down:
+			case util.DirectionEnum.Down:
 				return (pixY+mapPixHeight)*config.Scale < w.ctx.Config().ScreenHeight
-			case consts.DirectionEnum.Left:
+			case util.DirectionEnum.Left:
 				return pixX > 0
-			case consts.DirectionEnum.Right:
+			case util.DirectionEnum.Right:
 				return (pixX+mapPixWidth)*config.Scale < w.ctx.Config().ScreenWidth
 			default:
 				return false
@@ -146,13 +145,13 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 			adjacentPixX, adjacentPixY := pixX, pixY
 			adjacentPixWidth, adjacentPixHeight := adjacentMap.PixelSize()
 			switch d {
-			case consts.DirectionEnum.Up:
+			case util.DirectionEnum.Up:
 				adjacentPixY -= adjacentPixHeight
-			case consts.DirectionEnum.Down:
+			case util.DirectionEnum.Down:
 				adjacentPixY += mapPixHeight
-			case consts.DirectionEnum.Left:
+			case util.DirectionEnum.Left:
 				adjacentPixX -= adjacentPixWidth
-			case consts.DirectionEnum.Right:
+			case util.DirectionEnum.Right:
 				adjacentPixX += mapPixWidth
 			}
 			loopFn(adjacentMap, adjacentPixX, adjacentPixY)
@@ -250,7 +249,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 	for {
 		adjacentMaps := curMap.AdjacentMaps()
 		if y < 0 {
-			upMapID, ok := adjacentMaps[consts.DirectionEnum.Up]
+			upMapID, ok := adjacentMaps[util.DirectionEnum.Up]
 			if !ok || !stlmaps.ContainKey(w.mapCache, upMapID) {
 				return nil, 0, 0, false
 			}
@@ -259,7 +258,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = upMap
 			continue
 		} else if y >= curMap.define.Height {
-			downMapID, ok := adjacentMaps[consts.DirectionEnum.Down]
+			downMapID, ok := adjacentMaps[util.DirectionEnum.Down]
 			if !ok || !stlmaps.ContainKey(w.mapCache, downMapID) {
 				return nil, 0, 0, false
 			}
@@ -268,7 +267,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = downMap
 			continue
 		} else if x < 0 {
-			leftMapID, ok := adjacentMaps[consts.DirectionEnum.Left]
+			leftMapID, ok := adjacentMaps[util.DirectionEnum.Left]
 			if !ok || !stlmaps.ContainKey(w.mapCache, leftMapID) {
 				return nil, 0, 0, false
 			}
@@ -277,7 +276,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = leftMap
 			continue
 		} else if x >= curMap.define.Width {
-			rightMapID, ok := adjacentMaps[consts.DirectionEnum.Right]
+			rightMapID, ok := adjacentMaps[util.DirectionEnum.Right]
 			if !ok || !stlmaps.ContainKey(w.mapCache, rightMapID) {
 				return nil, 0, 0, false
 			}
@@ -294,7 +293,7 @@ func (w *World) CurrentMap() *Map {
 	return w.currentMap
 }
 
-func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
+func (w *World) CheckCollision(d util.Direction, x, y int) bool {
 	if [2]int{x, y} == w.selfPos {
 		return true
 	}

@@ -12,14 +12,14 @@ import (
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 const (
+	waitForContinueChar     = '🔻'
 	normalDisplayInterval   = time.Millisecond * 150
 	fastModeDisplayInterval = time.Millisecond * 30
 )
@@ -198,7 +198,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 	lines := s.splitDoneLines(s.text[:stlval.Ternary(s.index < len(s.text), s.index+1, s.index)], hFrontMaxCount)
 	if len(lines) > 1 {
 		// 存量行（第一行）
-		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{consts.WaitForContinueChar}), "", -1)
+		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{waitForContinueChar}), "", -1)
 		err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
 		if err != nil {
 			return err
@@ -208,7 +208,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 	}
 
 	// 输出行（第二行或第一行）
-	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{consts.WaitForContinueChar}), "", -1)
+	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{waitForContinueChar}), "", -1)
 	err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
 		x += float64((bounds.Max.X - bounds.Min.X).Round())
 		y += (fontH/5)*2 + float64(s.waitFrame)
-		waitString := string([]rune{consts.WaitForContinueChar})
+		waitString := string([]rune{waitForContinueChar})
 		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
 		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
 		err = drawer.Move(x, y).ScaleWithColor(util.NewRGBColor(224, 8, 8)).DrawText(waitString, s.emojiFontFace)
@@ -248,7 +248,7 @@ func (s *System) WaitForContinue() bool {
 	if !s.Display() || s.index >= len(s.text) {
 		return false
 	}
-	return s.text[s.index] == consts.WaitForContinueChar
+	return s.text[s.index] == waitForContinueChar
 }
 
 func (s *System) Continue() {

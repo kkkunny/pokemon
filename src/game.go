@@ -7,23 +7,23 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util/draw"
+	i18n2 "github.com/kkkunny/pokemon/src/util/i18n"
 )
 
 type Game struct {
 	cfg   *config.Config
-	loc   *i18n.Localisation
+	loc   *i18n2.Localisation
 	input *input.System
 	sys   *system.System
 }
 
 func NewGame(cfg *config.Config) (*Game, error) {
 	// 翻译
-	loc, err := i18n.LoadLocalisation(i18n.LanguageEnum.ZH_CN)
+	loc, err := i18n2.LoadLocalisation(i18n2.LanguageEnum.ZH_CN)
 	if err != nil {
 		return nil, err
 	}

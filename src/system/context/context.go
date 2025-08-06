@@ -2,7 +2,7 @@ package context
 
 import (
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/i18n"
+	"github.com/kkkunny/pokemon/src/util/i18n"
 )
 
 type Context interface {
