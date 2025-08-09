@@ -7,6 +7,7 @@ import (
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/output/voice"
+	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/world"
@@ -22,13 +23,20 @@ type System struct {
 	self           person.Self
 	mapVoicePlayer *voice.Player
 	dialogue       *dialogue.System
+	// 战斗页面
+	battle *battle.System
 
 	time time.Time // 游戏世界时间
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
 	// 地图
-	world, err := world.NewWorld(ctx, "pallet_town")
+	w, err := world.NewWorld(ctx, "pallet_town")
+	if err != nil {
+		return nil, err
+	}
+	// 战斗
+	battleSystem, err := battle.NewSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,14 +52,17 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 	self.SetPosition(6, 8)
-	return &System{
+	s := &System{
 		ctx:            ctx,
-		world:          world,
+		world:          w,
 		self:           self,
 		mapVoicePlayer: voice.NewPlayer(),
 		dialogue:       ds,
 		time:           time.Now(),
-	}, nil
+		battle:         battleSystem,
+	}
+	w.SetOnBattleStart(s.OnBattleStart)
+	return s, err
 }
 
 func (s *System) OnAction(action input.KeyInputAction) error {
@@ -141,21 +152,21 @@ func (s *System) OnUpdate() error {
 		}
 	}
 
-	// 时间
-	s.time = s.time.Add(time.Minute)
+	if s.battle.Active() {
+		return s.battle.OnUpdate()
+	} else {
+		// 时间
+		s.time = s.time.Add(time.Minute)
 
-	// 主角
-	drawInfo := &person.UpdateInfo{World: s.world}
-	err := s.self.Update(s.ctx, drawInfo)
-	if err != nil {
-		return err
+		// 主角
+		drawInfo := &person.UpdateInfo{World: s.world}
+		err := s.self.Update(s.ctx, drawInfo)
+		if err != nil {
+			return err
+		}
+		// 世界
+		return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
 	}
-	// 世界
-	err = s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s *System) getSkyMaskColor() color.Color {
@@ -181,28 +192,35 @@ func (s *System) getSkyMaskColor() color.Color {
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {
-	// 地图
-	err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
-	if err != nil {
-		return err
-	}
+	if s.battle.Active() {
+		return s.battle.OnDraw(drawer)
+	} else {
+		// 地图
+		err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
+		if err != nil {
+			return err
+		}
 
-	// 天色
-	if !s.world.CurrentMap().Indoor() {
-		draw.OverlayColor(drawer, s.getSkyMaskColor())
-	}
+		// 天色
+		if !s.world.CurrentMap().Indoor() {
+			draw.OverlayColor(drawer, s.getSkyMaskColor())
+		}
 
-	// 地图名
-	err = s.world.DrawMapName(drawer)
-	if err != nil {
-		return err
-	}
+		// 地图名
+		err = s.world.DrawMapName(drawer)
+		if err != nil {
+			return err
+		}
 
-	// 对话
-	err = s.dialogue.OnDraw(drawer)
-	if err != nil {
-		return err
+		// 对话
+		err = s.dialogue.OnDraw(drawer)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
+}
 
-	return nil
+func (s *System) OnBattleStart(site string) error {
+	return s.battle.StartOneBattle(site)
 }

@@ -12,7 +12,7 @@ type ebitenImage struct {
 	Image *ebiten.Image
 }
 
-func WrapImage(img image.Image) Image {
+func WrapImage(img image.Image) *ebitenImage {
 	if imgInst, ok := img.(*ebitenImage); ok {
 		return imgInst
 	} else if imgInst, ok := img.(*ebiten.Image); ok {
@@ -22,7 +22,7 @@ func WrapImage(img image.Image) Image {
 	}
 }
 
-func NewImageFromFile(path string) (Image, error) {
+func NewImageFromFile(path string) (*ebitenImage, error) {
 	img, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func NewImageFromFile(path string) (Image, error) {
 	return WrapImage(img), nil
 }
 
-func NewImage(w, h int) Image {
+func NewImage(w, h int) *ebitenImage {
 	return WrapImage(ebiten.NewImage(w, h))
 }
 
@@ -68,4 +68,12 @@ func (i *ebitenImage) SubImage(r image.Rectangle) Image {
 
 func (i *ebitenImage) Fill(c color.Color) {
 	i.Image.Fill(c)
+}
+
+func (i *ebitenImage) Scale(x, y float64) Image {
+	newImg := NewImage(int(float64(i.Bounds().Dx())*x), int(float64(i.Bounds().Dy())*y))
+	var opts ebiten.DrawImageOptions
+	opts.GeoM.Scale(x, y)
+	newImg.Image.DrawImage(i.Image, &opts)
+	return newImg
 }
