@@ -3,7 +3,6 @@ package animation
 import (
 	"image"
 
-	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
@@ -36,7 +35,7 @@ func (a *Animation) FrameTime() int {
 }
 
 func (a *Animation) FrameCount() int {
-	return a.frameSheet.Width() / a.frameWidth
+	return a.frameSheet.Bounds().Dx() / a.frameWidth
 }
 
 func (a *Animation) Reset() {
@@ -59,7 +58,6 @@ func (a *Animation) GetFrameImage(i int) *imgutil.Image {
 	return a.frameSheet.SubImage(image.Rect(x, 0, x+a.frameWidth, a.frameHeight))
 }
 
-func (a *Animation) Draw(drawer draw.Drawer) error {
-	frameImg := a.GetFrameImage(a.curFrameIndex)
-	return drawer.DrawImage(frameImg)
+func (a *Animation) GetCurrentFrameImage() *imgutil.Image {
+	return a.GetFrameImage(a.curFrameIndex)
 }

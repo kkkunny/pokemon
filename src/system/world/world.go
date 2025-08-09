@@ -166,7 +166,7 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 	return map2Pos, map2Rect, nil
 }
 
-func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
+func (w *World) OnDraw(drawer draw.OptionDrawer, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
@@ -180,7 +180,7 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 
 	// 背景
 	for drawMap, pos := range map2Pos {
-		err := drawMap.DrawBackground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
+		err = drawMap.DrawBackground(drawer.Move(pos.X, pos.Y), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -200,14 +200,14 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 	spritePairs := drawSprites.ToSlice()
 	currentMapPos := map2Pos[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err := spritePairs[i].E2().Draw(w.ctx, drawer.Move(float64(currentMapPos.X), float64(currentMapPos.Y)))
+		err = spritePairs[i].E2().Draw(w.ctx, drawer.Move(currentMapPos.X, currentMapPos.Y))
 		if err != nil {
 			return err
 		}
 	}
 	// 前景
 	for drawMap, pos := range map2Pos {
-		err := drawMap.DrawForeground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
+		err = drawMap.DrawForeground(drawer.Move(pos.X, pos.Y), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -305,7 +305,7 @@ func (w *World) CheckCollision(d util.Direction, x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(drawer draw.Drawer) error {
+func (w *World) DrawMapName(drawer draw.OptionDrawer) error {
 	height := w.ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
@@ -317,16 +317,13 @@ func (w *World) DrawMapName(drawer draw.Drawer) error {
 	}
 
 	if w.nameMoveCounter < height {
-		drawer = drawer.Move(10, float64(w.nameMoveCounter-height))
+		drawer = drawer.Move(10, w.nameMoveCounter-height)
 	} else if w.nameMoveCounter < height*3 {
 		drawer = drawer.Move(10, 0)
 	} else {
-		drawer = drawer.Move(10, -float64(w.nameMoveCounter%height))
+		drawer = drawer.Move(10, -w.nameMoveCounter%height)
 	}
-	err := drawer.DrawImage(img)
-	if err != nil {
-		return err
-	}
+	draw.PrepareDrawImage(drawer, img).Draw()
 	w.nameMoveCounter += w.nameMoveSpeed
 	return nil
 }
@@ -339,10 +336,10 @@ func (w *World) getMapNameDisplayImage() (*imgutil.Image, bool) {
 
 	width, height := w.ctx.Config().ScreenWidth/3, w.ctx.Config().ScreenHeight/7
 	img := imgutil.NewImage(width, height)
-	img.DrawRect(width, height, util.NewRGBColor(248, 248, 255)).Draw()
-	img.DrawRect(width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewRGBColor(176, 196, 222)).Draw()
-	img.DrawRect(width, height, nil).SetBorderWidth(8).SetBorderColor(util.NewRGBColor(119, 136, 153)).Draw()
+	draw.PrepareDrawRect(img, width, height, util.NewNRGBColor(248, 248, 255)).Draw()
+	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewNRGBColor(176, 196, 222)).Draw()
+	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(8).SetBorderColor(util.NewNRGBColor(119, 136, 153)).Draw()
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
-	img.DrawText(mapName, w.fontFace, color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
+	draw.PrepareDrawText(img, mapName, w.fontFace, color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
 	return img, true
 }

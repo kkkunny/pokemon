@@ -74,7 +74,7 @@ func (i *_Item) Update(_ context.Context, _ sprite.UpdateInfo) error {
 	return nil
 }
 
-func (i *_Item) Draw(_ context.Context, _ draw.Drawer) error {
+func (i *_Item) Draw(_ context.Context, _ draw.OptionDrawer) error {
 	return nil
 }
 

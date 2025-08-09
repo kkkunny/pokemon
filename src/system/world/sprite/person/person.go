@@ -146,8 +146,9 @@ func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.U
 	return nil
 }
 
+// 相对于地图左上角的像素位置，不考虑放大倍数
 func (p *_Person) PixelPosition() (x, y float64) {
-	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Height()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
 	x, y = float64(p.pos[0]*config.TileSize), float64((p.pos[1]+1)*config.TileSize-width)
 
 	if p.Moving() && !p.Turning() {
@@ -222,9 +223,9 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
+func (p *_Person) Draw(ctx context.Context, drawer draw.OptionDrawer) error {
 	x, y := p.PixelPosition()
-	drawer = drawer.Move(x, y)
+	drawer = drawer.Move(int(x), int(y))
 
 	if p.Turning() {
 		if p.direction == -p.nextStepDirection {
@@ -239,11 +240,12 @@ func (p *_Person) Draw(ctx context.Context, drawer draw.Drawer) error {
 			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		return drawer.DrawImage(a.GetFrameImage(1))
+		draw.PrepareDrawImage(drawer, a.GetFrameImage(1)).Draw()
 	} else {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		return a.Draw(drawer)
+		draw.PrepareDrawImage(drawer, a.GetCurrentFrameImage()).Draw()
 	}
+	return nil
 }
 
 func (p *_Person) Turn(d util.Direction) bool {

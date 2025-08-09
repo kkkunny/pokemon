@@ -164,23 +164,23 @@ func (s *System) getSkyMaskColor() color.Color {
 
 	switch {
 	case hour < 4:
-		return util.NewRGBAColor(0, 0, 0, 180)
+		return util.NewNRGBAColor(0, 0, 0, 180)
 	case 4 <= hour && hour < 10:
-		return util.GradientColor(util.NewRGBAColor(0, 0, 0, 180), util.NewRGBAColor(255, 255, 255, 0), (hour-4)/6)
+		return util.GradientColor(util.NewNRGBAColor(0, 0, 0, 180), util.NewNRGBAColor(255, 255, 255, 0), (hour-4)/6)
 	case 10 <= hour && hour < 15:
-		return util.NewRGBAColor(255, 255, 255, 0)
+		return util.NewNRGBAColor(255, 255, 255, 0)
 	case 15 <= hour && hour < 17:
-		return util.GradientColor(util.NewRGBAColor(255, 255, 255, 0), util.NewRGBAColor(255, 128, 64, 80), (hour-15)/2)
+		return util.GradientColor(util.NewNRGBAColor(255, 255, 255, 0), util.NewNRGBAColor(255, 128, 64, 80), (hour-15)/2)
 	case 17 <= hour && hour < 18:
-		return util.GradientColor(util.NewRGBAColor(255, 128, 64, 80), util.NewRGBAColor(0, 0, 0, 180), (hour-17)/1)
+		return util.GradientColor(util.NewNRGBAColor(255, 128, 64, 80), util.NewNRGBAColor(0, 0, 0, 180), (hour-17)/1)
 	case 18 <= hour:
-		return util.NewRGBAColor(0, 0, 0, 180)
+		return util.NewNRGBAColor(0, 0, 0, 180)
 	default:
-		return util.NewRGBAColor(255, 255, 255, 0)
+		return util.NewNRGBAColor(255, 255, 255, 0)
 	}
 }
 
-func (s *System) OnDraw(drawer draw.Drawer) error {
+func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	// 地图
 	err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
 	if err != nil {
@@ -189,10 +189,7 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 
 	// 天色
 	if !s.world.CurrentMap().Indoor() {
-		err = drawer.OverlayColor(s.getSkyMaskColor())
-		if err != nil {
-			return err
-		}
+		draw.OverlayColor(drawer, s.getSkyMaskColor())
 	}
 
 	// 地图名

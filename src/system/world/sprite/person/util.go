@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/animation"
+	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 
 	"github.com/kkkunny/pokemon/src/config"
@@ -41,7 +41,7 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 			return nil, err
 		}
 		var behaviorDirectionAnimations map[util.Direction]map[Foot]*animation.Animation
-		if behaviorImgSheetRect.Height() == 60 {
+		if behaviorImgSheetRect.Bounds().Dy() == 60 {
 			behaviorDirectionAnimations, err = loadSimplePersonDirectionAnimations(behaviorImgSheetRect)
 		} else {
 			behaviorDirectionAnimations, err = loadCompletePersonDirectionAnimations(behaviorImgSheetRect)
@@ -56,7 +56,7 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 func loadSimplePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[util.Direction](util.DirectionEnum)
 	directionAnimations := make(map[util.Direction]map[Foot]*animation.Animation, len(directions))
-	frameW, frameH := imgSheet.Width()/3, imgSheet.Height()/3
+	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
 	for i, direction := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left} {
 		y := i * frameH
 		leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
@@ -66,19 +66,12 @@ func loadSimplePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Dire
 			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH))
 			switch j {
 			case 0:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(0, 0)
-				leftFootAnimationFrameSheet.DrawImage(img, ops)
-				ops.GeoM.Translate(0, 0)
-				rightFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Draw()
+				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Draw()
 			case 1:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(float64(frameW), 0)
-				leftFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
 			case 2:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(float64(frameW), 0)
-				rightFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
 			}
 		}
 		directionAnimations[direction] = map[Foot]*animation.Animation{
@@ -89,26 +82,15 @@ func loadSimplePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Dire
 
 	left := directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(0)
 	right := imgutil.NewImage(frameW, frameH)
-	ops := &ebiten.DrawImageOptions{}
-	ops.GeoM.Scale(-1, 1)
-	ops.GeoM.Translate(float64(frameW), 0)
-	right.DrawImage(left, ops)
+	draw.PrepareDrawImage(right, left).Scale(-1, 1).Move(frameW, 0).Draw()
 
 	leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
-	ops = &ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(0, 0)
-	leftFootAnimationFrameSheet.DrawImage(right, ops)
-	ops.GeoM.Scale(-1, 1)
-	ops.GeoM.Translate(float64(frameW)*2, 0)
-	leftFootAnimationFrameSheet.DrawImage(directionAnimations[util.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1), ops)
+	draw.PrepareDrawImage(leftFootAnimationFrameSheet, right).Draw()
+	draw.PrepareDrawImage(leftFootAnimationFrameSheet, directionAnimations[util.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1)).Scale(-1, 1).Move(frameW*2, 0).Draw()
 
 	rightFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
-	ops = &ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(0, 0)
-	rightFootAnimationFrameSheet.DrawImage(right, ops)
-	ops.GeoM.Scale(-1, 1)
-	ops.GeoM.Translate(float64(frameW)*2, 0)
-	rightFootAnimationFrameSheet.DrawImage(directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(1), ops)
+	draw.PrepareDrawImage(rightFootAnimationFrameSheet, right).Draw()
+	draw.PrepareDrawImage(rightFootAnimationFrameSheet, directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(1)).Scale(-1, 1).Move(frameW*2, 0).Draw()
 
 	directionAnimations[util.DirectionEnum.Right] = map[Foot]*animation.Animation{
 		FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
@@ -119,7 +101,7 @@ func loadSimplePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Dire
 func loadCompletePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Direction]map[Foot]*animation.Animation, error) {
 	directions := enum.Values[util.Direction](util.DirectionEnum)
 	directionAnimations := make(map[util.Direction]map[Foot]*animation.Animation, len(directions))
-	frameW, frameH := imgSheet.Width()/3, imgSheet.Height()/3
+	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
 	for i, direction := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left, util.DirectionEnum.Right} {
 		y := i * frameH
 		leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
@@ -129,19 +111,12 @@ func loadCompletePersonDirectionAnimations(imgSheet *imgutil.Image) (map[util.Di
 			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH))
 			switch j {
 			case 0:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(0, 0)
-				leftFootAnimationFrameSheet.DrawImage(img, ops)
-				ops.GeoM.Translate(0, 0)
-				rightFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Draw()
+				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Draw()
 			case 1:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(float64(frameW), 0)
-				leftFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
 			case 2:
-				ops := &ebiten.DrawImageOptions{}
-				ops.GeoM.Translate(float64(frameW), 0)
-				rightFootAnimationFrameSheet.DrawImage(img, ops)
+				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
 			}
 		}
 		directionAnimations[direction] = map[Foot]*animation.Animation{

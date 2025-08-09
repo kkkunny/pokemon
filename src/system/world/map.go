@@ -102,7 +102,7 @@ func (m *Map) getSpriteLayerName() string {
 	return layerName
 }
 
-func (m *Map) DrawBackground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
+func (m *Map) DrawBackground(drawer draw.OptionDrawer, rect image.Rectangle, dur time.Duration) error {
 	renderer := render2.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
@@ -118,7 +118,7 @@ func (m *Map) DrawBackground(drawer draw.Drawer, rect image.Rectangle, dur time.
 	return nil
 }
 
-func (m *Map) DrawForeground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
+func (m *Map) DrawForeground(drawer draw.OptionDrawer, rect image.Rectangle, dur time.Duration) error {
 	renderer := render2.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()

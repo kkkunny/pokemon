@@ -1,56 +1,63 @@
 package draw
 
-import "image/color"
-
 type options interface {
-	Move(x, y float64) Drawer
-	At(x, y float64) Drawer
-	Scale(x, y float64) Drawer
-	SetScale(x, y float64) Drawer
-	ScaleWithColor(c color.Color) Drawer
+	Options() _options
+	Reset() OptionDrawer
+	Move(x, y int) OptionDrawer
+	MoveTo(x, y int) OptionDrawer
+	Scale(x, y float64) OptionDrawer
+	SetScale(x, y float64) OptionDrawer
 }
 
 type _options struct {
-	drawer Drawer
+	drawer _optionDrawer
 
-	x, y           float64
+	x, y           int
 	scaleX, scaleY float64
-	scaleWithColor color.Color
 }
 
-func newOptions(drawer Drawer) _options {
+func newOptions() _options {
 	return _options{
-		drawer: drawer,
 		scaleX: 1.0,
 		scaleY: 1.0,
 	}
 }
 
-func (d _options) Move(x, y float64) Drawer {
-	d.x += x * d.scaleX
-	d.y += y * d.scaleX
-	return d.drawer.copyWithOptions(d)
+func (d _options) withOptions(opts options) OptionDrawer {
+	newOpts := opts.(_options)
+	newOpts.drawer = d.drawer
+	newOpts.drawer.options = newOpts
+	return newOpts.drawer
 }
 
-func (d _options) At(x, y float64) Drawer {
-	d.x = x * d.scaleX
-	d.y = y * d.scaleX
-	return d.drawer.copyWithOptions(d)
+func (d _options) Options() _options {
+	return d
 }
 
-func (d _options) Scale(x, y float64) Drawer {
+func (d _options) Reset() OptionDrawer {
+	return d.withOptions(newOptions())
+}
+
+func (d _options) Move(x, y int) OptionDrawer {
+	d.x += int(float64(x) * d.scaleX)
+	d.y += int(float64(y) * d.scaleX)
+	return d.withOptions(d)
+}
+
+func (d _options) MoveTo(x, y int) OptionDrawer {
+	d.x = int(float64(x) * d.scaleX)
+	d.y = int(float64(y) * d.scaleX)
+	return d.withOptions(d)
+}
+
+func (d _options) Scale(x, y float64) OptionDrawer {
 	d.scaleX *= x
 	d.scaleY *= y
-	return d.drawer.copyWithOptions(d)
+	return d.withOptions(d)
 }
 
-func (d _options) SetScale(x, y float64) Drawer {
+func (d _options) SetScale(x, y float64) OptionDrawer {
 	d.scaleX = x
 	d.scaleY = y
-	return d.drawer.copyWithOptions(d)
-}
-
-func (d _options) ScaleWithColor(c color.Color) Drawer {
-	d.scaleWithColor = c
-	return d.drawer.copyWithOptions(d)
+	return d.withOptions(d)
 }
