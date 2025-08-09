@@ -1,17 +1,12 @@
 package dialogue
 
 import (
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 
-	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -27,8 +22,6 @@ const (
 type System struct {
 	ctx context.Context
 
-	fontFace        *text.GoXFace
-	emojiFontFace   *text.GoXFace
 	displayInterval time.Duration
 
 	// 显示文字的必备属性
@@ -41,45 +34,9 @@ type System struct {
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
-	// 字体
-	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
-	if err != nil {
-		return nil, err
-	}
-	fontInst, err := opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	fontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
-		Size:    32,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		return nil, err
-	}
-	// emoji字体
-	fontBytes, err = os.ReadFile(filepath.Join(config.FontsPath, "NotoEmoji-VariableFont_wght") + ".ttf")
-	if err != nil {
-		return nil, err
-	}
-	fontInst, err = opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	emojiFontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
-		Size:    32,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		return nil, err
-	}
 	return &System{
 		ctx:             ctx,
 		displayInterval: normalDisplayInterval,
-		fontFace:        text.NewGoXFace(fontFace),
-		emojiFontFace:   text.NewGoXFace(emojiFontFace),
 	}, nil
 }
 
@@ -121,7 +78,7 @@ func (s *System) StreamDone() bool {
 
 func (s *System) frontSize() (int, int) {
 	displayText := s.ctx.Localisation().Get("game_name")
-	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), displayText)
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), displayText)
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
@@ -196,23 +153,23 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	if len(lines) > 1 {
 		// 存量行（第一行）
 		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{waitForContinueChar}), "", -1)
-		draw.PrepareDrawText(drawer, renderStr, s.fontFace, fontColor).Move(int(x), int(y)).Draw()
+		draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), fontColor).Move(int(x), int(y)).Draw()
 
 		y += fontH + fontH/3
 	}
 
 	// 输出行（第二行或第一行）
 	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{waitForContinueChar}), "", -1)
-	draw.PrepareDrawText(drawer, renderStr, s.fontFace, fontColor).Move(int(x), int(y)).Draw()
+	draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), fontColor).Move(int(x), int(y)).Draw()
 
 	if s.WaitForContinue() {
-		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
+		bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), renderStr)
 		x += float64((bounds.Max.X - bounds.Min.X).Round())
 		y += (fontH/5)*2 + float64(s.waitFrame)
 		waitString := string([]rune{waitForContinueChar})
-		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
+		bounds, _ = font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 36).UnsafeInternal(), renderStr)
 		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
-		draw.PrepareDrawText(drawer, waitString, s.emojiFontFace, util.NewNRGBColor(224, 8, 8)).Move(int(x), int(y)).Draw()
+		draw.PrepareDrawText(drawer, waitString, util.GetFont(util.FontTypeEnum.Emoji, 36), util.NewNRGBColor(224, 8, 8)).Move(int(x), int(y)).Draw()
 		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
 			s.waitFrame = (s.waitFrame + 1) % 3
 			s.lastUpdateTime = time.Now()

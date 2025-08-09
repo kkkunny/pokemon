@@ -3,15 +3,11 @@ package world
 import (
 	"image"
 	"image/color"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	"github.com/kkkunny/stl/container/pqueue"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/system/context"
@@ -31,9 +27,8 @@ type World struct {
 	firstRenderTime time.Time
 
 	// 地图名
-	nameMoveSpeed   int           // 地图名移动速度
-	fontFace        *text.GoXFace // 显示地图名
-	nameMoveCounter int           // 地图名移动计数器
+	nameMoveSpeed   int // 地图名移动速度
+	nameMoveCounter int // 地图名移动计数器
 
 	// 地图碰撞缓存
 	selfPos [2]int // 主角所在当前地图位置
@@ -43,29 +38,11 @@ type World struct {
 
 func NewWorld(ctx context.Context, initMapName string) (*World, error) {
 	tileCache := render.NewTileCache()
-	// 字体
-	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
-	if err != nil {
-		return nil, err
-	}
-	fontInst, err := opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	fontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
-		Size:    32,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		return nil, err
-	}
 	w := &World{
 		ctx:           ctx,
 		tileCache:     tileCache,
 		mapCache:      make(map[string]*Map),
 		nameMoveSpeed: 1,
-		fontFace:      text.NewGoXFace(fontFace),
 	}
 	return w, w.MoveTo(initMapName)
 }
@@ -360,7 +337,7 @@ func (w *World) getMapNameDisplayImage() (imgutil.Image, bool) {
 	draw.PrepareDrawRect(img, width, height, util.NewNRGBColor(248, 248, 255)).Draw()
 	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewNRGBColor(176, 196, 222)).Draw()
 	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(8).SetBorderColor(util.NewNRGBColor(119, 136, 153)).Draw()
-	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
-	draw.PrepareDrawText(img, mapName, w.fontFace, color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 32).UnsafeInternal(), mapName)
+	draw.PrepareDrawText(img, mapName, util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
 	return img, true
 }
