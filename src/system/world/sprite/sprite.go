@@ -6,8 +6,8 @@ import (
 	"github.com/lafriks/go-tiled"
 	"github.com/tnnmigga/enum"
 
-	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
@@ -46,7 +46,7 @@ type Sprite interface {
 
 	OnAction(ctx context.Context, action input.KeyInputAction, info UpdateInfo) error
 	Update(ctx context.Context, info UpdateInfo) error
-	Draw(ctx context.Context, drawer draw.Drawer) error
+	Draw(ctx context.Context, drawer draw.OptionDrawer) error
 }
 
 var spriteCreateFuncMap = make(map[string]func(object *tiled.Object) (Sprite, error))

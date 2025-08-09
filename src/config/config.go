@@ -1,8 +1,8 @@
 package config
 
 const (
-	Scale    = 2
-	TileSize = 16
+	Scale    = 2  // 放大倍数
+	TileSize = 16 // 地图原大小
 )
 
 type Config struct {

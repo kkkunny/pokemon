@@ -1,18 +1,21 @@
 package draw
 
-import (
-	"image"
-	"image/color"
+import "image/draw"
 
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
-)
-
-type Drawer interface {
+type OptionDrawer interface {
+	draw.Image
 	options
-	copyWithOptions(opts _options) Drawer
-	Size() (width int, height int)
-	Set(x int, y int, clr color.Color)
-	DrawImage(image image.Image) error
-	DrawText(renderText string, fontFace text.Face) error
-	OverlayColor(c color.Color) error
+}
+
+type _optionDrawer struct {
+	draw.Image
+	options
+}
+
+func NewDrawerFromImage(img draw.Image) OptionDrawer {
+	drawer := _optionDrawer{Image: img}
+	opts := newOptions()
+	opts.drawer = drawer
+	drawer.options = opts
+	return drawer
 }

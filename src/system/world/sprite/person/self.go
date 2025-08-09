@@ -8,20 +8,20 @@ import (
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/script"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/world"
 )
 
-var keyInputActionToDirection = map[input.KeyInputAction]consts.Direction{
-	input.KeyInputActionEnum.MoveUp:    consts.DirectionEnum.Up,
-	input.KeyInputActionEnum.MoveDown:  consts.DirectionEnum.Down,
-	input.KeyInputActionEnum.MoveLeft:  consts.DirectionEnum.Left,
-	input.KeyInputActionEnum.MoveRight: consts.DirectionEnum.Right,
+var keyInputActionToDirection = map[input.KeyInputAction]util.Direction{
+	input.KeyInputActionEnum.MoveUp:    util.DirectionEnum.Up,
+	input.KeyInputActionEnum.MoveDown:  util.DirectionEnum.Down,
+	input.KeyInputActionEnum.MoveLeft:  util.DirectionEnum.Left,
+	input.KeyInputActionEnum.MoveRight: util.DirectionEnum.Right,
 }
 
 type Self interface {
@@ -80,6 +80,7 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 	return nil
 }
 
+// 主角放于屏幕正中间时，相对于屏幕左上角的像素位置，考虑放大倍数
 func (s *_Self) PixelPosition(cfg *config.Config) (x, y float64) {
 	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
 	return float64(cfg.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(cfg.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
@@ -132,28 +133,29 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (s *_Self) Draw(ctx context.Context, drawer draw.Drawer) error {
+func (s *_Self) Draw(ctx context.Context, drawer draw.OptionDrawer) error {
 	x, y := s.PixelPosition(ctx.Config())
-	drawer = drawer.At(x/config.Scale, y/config.Scale)
+	drawer = drawer.MoveTo(int(x/config.Scale), int(y/config.Scale))
 
 	if s.Turning() {
 		if s.direction == -s.nextStepDirection {
 			s.moveStartingFoot = FootEnum.Right
-		} else if s.direction == consts.DirectionEnum.Up {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Down {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Left {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
-		} else if s.direction == consts.DirectionEnum.Right {
-			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == consts.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Up {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Left, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Down {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Right, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Left {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Down, FootEnum.Left, FootEnum.Right)
+		} else if s.direction == util.DirectionEnum.Right {
+			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		return drawer.DrawImage(a.GetFrameImage(1))
+		draw.PrepareDrawImage(drawer, a.GetFrameImage(1)).Draw()
 	} else {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		return a.Draw(drawer)
+		draw.PrepareDrawImage(drawer, a.GetCurrentFrameImage()).Draw()
 	}
+	return nil
 }
 
 func (s *_Self) ActionSprite() sprite.Sprite {

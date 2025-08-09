@@ -1,4 +1,4 @@
-package consts
+package util
 
 import "github.com/tnnmigga/enum"
 

@@ -3,9 +3,9 @@ package item
 import (
 	"github.com/lafriks/go-tiled"
 
-	"github.com/kkkunny/pokemon/src/context"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
@@ -74,7 +74,7 @@ func (i *_Item) Update(_ context.Context, _ sprite.UpdateInfo) error {
 	return nil
 }
 
-func (i *_Item) Draw(_ context.Context, _ draw.Drawer) error {
+func (i *_Item) Draw(_ context.Context, _ draw.OptionDrawer) error {
 	return nil
 }
 

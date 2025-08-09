@@ -7,11 +7,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util/draw"
+	"github.com/kkkunny/pokemon/src/util/i18n"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Game struct {
@@ -58,7 +59,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	err := g.sys.OnDraw(draw.NewDrawerFromEbiten(screen))
+	err := g.sys.OnDraw(draw.NewDrawerFromImage(imgutil.WrapImage(screen)))
 	if err != nil {
 		panic(err)
 	}

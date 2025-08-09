@@ -6,30 +6,26 @@ import (
 
 	stlslices "github.com/kkkunny/stl/container/slices"
 
-	"github.com/kkkunny/pokemon/src/config"
-
 	"github.com/kkkunny/pokemon/src/battle"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/dialogue"
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/output/voice"
 	"github.com/kkkunny/pokemon/src/pokemon"
-	"github.com/kkkunny/pokemon/src/sprite"
-	"github.com/kkkunny/pokemon/src/sprite/person"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/dialogue"
+	"github.com/kkkunny/pokemon/src/system/world"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/system/world/sprite/person"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/voice"
-	"github.com/kkkunny/pokemon/src/world"
 )
 
 type System struct {
-	ctx  context.Context
-	self person.Self
-
-	// 页面
-	// 地图页面
+	ctx            context.Context
 	world          *world.World
-	dialogue       *dialogue.System
+	self           person.Self
 	mapVoicePlayer *voice.Player
+	dialogue       *dialogue.System
 	// 战斗页面
 	battle *battle.System
 
@@ -190,41 +186,35 @@ func (s *System) getSkyMaskColor() color.Color {
 
 	switch {
 	case hour < 4:
-		return util.NewRGBAColor(0, 0, 0, 180)
+		return util.NewNRGBAColor(0, 0, 0, 180)
 	case 4 <= hour && hour < 10:
-		return util.GradientColor(util.NewRGBAColor(0, 0, 0, 180), util.NewRGBAColor(255, 255, 255, 0), (hour-4)/6)
+		return util.GradientColor(util.NewNRGBAColor(0, 0, 0, 180), util.NewNRGBAColor(255, 255, 255, 0), (hour-4)/6)
 	case 10 <= hour && hour < 15:
-		return util.NewRGBAColor(255, 255, 255, 0)
+		return util.NewNRGBAColor(255, 255, 255, 0)
 	case 15 <= hour && hour < 17:
-		return util.GradientColor(util.NewRGBAColor(255, 255, 255, 0), util.NewRGBAColor(255, 128, 64, 80), (hour-15)/2)
+		return util.GradientColor(util.NewNRGBAColor(255, 255, 255, 0), util.NewNRGBAColor(255, 128, 64, 80), (hour-15)/2)
 	case 17 <= hour && hour < 18:
-		return util.GradientColor(util.NewRGBAColor(255, 128, 64, 80), util.NewRGBAColor(0, 0, 0, 180), (hour-17)/1)
+		return util.GradientColor(util.NewNRGBAColor(255, 128, 64, 80), util.NewNRGBAColor(0, 0, 0, 180), (hour-17)/1)
 	case 18 <= hour:
-		return util.NewRGBAColor(0, 0, 0, 180)
+		return util.NewNRGBAColor(0, 0, 0, 180)
 	default:
-		return util.NewRGBAColor(255, 255, 255, 0)
+		return util.NewNRGBAColor(255, 255, 255, 0)
 	}
 }
 
-func (s *System) OnDraw(drawer draw.Drawer) error {
+func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	if s.battle.Active() {
 		return s.battle.OnDraw(drawer)
 	} else {
 		// 地图
-		err := s.world.OnDraw(
-			drawer.Scale(config.Scale, config.Scale),
-			[]sprite.Sprite{s.self},
-		)
+		err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
 		if err != nil {
 			return err
 		}
 
 		// 天色
 		if !s.world.CurrentMap().Indoor() {
-			err = drawer.OverlayColor(s.getSkyMaskColor())
-			if err != nil {
-				return err
-			}
+			draw.OverlayColor(drawer, s.getSkyMaskColor())
 		}
 
 		// 地图名
@@ -240,7 +230,8 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 		}
 
 		img := stlslices.First(s.pok.Front.Image)
-		return drawer.Scale(config.Scale, config.Scale).DrawImage(img)
+		draw.PrepareDrawImage(drawer.Scale(config.Scale, config.Scale), img).Draw()
+		return nil
 	}
 }
 

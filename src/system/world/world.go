@@ -8,20 +8,18 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlmaps "github.com/kkkunny/stl/container/maps"
 	"github.com/kkkunny/stl/container/pqueue"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/world/render"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
-	"github.com/kkkunny/pokemon/src/world/render"
 )
 
 type World struct {
@@ -143,15 +141,15 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 		x1, y1 := mapWidth-max((pixX+mapPixWidth)*config.Scale-w.ctx.Config().ScreenWidth, 0)/(config.TileSize*config.Scale), mapHeight-max((pixY+mapPixHeight)*config.Scale-w.ctx.Config().ScreenHeight, 0)/(config.TileSize*config.Scale)
 		map2Rect[m] = image.Rect(x0, y0, x1, y1)
 
-		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d consts.Direction, id string) bool {
+		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d util.Direction, id string) bool {
 			switch d {
-			case consts.DirectionEnum.Up:
+			case util.DirectionEnum.Up:
 				return pixY > 0
-			case consts.DirectionEnum.Down:
+			case util.DirectionEnum.Down:
 				return (pixY+mapPixHeight)*config.Scale < w.ctx.Config().ScreenHeight
-			case consts.DirectionEnum.Left:
+			case util.DirectionEnum.Left:
 				return pixX > 0
-			case consts.DirectionEnum.Right:
+			case util.DirectionEnum.Right:
 				return (pixX+mapPixWidth)*config.Scale < w.ctx.Config().ScreenWidth
 			default:
 				return false
@@ -168,13 +166,13 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 			adjacentPixX, adjacentPixY := pixX, pixY
 			adjacentPixWidth, adjacentPixHeight := adjacentMap.PixelSize()
 			switch d {
-			case consts.DirectionEnum.Up:
+			case util.DirectionEnum.Up:
 				adjacentPixY -= adjacentPixHeight
-			case consts.DirectionEnum.Down:
+			case util.DirectionEnum.Down:
 				adjacentPixY += mapPixHeight
-			case consts.DirectionEnum.Left:
+			case util.DirectionEnum.Left:
 				adjacentPixX -= adjacentPixWidth
-			case consts.DirectionEnum.Right:
+			case util.DirectionEnum.Right:
 				adjacentPixX += mapPixWidth
 			}
 			loopFn(adjacentMap, adjacentPixX, adjacentPixY)
@@ -189,7 +187,7 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 	return map2Pos, map2Rect, nil
 }
 
-func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
+func (w *World) OnDraw(drawer draw.OptionDrawer, sprites []sprite.Sprite) error {
 	now := time.Now()
 	var defaultTime time.Time
 	if w.firstRenderTime == defaultTime {
@@ -203,7 +201,7 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 
 	// 背景
 	for drawMap, pos := range map2Pos {
-		err := drawMap.DrawBackground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
+		err = drawMap.DrawBackground(drawer.Move(pos.X, pos.Y), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -223,14 +221,14 @@ func (w *World) OnDraw(drawer draw.Drawer, sprites []sprite.Sprite) error {
 	spritePairs := drawSprites.ToSlice()
 	currentMapPos := map2Pos[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err := spritePairs[i].E2().Draw(w.ctx, drawer.Move(float64(currentMapPos.X), float64(currentMapPos.Y)))
+		err = spritePairs[i].E2().Draw(w.ctx, drawer.Move(currentMapPos.X, currentMapPos.Y))
 		if err != nil {
 			return err
 		}
 	}
 	// 前景
 	for drawMap, pos := range map2Pos {
-		err := drawMap.DrawForeground(drawer.Move(float64(pos.X), float64(pos.Y)), map2Rect[drawMap], now.Sub(w.firstRenderTime))
+		err = drawMap.DrawForeground(drawer.Move(pos.X, pos.Y), map2Rect[drawMap], now.Sub(w.firstRenderTime))
 		if err != nil {
 			return err
 		}
@@ -272,7 +270,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 	for {
 		adjacentMaps := curMap.AdjacentMaps()
 		if y < 0 {
-			upMapID, ok := adjacentMaps[consts.DirectionEnum.Up]
+			upMapID, ok := adjacentMaps[util.DirectionEnum.Up]
 			if !ok || !stlmaps.ContainKey(w.mapCache, upMapID) {
 				return nil, 0, 0, false
 			}
@@ -281,7 +279,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = upMap
 			continue
 		} else if y >= curMap.define.Height {
-			downMapID, ok := adjacentMaps[consts.DirectionEnum.Down]
+			downMapID, ok := adjacentMaps[util.DirectionEnum.Down]
 			if !ok || !stlmaps.ContainKey(w.mapCache, downMapID) {
 				return nil, 0, 0, false
 			}
@@ -290,7 +288,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = downMap
 			continue
 		} else if x < 0 {
-			leftMapID, ok := adjacentMaps[consts.DirectionEnum.Left]
+			leftMapID, ok := adjacentMaps[util.DirectionEnum.Left]
 			if !ok || !stlmaps.ContainKey(w.mapCache, leftMapID) {
 				return nil, 0, 0, false
 			}
@@ -299,7 +297,7 @@ func (w *World) GetActualPosition(x, y int) (*Map, int, int, bool) {
 			curMap = leftMap
 			continue
 		} else if x >= curMap.define.Width {
-			rightMapID, ok := adjacentMaps[consts.DirectionEnum.Right]
+			rightMapID, ok := adjacentMaps[util.DirectionEnum.Right]
 			if !ok || !stlmaps.ContainKey(w.mapCache, rightMapID) {
 				return nil, 0, 0, false
 			}
@@ -316,7 +314,7 @@ func (w *World) CurrentMap() *Map {
 	return w.currentMap
 }
 
-func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
+func (w *World) CheckCollision(d util.Direction, x, y int) bool {
 	if [2]int{x, y} == w.selfPos {
 		return true
 	}
@@ -328,7 +326,7 @@ func (w *World) CheckCollision(d consts.Direction, x, y int) bool {
 }
 
 // DrawMapName 绘制地图名
-func (w *World) DrawMapName(drawer draw.Drawer) error {
+func (w *World) DrawMapName(drawer draw.OptionDrawer) error {
 	height := w.ctx.Config().ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
@@ -340,37 +338,29 @@ func (w *World) DrawMapName(drawer draw.Drawer) error {
 	}
 
 	if w.nameMoveCounter < height {
-		drawer = drawer.Move(10, float64(w.nameMoveCounter-height))
+		drawer = drawer.Move(10, w.nameMoveCounter-height)
 	} else if w.nameMoveCounter < height*3 {
 		drawer = drawer.Move(10, 0)
 	} else {
-		drawer = drawer.Move(10, -float64(w.nameMoveCounter%height))
+		drawer = drawer.Move(10, -w.nameMoveCounter%height)
 	}
-	err := drawer.DrawImage(img)
-	if err != nil {
-		return err
-	}
+	draw.PrepareDrawImage(drawer, img).Draw()
 	w.nameMoveCounter += w.nameMoveSpeed
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage() (*imgutil.Image, bool) {
+func (w *World) getMapNameDisplayImage() (imgutil.Image, bool) {
 	mapName := w.currentMap.Name()
 	if mapName == "" {
 		return nil, false
 	}
 
-	width, height := float32(w.ctx.Config().ScreenWidth)/3, float32(w.ctx.Config().ScreenHeight)/7
-	img := imgutil.NewImage(int(width), int(height))
-
-	vector.DrawFilledRect(img.Image, 0, -6, width, height, util.NewRGBColor(248, 248, 255), false)
-	vector.StrokeRect(img.Image, 4, -4, width-8, height-6, 4, util.NewRGBColor(176, 196, 222), false)
-	vector.StrokeRect(img.Image, 0, -6, width, height, 6, util.NewRGBColor(119, 136, 153), false)
-
+	width, height := w.ctx.Config().ScreenWidth/3, w.ctx.Config().ScreenHeight/7
+	img := imgutil.NewImage(width, height)
+	draw.PrepareDrawRect(img, width, height, util.NewNRGBColor(248, 248, 255)).Draw()
+	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewNRGBColor(176, 196, 222)).Draw()
+	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(8).SetBorderColor(util.NewNRGBColor(119, 136, 153)).Draw()
 	bounds, _ := font.BoundString(w.fontFace.UnsafeInternal(), mapName)
-	var textOps text.DrawOptions
-	textOps.ColorScale.ScaleWithColor(color.Black)
-	textOps.GeoM.Translate((float64(width)+10)/2-float64(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (float64(height)-6)/2-float64(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2)
-	text.Draw(img.Image, mapName, w.fontFace, &textOps)
+	draw.PrepareDrawText(img, mapName, w.fontFace, color.Black).Move((width+10)/2-(bounds.Max.X.Floor()-bounds.Min.X.Floor())/2, (height-6)/2-(bounds.Max.Y.Floor()-bounds.Min.Y.Floor())/2).Draw()
 	return img, true
 }

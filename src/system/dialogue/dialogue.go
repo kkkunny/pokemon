@@ -7,20 +7,19 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 const (
+	waitForContinueChar     = '🔻'
 	normalDisplayInterval   = time.Millisecond * 150
 	fastModeDisplayInterval = time.Millisecond * 30
 )
@@ -126,25 +125,25 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) getLabelBackground(w, h int) *image.Image {
+func (s *System) getLabelBackground(w, h int) imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
-	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(104, 112, 120), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(200, 200, 216), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	img := imgutil.NewImage(bgW, bgH)
+	draw.PrepareDrawRect(img, bgW, bgH, util.NewNRGBColor(104, 112, 120)).Draw()
+	draw.PrepareDrawRect(img, bgW-fontW/2, bgH-fontH/2, util.NewNRGBColor(200, 200, 216)).Move(fontW/4, fontH/4).Draw()
+	draw.PrepareDrawRect(img, bgW-fontW, bgH-fontH, util.NewNRGBColor(248, 248, 248)).Move(fontW/2, fontH/2).Draw()
 	return img
 }
 
-func (s *System) getDialogueBackground(w, h int) *image.Image {
+func (s *System) getDialogueBackground(w, h int) imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
-	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(160, 208, 224), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(224, 240, 248), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	img := imgutil.NewImage(bgW, bgH)
+	draw.PrepareDrawRect(img, bgW, bgH, util.NewNRGBColor(160, 208, 224)).SetRadius(fontW / 2).Draw()
+	draw.PrepareDrawRect(img, bgW-fontW/2, bgH-fontH/2, util.NewNRGBColor(224, 240, 248)).SetRadius(fontW/2).Move(fontW/4, fontH/4).Draw()
+	draw.PrepareDrawRect(img, bgW-fontW, bgH-fontH, util.NewNRGBColor(248, 248, 248)).SetRadius(fontW/2).Move(fontW/2, fontH/2).Draw()
 	return img
 }
 
@@ -169,14 +168,14 @@ func (s *System) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) 
 	return lines
 }
 
-func (s *System) OnDraw(drawer draw.Drawer) error {
+func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	if !s.display {
 		return nil
 	}
 
 	_fontW, _fontH := s.frontSize()
 	fontW, fontH := float64(_fontW), float64(_fontH)
-	_screenW, _screenH := drawer.Size()
+	_screenW, _screenH := drawer.Bounds().Dx(), drawer.Bounds().Dy()
 	screenW, screenH := float64(_screenW), float64(_screenH)
 	hFrontMaxCount, vFrontMaxCount := int(screenW/fontW)-4, int(screenH/fontH)-4
 	if hFrontMaxCount < 2 || vFrontMaxCount < 3 {
@@ -185,44 +184,35 @@ func (s *System) OnDraw(drawer draw.Drawer) error {
 
 	// 背景
 	bgImg := stlval.Ternary(s.isDialogue, s.getDialogueBackground, s.getLabelBackground)(hFrontMaxCount, 2)
-	x, y := (screenW-float64(bgImg.Width()))/2, screenH-float64(bgImg.Height())-fontH
-	err := drawer.Move(x, y).DrawImage(bgImg)
-	if err != nil {
-		return err
-	}
+	x, y := (screenW-float64(bgImg.Bounds().Dx()))/2, screenH-float64(bgImg.Bounds().Dy())-fontH
+	draw.PrepareDrawImage(drawer, bgImg).Move(int(x), int(y)).Draw()
 
 	// 文字
-	fontColor := util.NewRGBColor(100, 100, 100)
+	fontColor := util.NewNRGBColor(100, 100, 100)
 
 	x, y = x+fontW/2+fontW/4, y+fontH/2+fontH/3
 
 	lines := s.splitDoneLines(s.text[:stlval.Ternary(s.index < len(s.text), s.index+1, s.index)], hFrontMaxCount)
 	if len(lines) > 1 {
 		// 存量行（第一行）
-		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{consts.WaitForContinueChar}), "", -1)
-		err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
-		if err != nil {
-			return err
-		}
+		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{waitForContinueChar}), "", -1)
+		draw.PrepareDrawText(drawer, renderStr, s.fontFace, fontColor).Move(int(x), int(y)).Draw()
 
 		y += fontH + fontH/3
 	}
 
 	// 输出行（第二行或第一行）
-	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{consts.WaitForContinueChar}), "", -1)
-	err = drawer.Move(x, y).ScaleWithColor(fontColor).DrawText(renderStr, s.fontFace)
-	if err != nil {
-		return err
-	}
+	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{waitForContinueChar}), "", -1)
+	draw.PrepareDrawText(drawer, renderStr, s.fontFace, fontColor).Move(int(x), int(y)).Draw()
 
 	if s.WaitForContinue() {
 		bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), renderStr)
 		x += float64((bounds.Max.X - bounds.Min.X).Round())
 		y += (fontH/5)*2 + float64(s.waitFrame)
-		waitString := string([]rune{consts.WaitForContinueChar})
+		waitString := string([]rune{waitForContinueChar})
 		bounds, _ = font.BoundString(s.emojiFontFace.UnsafeInternal(), renderStr)
 		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
-		err = drawer.Move(x, y).ScaleWithColor(util.NewRGBColor(224, 8, 8)).DrawText(waitString, s.emojiFontFace)
+		draw.PrepareDrawText(drawer, waitString, s.emojiFontFace, util.NewNRGBColor(224, 8, 8)).Move(int(x), int(y)).Draw()
 		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
 			s.waitFrame = (s.waitFrame + 1) % 3
 			s.lastUpdateTime = time.Now()
@@ -249,7 +239,7 @@ func (s *System) WaitForContinue() bool {
 	if !s.Display() || s.index >= len(s.text) {
 		return false
 	}
-	return s.text[s.index] == consts.WaitForContinueChar
+	return s.text[s.index] == waitForContinueChar
 }
 
 func (s *System) Continue() {

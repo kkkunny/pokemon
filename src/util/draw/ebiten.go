@@ -2,75 +2,154 @@ package draw
 
 import (
 	"image"
-	"image/color"
+	"image/draw"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 
-	image2 "github.com/kkkunny/pokemon/src/util/image"
+	"github.com/kkkunny/pokemon/src/util/draw/option"
 )
 
-type ebitenImage struct {
-	_options
-	img *ebiten.Image
+type ebitenImageGetter interface {
+	EbitenImage() *ebiten.Image
 }
 
-func NewDrawerFromEbiten(img *ebiten.Image) Drawer {
-	drawer := &ebitenImage{img: img}
-	drawer._options = newOptions(drawer)
-	return drawer
-}
-
-func (d *ebitenImage) copyWithOptions(opts _options) Drawer {
-	return &ebitenImage{
-		_options: opts,
-		img:      d.img,
+func getEbitenImage(img image.Image) (*ebiten.Image, bool) {
+	if drawer, ok := img.(_optionDrawer); ok {
+		return getEbitenImage(drawer.Image)
 	}
+
+	getter, ok := img.(ebitenImageGetter)
+	if ok {
+		return getter.EbitenImage(), true
+	}
+	ebitenImg, ok := img.(*ebiten.Image)
+	return ebitenImg, ok
 }
 
-func (d *ebitenImage) Size() (width int, height int) {
-	bounds := d.img.Bounds()
-	return bounds.Dx(), bounds.Dy()
+func drawEbitenImage(drawer draw.Image, opts option.DrawImageOptions) bool {
+	bgImg, ok := getEbitenImage(drawer)
+	if !ok {
+		return false
+	}
+
+	img, ok := getEbitenImage(opts.Image)
+	if !ok {
+		img = ebiten.NewImageFromImage(img)
+	}
+
+	globalOpts := getDrawOptions(drawer)
+	opts.ScaleX *= globalOpts.scaleX
+	opts.ScaleY *= globalOpts.scaleY
+	opts.X = int(float64(opts.X)*globalOpts.scaleX + float64(globalOpts.x))
+	opts.Y = int(float64(opts.Y)*globalOpts.scaleY + float64(globalOpts.y))
+
+	var imgOps ebiten.DrawImageOptions
+	imgOps.GeoM.Scale(opts.ScaleX, opts.ScaleY)
+	imgOps.GeoM.Translate(float64(opts.X), float64(opts.Y))
+	bgImg.DrawImage(img, &imgOps)
+	return true
 }
 
-func (d *ebitenImage) Set(x int, y int, clr color.Color) {
-	d.img.Set(x, y, clr)
+func drawEbitenText(drawer draw.Image, opts option.DrawTextOptions) bool {
+	bgImg, ok := getEbitenImage(drawer)
+	if !ok {
+		return false
+	}
+
+	globalOpts := getDrawOptions(drawer)
+	opts.ScaleX *= globalOpts.scaleX
+	opts.ScaleY *= globalOpts.scaleY
+	opts.X = int(float64(opts.X)*globalOpts.scaleX + float64(globalOpts.x))
+	opts.Y = int(float64(opts.Y)*globalOpts.scaleY + float64(globalOpts.y))
+
+	var textOps text.DrawOptions
+	textOps.GeoM.Scale(opts.ScaleX, opts.ScaleY)
+	textOps.GeoM.Translate(float64(opts.X), float64(opts.Y))
+	textOps.ColorScale.ScaleWithColor(opts.Color)
+	text.Draw(bgImg, opts.Text, opts.Font, &textOps)
+	return true
 }
 
-func (d *ebitenImage) DrawImage(dst image.Image) error {
-	var ebitenImg *ebiten.Image
-	if i, ok := dst.(*ebiten.Image); ok {
-		ebitenImg = i
-	} else if i, ok := dst.(*image2.Image); ok {
-		ebitenImg = i.Image
+func drawEbitenRect(drawer draw.Image, opts option.DrawRectOptions) bool {
+	bgImg, ok := getEbitenImage(drawer)
+	if !ok {
+		return false
+	}
+
+	globalOpts := getDrawOptions(drawer)
+	opts.Width = int(float64(opts.Width) * globalOpts.scaleX)
+	opts.Height = int(float64(opts.Height) * globalOpts.scaleY)
+	opts.X = int(float64(opts.X)*globalOpts.scaleX + float64(globalOpts.x))
+	opts.Y = int(float64(opts.Y)*globalOpts.scaleY + float64(globalOpts.y))
+	opts.BorderWidth = int(float64(opts.BorderWidth) * globalOpts.scaleX)
+	opts.Radius = int(float64(opts.Radius) * globalOpts.scaleX)
+
+	radius := min(min(opts.Width/2, opts.Height/2), opts.Radius)
+	if radius == 0 {
+		if opts.Color != nil {
+			vector.DrawFilledRect(bgImg, float32(opts.X), float32(opts.Y), float32(opts.Width), float32(opts.Height), opts.Color, false)
+		}
+		if opts.BorderWidth > 0 && opts.BorderColor != nil {
+			vector.StrokeRect(bgImg, float32(opts.X), float32(opts.Y), float32(opts.Width), float32(opts.Height), float32(opts.BorderWidth), opts.BorderColor, false)
+		}
+	} else if float64(radius) == min(float64(opts.Width)/2, float64(opts.Height)/2) {
+		if opts.Color != nil {
+			vector.DrawFilledCircle(bgImg, float32(opts.X)+float32(opts.Width)/2, float32(opts.Y)+float32(opts.Height)/2, float32(radius), opts.Color, false)
+		}
+		if opts.BorderWidth > 0 && opts.BorderColor != nil {
+			vector.StrokeCircle(bgImg, float32(opts.X)+float32(opts.Width)/2, float32(opts.Y)+float32(opts.Height)/2, float32(radius), float32(opts.BorderWidth), opts.BorderColor, false)
+		}
 	} else {
-		ebitenImg = ebiten.NewImageFromImage(dst)
+		if opts.Color != nil {
+			// 左上
+			vector.DrawFilledCircle(bgImg, float32(opts.X+radius), float32(opts.Y+radius), float32(opts.Radius), opts.Color, false)
+			// 右上
+			vector.DrawFilledCircle(bgImg, float32(opts.X+opts.Width-radius), float32(opts.Y+radius), float32(opts.Radius), opts.Color, false)
+			// 左下
+			vector.DrawFilledCircle(bgImg, float32(opts.X+radius), float32(opts.Y+opts.Height-radius), float32(opts.Radius), opts.Color, false)
+			// 右下
+			vector.DrawFilledCircle(bgImg, float32(opts.X+opts.Width-radius), float32(opts.Y+opts.Height-radius), float32(opts.Radius), opts.Color, false)
+		}
+		if opts.BorderWidth > 0 && opts.BorderColor != nil {
+			// 左上
+			vector.StrokeCircle(bgImg, float32(opts.X+radius), float32(opts.Y+radius), float32(radius), float32(opts.BorderWidth)*2, opts.BorderColor, false)
+			// 右上
+			vector.StrokeCircle(bgImg, float32(opts.X+opts.Width-radius), float32(opts.Y+radius), float32(radius), float32(opts.BorderWidth)*2, opts.BorderColor, false)
+			// 左下
+			vector.StrokeCircle(bgImg, float32(opts.X+radius), float32(opts.Y+opts.Height-radius), float32(radius), float32(opts.BorderWidth)*2, opts.BorderColor, false)
+			// 右下
+			vector.StrokeCircle(bgImg, float32(opts.X+opts.Width-radius), float32(opts.Y+opts.Height-radius), float32(radius), float32(opts.BorderWidth)*2, opts.BorderColor, false)
+		}
+		if opts.Color != nil {
+			// 中
+			vector.DrawFilledRect(bgImg, float32(opts.X+radius), float32(opts.Y+radius), float32(opts.Width-radius*2), float32(opts.Height-radius*2), opts.Color, false)
+			// 上
+			vector.DrawFilledRect(bgImg, float32(opts.X+radius), float32(opts.Y), float32(opts.Width-radius*2), float32(radius), opts.Color, false)
+			// 下
+			vector.DrawFilledRect(bgImg, float32(opts.X+radius), float32(opts.Y+opts.Height-radius), float32(opts.Width-radius*2), float32(radius), opts.Color, false)
+			// 左
+			vector.DrawFilledRect(bgImg, float32(opts.X), float32(opts.Y+radius), float32(radius), float32(opts.Height-radius*2), opts.Color, false)
+			// 右
+			vector.DrawFilledRect(bgImg, float32(opts.X+opts.Width-radius), float32(opts.Y+radius), float32(radius), float32(opts.Height-radius*2), opts.Color, false)
+		}
+		if opts.BorderWidth > 0 && opts.BorderColor != nil {
+			// 上
+			vector.DrawFilledRect(bgImg, float32(opts.X+radius), float32(opts.Y), float32(opts.Width-radius*2), float32(opts.BorderWidth), opts.BorderColor, false)
+			// 下
+			vector.DrawFilledRect(bgImg, float32(opts.X+radius), float32(opts.Y+opts.Height-opts.BorderWidth), float32(opts.Width-radius*2), float32(opts.BorderWidth), opts.BorderColor, false)
+			// 左
+			vector.DrawFilledRect(bgImg, float32(opts.X), float32(opts.Y+radius), float32(opts.BorderWidth), float32(opts.Height-radius*2), opts.BorderColor, false)
+			// 右
+			vector.DrawFilledRect(bgImg, float32(opts.X+opts.Width-opts.BorderWidth), float32(opts.Y+radius), float32(opts.BorderWidth), float32(opts.Height-radius*2), opts.BorderColor, false)
+		}
 	}
-
-	var imageOpts ebiten.DrawImageOptions
-	imageOpts.GeoM.Scale(d.scaleX, d.scaleX)
-	imageOpts.GeoM.Translate(d.x, d.y)
-	if d.scaleWithColor != nil {
-		imageOpts.ColorScale.ScaleWithColor(d.scaleWithColor)
-	}
-	d.img.DrawImage(ebitenImg, &imageOpts)
-	return nil
+	return true
 }
 
-func (d *ebitenImage) DrawText(renderText string, fontFace text.Face) error {
-	var textOpts text.DrawOptions
-	textOpts.GeoM.Scale(d.scaleX, d.scaleX)
-	textOpts.GeoM.Translate(d.x, d.y)
-	if d.scaleWithColor != nil {
-		textOpts.ColorScale.ScaleWithColor(d.scaleWithColor)
-	}
-	text.Draw(d.img, renderText, fontFace, &textOpts)
-	return nil
-}
-
-func (d *ebitenImage) OverlayColor(c color.Color) error {
-	mask := ebiten.NewImage(d.img.Bounds().Dx(), d.img.Bounds().Dy())
-	mask.Fill(c)
-	d.img.DrawImage(mask, nil)
-	return nil
+func init() {
+	drawImageSpecialFuncList = append(drawImageSpecialFuncList, drawEbitenImage)
+	drawTextSpecialFuncList = append(drawTextSpecialFuncList, drawEbitenText)
+	drawRectSpecialFuncList = append(drawRectSpecialFuncList, drawEbitenRect)
 }

@@ -3,11 +3,11 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/pallet_town.tmx",
+    "activeFile": "tile/land_decoration.tsx",
     "expandedProjectPaths": [
-        "tile",
+        ".",
         "maps",
-        "."
+        "tile"
     ],
     "fileStates": {
         "maps/Pallet_Town.tmx": {
@@ -106,9 +106,6 @@
             }
         },
         "maps/route_1.tmx": {
-            "expandedObjectLayers": [
-                6
-            ],
             "scale": 3,
             "selectedLayer": -1,
             "viewCenter": {
@@ -167,7 +164,7 @@
     "last.imagePath": "W:/code/go/github.com/kkkunny/pokemon/map/tile",
     "last.worldFilePath": "W:/code/go/github.com/kkkunny/pokemon/map/maps",
     "loadedWorlds": [
-        "W:/code/go/github.com/kkkunny/pokemon/data/world/maps/Kanto.world"
+        "W:/code/go/github.com/kkkunny/pokemon/map/maps/Kanto.world"
     ],
     "map.height": 14,
     "map.lastUsedFormat": "tmx",
@@ -178,24 +175,23 @@
     "openFiles": [
         "maps/route_1.tmx",
         "maps/pallet_town.tmx",
-        "tile/sprite.tsx",
         "tile/land_decoration.tsx"
     ],
     "project": "pokemon.tiled-project",
     "property.type": "string",
     "recentFiles": [
+        "maps/route_1.tmx",
+        "maps/pallet_town.tmx",
+        "tile/land_decoration.tsx",
         "maps/Route_1.tmx",
         "maps/pallet_town__house1.tmx",
-        "maps/pallet_town.tmx",
         "maps/pallet_town__house2.tmx",
         "tile/inner_land_decoration.tsx",
         "tile/inner_decorate.tsx",
         "maps/pallet_town__house1_2.tmx",
         "maps/pallet_town__house3.tmx",
         "tile/building.tsx",
-        "tile/inner_ground.tsx",
-        "tile/decorate.tsx",
-        "tile/land_decoration.tsx"
+        "tile/inner_ground.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

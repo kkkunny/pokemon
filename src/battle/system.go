@@ -6,15 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/context"
+	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/util/image"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 type System struct {
@@ -22,7 +21,7 @@ type System struct {
 	fontFace *text.GoXFace
 
 	active    bool
-	siteImage *image.Image // 战斗场地
+	siteImage imgutil.Image // 战斗场地
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -54,7 +53,7 @@ func (s *System) Active() bool {
 }
 
 func (s *System) StartOneBattle(site string) error {
-	siteImage, err := image.NewImageFromFile(filepath.Join(config.GFXBattleSitesPath, site+".png"))
+	siteImage, err := imgutil.NewImageFromFile(filepath.Join(config.GFXBattleSitesPath, site+".png"))
 	if err != nil {
 		return err
 	}
@@ -73,24 +72,18 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) OnDraw(drawer draw.Drawer) error {
-	err := drawer.OverlayColor(color.White)
-	if err != nil {
-		return err
-	}
+func (s *System) OnDraw(drawer draw.OptionDrawer) error {
+	draw.OverlayColor(drawer, color.White)
 
 	fontW, fontH := s.frontSize()
-	bgW, bgH := fontW*(w+2), fontH*(h+2)
+	bgW, bgH := fontW*(19+2), fontH*(2+2)
 
-	img := image.NewImage(bgW, bgH)
-	vector.DrawFilledRect(img.Image, 0, 0, float32(bgW), float32(bgH), util.NewRGBColor(104, 112, 120), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/4, float32(fontH)/4, float32(bgW)-float32(fontW)/2, float32(bgH)-float32(fontH)/2, util.NewRGBColor(200, 200, 216), false)
-	vector.DrawFilledRect(img.Image, float32(fontW)/2, float32(fontH)/2, float32(bgW)-float32(fontW), float32(bgH)-float32(fontH), util.NewRGBColor(248, 248, 248), false)
+	img := imgutil.NewImage(bgW, bgH)
+	draw.PrepareDrawRect(img, bgW, bgH, util.NewNRGBColor(104, 112, 120)).Draw()
+	draw.PrepareDrawRect(img, fontW/4, fontH/4, util.NewNRGBColor(200, 200, 216)).Move(bgW-fontW/2, bgH-fontH/2).Draw()
+	draw.PrepareDrawRect(img, fontW/2, fontH/2, util.NewNRGBColor(248, 248, 248)).Move(fontW/2, fontH/2).Draw()
 
-	screenWidth, screenHeight := drawer.Size()
-	err = drawer.Move(float64(screenWidth-s.siteImage.Width()), float64(screenHeight/2-s.siteImage.Height())).DrawImage(s.siteImage)
-	if err != nil {
-		return err
-	}
+	screenWidth, screenHeight := drawer.Bounds().Dx(), drawer.Bounds().Dy()
+	draw.PrepareDrawImage(drawer, s.siteImage).Move(screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()).Draw()
 	return nil
 }

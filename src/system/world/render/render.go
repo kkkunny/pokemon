@@ -58,7 +58,7 @@ func (r *Renderer) foreachLayerTile(layer *tiled.Layer, fn func(x, y int, layerT
 	}
 }
 
-func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
+func (r *Renderer) getTileImage(tile *tiled.LayerTile) (imgutil.Image, error) {
 	tilesetPath := tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source)
 	if img := r.cache.GetTileImage(tilesetPath, int(tile.ID)); img != nil {
 		return img, nil
@@ -74,13 +74,13 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
 		r.cache.AddTilesetImage(tilesetPath, tilesetImg)
 	}
 
-	img := tilesetImg.SubImageByRect(tile.Tileset.GetTileRect(tile.ID))
+	img := tilesetImg.SubImage(tile.Tileset.GetTileRect(tile.ID))
 	r.cache.AddTileImage(tilesetPath, int(tile.ID), img)
 
 	return img, nil
 }
 
-func (r *Renderer) renderLayer(drawer draw.Drawer, layer *tiled.Layer, rect image.Rectangle) error {
+func (r *Renderer) renderLayer(drawer draw.OptionDrawer, layer *tiled.Layer, rect image.Rectangle) error {
 	// TODO: 可优化，foreach函数里直接不遍历rect外的坐标
 	var retErr error
 	r.foreachLayerTile(layer, func(x, y int, layerTile *tiled.LayerTile) bool {
@@ -109,10 +109,7 @@ func (r *Renderer) renderLayer(drawer draw.Drawer, layer *tiled.Layer, rect imag
 				// TODO
 				panic("unexpected opacity")
 			} else {
-				err = drawer.Move(float64(x*r.m.TileWidth), float64(y*r.m.TileHeight)).DrawImage(img)
-				if err != nil {
-					return err
-				}
+				draw.PrepareDrawImage(drawer, img).Move(x*r.m.TileWidth, y*r.m.TileHeight).Draw()
 			}
 			return nil
 		}()
@@ -124,11 +121,11 @@ func (r *Renderer) renderLayer(drawer draw.Drawer, layer *tiled.Layer, rect imag
 	return retErr
 }
 
-func (r *Renderer) RenderLayer(drawer draw.Drawer, id int) error {
+func (r *Renderer) RenderLayer(drawer draw.OptionDrawer, id int) error {
 	return r.RenderRectLayer(drawer, id, image.Rect(0, 0, r.m.Width, r.m.Height))
 }
 
-func (r *Renderer) RenderRectLayer(drawer draw.Drawer, id int, rect image.Rectangle) error {
+func (r *Renderer) RenderRectLayer(drawer draw.OptionDrawer, id int, rect image.Rectangle) error {
 	if id >= len(r.m.Layers) {
 		return render.ErrOutOfBounds
 	}

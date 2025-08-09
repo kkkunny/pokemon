@@ -11,11 +11,11 @@ import (
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/consts"
-	"github.com/kkkunny/pokemon/src/context"
-	"github.com/kkkunny/pokemon/src/sprite"
+	"github.com/kkkunny/pokemon/src/system/context"
+	render2 "github.com/kkkunny/pokemon/src/system/world/render"
+	"github.com/kkkunny/pokemon/src/system/world/sprite"
+	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/world/render"
 )
 
 type ObjectLayerType = string
@@ -29,16 +29,16 @@ type Map struct {
 	ctx          context.Context
 	id           string
 	define       *tiled.Map
-	tileCache    *render.TileCache
+	tileCache    *render2.TileCache
 	songFilepath string
 	sprites      []sprite.Sprite
 }
 
-func NewMap(ctx context.Context, tileCache *render.TileCache, id string) (*Map, error) {
+func NewMap(ctx context.Context, tileCache *render2.TileCache, id string) (*Map, error) {
 	return newMapWithAdjacent(ctx, tileCache, id, make(map[string]*Map))
 }
 
-func newMapWithAdjacent(ctx context.Context, tileCache *render.TileCache, id string, existMap map[string]*Map) (*Map, error) {
+func newMapWithAdjacent(ctx context.Context, tileCache *render2.TileCache, id string, existMap map[string]*Map) (*Map, error) {
 	// 缓存
 	curMap := existMap[id]
 	if curMap != nil {
@@ -102,8 +102,8 @@ func (m *Map) getSpriteLayerName() string {
 	return layerName
 }
 
-func (m *Map) DrawBackground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
-	renderer := render.NewRenderer(m.define, m.tileCache, dur)
+func (m *Map) DrawBackground(drawer draw.OptionDrawer, rect image.Rectangle, dur time.Duration) error {
+	renderer := render2.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
 	for i, layer := range m.define.Layers {
@@ -118,8 +118,8 @@ func (m *Map) DrawBackground(drawer draw.Drawer, rect image.Rectangle, dur time.
 	return nil
 }
 
-func (m *Map) DrawForeground(drawer draw.Drawer, rect image.Rectangle, dur time.Duration) error {
-	renderer := render.NewRenderer(m.define, m.tileCache, dur)
+func (m *Map) DrawForeground(drawer draw.OptionDrawer, rect image.Rectangle, dur time.Duration) error {
+	renderer := render2.NewRenderer(m.define, m.tileCache, dur)
 
 	objectLayerName := m.getSpriteLayerName()
 	for i, layer := range m.define.Layers {
@@ -154,7 +154,7 @@ func (m *Map) SongFilepath() (string, bool) {
 	return m.songFilepath, m.songFilepath != ""
 }
 
-func (m *Map) CheckCollision(d consts.Direction, x, y int) bool {
+func (m *Map) CheckCollision(d util.Direction, x, y int) bool {
 	for _, s := range m.sprites {
 		if !s.Collision() {
 			continue
@@ -177,15 +177,15 @@ func (m *Map) CheckCollision(d consts.Direction, x, y int) bool {
 		if tileDef.Properties.GetBool("collision") {
 			return true
 		} else if allowDirectionStr := tileDef.Properties.GetString("allow_direction"); allowDirectionStr != "" {
-			return d != -consts.ParseDirection(allowDirectionStr)
+			return d != -util.ParseDirection(allowDirectionStr)
 		}
 	}
 	return false
 }
 
-func (m *Map) AdjacentMaps() map[consts.Direction]string {
-	maps := make(map[consts.Direction]string, len(enum.Values[consts.Direction](consts.DirectionEnum)))
-	for _, direction := range enum.Values[consts.Direction](consts.DirectionEnum) {
+func (m *Map) AdjacentMaps() map[util.Direction]string {
+	maps := make(map[util.Direction]string, len(enum.Values[util.Direction](util.DirectionEnum)))
+	for _, direction := range enum.Values[util.Direction](util.DirectionEnum) {
 		mapName := m.define.Properties.GetString(direction.String())
 		if mapName == "" {
 			continue

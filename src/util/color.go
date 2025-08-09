@@ -2,11 +2,11 @@ package util
 
 import "image/color"
 
-func NewRGBColor(r, g, b uint8) color.NRGBA {
-	return NewRGBAColor(r, g, b, 0xff)
+func NewNRGBColor(r, g, b uint8) color.NRGBA {
+	return NewNRGBAColor(r, g, b, 0xff)
 }
 
-func NewRGBAColor(r, g, b, a uint8) color.NRGBA {
+func NewNRGBAColor(r, g, b, a uint8) color.NRGBA {
 	return color.NRGBA{R: r, G: g, B: b, A: a}
 }
 
@@ -27,29 +27,4 @@ func GradientColor(from, to color.Color, percent float64) color.Color {
 	a := lerp(uint8(a1>>8), uint8(a2>>8), percent)
 
 	return color.RGBA{R: r, G: g, B: b, A: a}
-}
-
-func GetNRGBA(c color.Color) color.NRGBA {
-	r, g, b, a := c.RGBA()
-	if a == 0 {
-		return color.NRGBA{}
-	}
-
-	if nrgba, ok := c.(color.NRGBA); ok {
-		return nrgba
-	} else if rgba, ok := c.(color.RGBA); ok {
-		return color.NRGBA{
-			R: uint8(uint16(rgba.R) * 0xff / uint16(rgba.A)),
-			G: uint8(uint16(rgba.G) * 0xff / uint16(rgba.A)),
-			B: uint8(uint16(rgba.B) * 0xff / uint16(rgba.A)),
-			A: rgba.A,
-		}
-	} else {
-		return color.NRGBA{
-			R: uint8((r * 0xff / a) >> 8),
-			G: uint8((g * 0xff / a) >> 8),
-			B: uint8((b * 0xff / a) >> 8),
-			A: uint8(a >> 8),
-		}
-	}
 }
