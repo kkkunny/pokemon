@@ -7,14 +7,15 @@ import (
 	"path/filepath"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/util/animation"
 )
 
 // PokemonRace 宝可梦种族
 type PokemonRace struct {
-	ID    int16    // 图鉴编号
-	Type  Type     // 属性
-	Front *gif.GIF // 战斗正面图
-	Back  *gif.GIF // 战斗背面图
+	ID    int16                // 图鉴编号
+	Type  Type                 // 属性
+	Front *animation.Animation // 战斗正面图
+	Back  *animation.Animation // 战斗背面图
 }
 
 func NewPokemonRace(id int16) (*PokemonRace, error) {
@@ -47,7 +48,7 @@ func NewPokemonRace(id int16) (*PokemonRace, error) {
 	}
 	return &PokemonRace{
 		ID:    id,
-		Front: frontGif,
-		Back:  backGif,
+		Front: animation.NewAnimationFromGIF(frontGif),
+		Back:  animation.NewAnimationFromGIF(backGif),
 	}, nil
 }

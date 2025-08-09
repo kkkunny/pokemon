@@ -2,28 +2,50 @@ package animation
 
 import (
 	"image"
+	"image/gif"
+	"time"
+
+	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Animation struct {
-	frameSheet              imgutil.Image
-	frameWidth, frameHeight int
-	frameTime               int
-	curFrameIndex           int
+	frameImages   []imgutil.Image
+	frameTime     int
+	curFrameIndex int
 
 	counter int
 }
 
-func NewAnimation(frameSheet imgutil.Image, frameWidth, frameHeight, frameTime int) *Animation {
+func NewAnimation(frameImages []imgutil.Image, frameTime int) *Animation {
 	return &Animation{
-		frameSheet:    frameSheet,
-		frameWidth:    frameWidth,
-		frameHeight:   frameHeight,
+		frameImages:   frameImages,
 		frameTime:     frameTime,
 		curFrameIndex: 0,
 		counter:       0,
 	}
+}
+
+func NewAnimationFromGIF(g *gif.GIF) *Animation {
+	var frameTime int
+	if len(g.Delay) != 0 {
+		frameTime = int((time.Millisecond * 10 * time.Duration(g.Delay[0])) / (time.Second / 60))
+	}
+	return &Animation{
+		frameImages:   stlslices.Map(g.Image, func(_ int, img *image.Paletted) imgutil.Image { return imgutil.WrapImage(img) }),
+		frameTime:     frameTime,
+		curFrameIndex: 0,
+		counter:       0,
+	}
+}
+
+func (a *Animation) Frames() []imgutil.Image {
+	return a.frameImages
+}
+
+func (a *Animation) AddFrame(frame imgutil.Image) {
+	a.frameImages = append(a.frameImages, frame)
 }
 
 func (a *Animation) SetFrameTime(frameTime int) {
@@ -35,7 +57,7 @@ func (a *Animation) FrameTime() int {
 }
 
 func (a *Animation) FrameCount() int {
-	return a.frameSheet.Bounds().Dx() / a.frameWidth
+	return len(a.frameImages)
 }
 
 func (a *Animation) Reset() {
@@ -54,10 +76,9 @@ func (a *Animation) Update() bool {
 }
 
 func (a *Animation) GetFrameImage(i int) imgutil.Image {
-	x := (i % a.FrameCount()) * a.frameWidth
-	return a.frameSheet.SubImage(image.Rect(x, 0, x+a.frameWidth, a.frameHeight))
+	return a.frameImages[i]
 }
 
 func (a *Animation) GetCurrentFrameImage() imgutil.Image {
-	return a.GetFrameImage(a.curFrameIndex)
+	return a.frameImages[a.curFrameIndex]
 }
