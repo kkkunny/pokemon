@@ -65,6 +65,6 @@ func PrepareDrawRect(drawer draw.Image, w, h int, c color.Color) option.DrawRect
 
 func OverlayColor(drawer draw.Image, c color.Color) {
 	mask := imgutil.NewImage(drawer.Bounds().Dx(), drawer.Bounds().Dy())
-	mask.Image.Fill(c)
+	mask.Fill(c)
 	PrepareDrawImage(drawer, mask).Draw()
 }

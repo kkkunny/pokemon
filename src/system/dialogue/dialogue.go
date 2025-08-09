@@ -125,7 +125,7 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) getLabelBackground(w, h int) *imgutil.Image {
+func (s *System) getLabelBackground(w, h int) imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 
@@ -136,7 +136,7 @@ func (s *System) getLabelBackground(w, h int) *imgutil.Image {
 	return img
 }
 
-func (s *System) getDialogueBackground(w, h int) *imgutil.Image {
+func (s *System) getDialogueBackground(w, h int) imgutil.Image {
 	fontW, fontH := s.frontSize()
 	bgW, bgH := fontW*(w+2), fontH*(h+2)
 

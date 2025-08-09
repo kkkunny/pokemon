@@ -328,7 +328,7 @@ func (w *World) DrawMapName(drawer draw.OptionDrawer) error {
 	return nil
 }
 
-func (w *World) getMapNameDisplayImage() (*imgutil.Image, bool) {
+func (w *World) getMapNameDisplayImage() (imgutil.Image, bool) {
 	mapName := w.currentMap.Name()
 	if mapName == "" {
 		return nil, false

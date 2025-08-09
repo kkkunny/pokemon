@@ -58,7 +58,7 @@ func (r *Renderer) foreachLayerTile(layer *tiled.Layer, fn func(x, y int, layerT
 	}
 }
 
-func (r *Renderer) getTileImage(tile *tiled.LayerTile) (*imgutil.Image, error) {
+func (r *Renderer) getTileImage(tile *tiled.LayerTile) (imgutil.Image, error) {
 	tilesetPath := tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source)
 	if img := r.cache.GetTileImage(tilesetPath, int(tile.ID)); img != nil {
 		return img, nil
