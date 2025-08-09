@@ -4,13 +4,10 @@ import (
 	"image/color"
 	"time"
 
-	stlslices "github.com/kkkunny/stl/container/slices"
-
 	"github.com/kkkunny/pokemon/src/battle"
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/output/voice"
-	"github.com/kkkunny/pokemon/src/pokemon"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/world"
@@ -30,7 +27,6 @@ type System struct {
 	battle *battle.System
 
 	time time.Time // 游戏世界时间
-	pok  *pokemon.PokemonRace
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -56,11 +52,6 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 	self.SetPosition(6, 8)
-
-	pok, err := pokemon.NewPokemonRace(1)
-	if err != nil {
-		return nil, err
-	}
 	s := &System{
 		ctx:            ctx,
 		world:          w,
@@ -68,7 +59,6 @@ func NewSystem(ctx context.Context) (*System, error) {
 		mapVoicePlayer: voice.NewPlayer(),
 		dialogue:       ds,
 		time:           time.Now(),
-		pok:            pok,
 		battle:         battleSystem,
 	}
 	s.world.SetOnBattleStart(s.OnBattleStart)
@@ -228,9 +218,6 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 		if err != nil {
 			return err
 		}
-
-		img := stlslices.First(s.pok.Front.Image)
-		draw.PrepareDrawImage(drawer.Scale(config.Scale, config.Scale), img).Draw()
 		return nil
 	}
 }

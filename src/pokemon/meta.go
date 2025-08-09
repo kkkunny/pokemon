@@ -14,6 +14,7 @@ type PokemonRace struct {
 	ID    int16    // 图鉴编号
 	Type  Type     // 属性
 	Front *gif.GIF // 战斗正面图
+	Back  *gif.GIF // 战斗背面图
 }
 
 func NewPokemonRace(id int16) (*PokemonRace, error) {
@@ -34,8 +35,19 @@ func NewPokemonRace(id int16) (*PokemonRace, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	backFile, err := os.Open(filepath.Join(dirpath, "back.gif"))
+	if err != nil {
+		return nil, err
+	}
+	defer backFile.Close()
+	backGif, err := gif.DecodeAll(backFile)
+	if err != nil {
+		return nil, err
+	}
 	return &PokemonRace{
 		ID:    id,
 		Front: frontGif,
+		Back:  backGif,
 	}, nil
 }

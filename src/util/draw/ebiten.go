@@ -36,7 +36,7 @@ func drawEbitenImage(drawer draw.Image, opts option.DrawImageOptions) bool {
 
 	img, ok := getEbitenImage(opts.Image)
 	if !ok {
-		img = ebiten.NewImageFromImage(img)
+		img = ebiten.NewImageFromImage(opts.Image)
 	}
 
 	globalOpts := getDrawOptions(drawer)
