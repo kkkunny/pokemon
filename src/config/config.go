@@ -12,8 +12,7 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		ScreenWidth:   720,
-		ScreenHeight:  480,
-		MaterFontName: "fusion-pixel-12px-monospaced-zh_hans",
+		ScreenWidth:  720,
+		ScreenHeight: 480,
 	}
 }
