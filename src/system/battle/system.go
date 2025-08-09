@@ -2,13 +2,10 @@ package battle
 
 import (
 	"image/color"
-	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/pokemon"
@@ -19,9 +16,7 @@ import (
 )
 
 type System struct {
-	ctx           context.Context
-	fontFace      *text.GoXFace
-	emojiFontFace *text.GoXFace
+	ctx context.Context
 
 	active    bool
 	siteImage imgutil.Image // 战斗场地
@@ -33,51 +28,13 @@ type System struct {
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
-	// 字体
-	fontBytes, err := os.ReadFile(filepath.Join(config.FontsPath, ctx.Config().MaterFontName) + ".ttf")
-	if err != nil {
-		return nil, err
-	}
-	fontInst, err := opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	fontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
-		Size:    32,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// emoji字体
-	fontBytes, err = os.ReadFile(filepath.Join(config.FontsPath, "NotoEmoji-VariableFont_wght") + ".ttf")
-	if err != nil {
-		return nil, err
-	}
-	fontInst, err = opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	emojiFontFace, err := opentype.NewFace(fontInst, &opentype.FaceOptions{
-		Size:    16,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	pok, err := pokemon.NewPokemonRace(1)
 	if err != nil {
 		return nil, err
 	}
 	return &System{
-		ctx:           ctx,
-		fontFace:      text.NewGoXFace(fontFace),
-		emojiFontFace: text.NewGoXFace(emojiFontFace),
-		pok:           pok,
+		ctx: ctx,
+		pok: pok,
 	}, nil
 }
 
@@ -101,8 +58,25 @@ func (s *System) OnUpdate() error {
 
 func (s *System) frontSize() (int, int) {
 	displayText := s.ctx.Localisation().Get("game_name")
-	bounds, _ := font.BoundString(s.fontFace.UnsafeInternal(), displayText)
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 32).UnsafeInternal(), displayText)
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
+}
+
+func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer) {
+	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
+	opponentName := s.ctx.Localisation().Get("pokemon.1")
+	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
+	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(20, 10).Draw()
+	genderText := "♂"
+	genderBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 16).UnsafeInternal(), opponentName)
+	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), util.NewNRGBColor(65, 200, 248)).Move(20+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
+	draw.PrepareDrawText(drawer, "Lv  5", util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(220, 10).Draw()
+	draw.PrepareDrawRect(drawer, 220, 20, util.NewNRGBColor(80, 104, 88)).Move(70, 50).SetRadius(7).Draw()
+	draw.PrepareDrawText(drawer, "HP", util.GetFont(util.FontTypeEnum.Normal, 20), util.NewNRGBColor(248, 178, 65)).Move(76, 50).Draw()
+	draw.PrepareDrawRect(drawer, 192, 16, color.White).Move(96, 52).SetRadius(5).Draw()
+	draw.PrepareDrawRect(drawer, 188, 12, util.NewNRGBColor(80, 104, 88)).Move(98, 54).SetRadius(3).Draw()
+	hp := 100
+	draw.PrepareDrawRect(drawer, int(float64(188)/100*float64(hp)), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {
@@ -120,10 +94,7 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	}
 	pokemonImage := s.pok.Front.Image[s.pokFrontFrameIndex]
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
-
-	draw.PrepareDrawRect(drawer, 300, 100, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Move(0, 0).Draw()
-	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("pokemon.1"), s.fontFace, color.Black).Scale(0.8, 0.8).Move(0, 0).Draw()
-	draw.PrepareDrawText(drawer, "♂", s.emojiFontFace, util.NewNRGBColor(65, 200, 248)).Move(100, 50).Draw()
+	s.drawPokemonStatusCard(drawer.Move(80, 50))
 
 	// 我方
 	fontW, fontH := s.frontSize()
@@ -133,6 +104,7 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
 	pokemonImage = s.pok.Back.Image[s.pokBackFrameIndex]
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
+	s.drawPokemonStatusCard(drawer.Move(340, 250))
 
 	// 对话栏
 

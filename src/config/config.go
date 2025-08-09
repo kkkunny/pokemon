@@ -7,7 +7,6 @@ const (
 
 type Config struct {
 	ScreenWidth, ScreenHeight int
-	MaterFontName             string
 }
 
 func NewConfig() *Config {

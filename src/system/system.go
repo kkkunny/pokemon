@@ -4,10 +4,10 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/kkkunny/pokemon/src/battle"
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/output/voice"
+	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/world"
@@ -61,8 +61,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 		time:           time.Now(),
 		battle:         battleSystem,
 	}
-	s.world.SetOnBattleStart(s.OnBattleStart)
-	err = s.OnBattleStart("grassland")
+	w.SetOnBattleStart(s.OnBattleStart)
 	return s, err
 }
 
