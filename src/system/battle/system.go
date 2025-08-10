@@ -3,7 +3,6 @@ package battle
 import (
 	"image/color"
 	"path/filepath"
-	"time"
 
 	"golang.org/x/image/font"
 
@@ -21,10 +20,7 @@ type System struct {
 	active    bool
 	siteImage imgutil.Image // 战斗场地
 
-	pok                *pokemon.PokemonRace
-	pokLastUpdateTime  time.Time
-	pokFrontFrameIndex int
-	pokBackFrameIndex  int
+	pok *pokemon.PokemonRace
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -87,12 +83,8 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	// 敌方
 	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
-	if time.Now().Sub(s.pokLastUpdateTime) > time.Millisecond*70 {
-		s.pokLastUpdateTime = time.Now()
-		s.pokFrontFrameIndex = (s.pokFrontFrameIndex + 1) % len(s.pok.Front.Image)
-		s.pokBackFrameIndex = (s.pokBackFrameIndex + 1) % len(s.pok.Back.Image)
-	}
-	pokemonImage := s.pok.Front.Image[s.pokFrontFrameIndex]
+	s.pok.Front.Update()
+	pokemonImage := s.pok.Front.GetCurrentFrameImage()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(80, 50))
 
@@ -102,7 +94,8 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 
 	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
-	pokemonImage = s.pok.Back.Image[s.pokBackFrameIndex]
+	s.pok.Back.Update()
+	pokemonImage = s.pok.Back.GetCurrentFrameImage()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(340, 250))
 

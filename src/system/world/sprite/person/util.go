@@ -59,42 +59,40 @@ func loadSimplePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Direc
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
 	for i, direction := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left} {
 		y := i * frameH
-		leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
-		rightFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
+		leftFootAnimation := animation.NewAnimation(nil, 0)
+		rightFootAnimation := animation.NewAnimation(nil, 0)
 		for j := range 3 {
 			x := j * frameW
 			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH))
 			switch j {
 			case 0:
-				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Draw()
-				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Draw()
+				leftFootAnimation.AddFrame(img)
+				rightFootAnimation.AddFrame(img)
 			case 1:
-				draw.PrepareDrawImage(leftFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
+				leftFootAnimation.AddFrame(img)
 			case 2:
-				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
+				rightFootAnimation.AddFrame(img)
 			}
 		}
 		directionAnimations[direction] = map[Foot]*animation.Animation{
-			FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
-			FootEnum.Right: animation.NewAnimation(rightFootAnimationFrameSheet, frameW, frameH, 0),
+			FootEnum.Left:  leftFootAnimation,
+			FootEnum.Right: rightFootAnimation,
 		}
 	}
 
-	left := directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(0)
-	right := imgutil.NewImage(frameW, frameH)
-	draw.PrepareDrawImage(right, left).Scale(-1, 1).Move(frameW, 0).Draw()
+	right := directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(0).Scale(-1, 1)
 
-	leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
-	draw.PrepareDrawImage(leftFootAnimationFrameSheet, right).Draw()
-	draw.PrepareDrawImage(leftFootAnimationFrameSheet, directionAnimations[util.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1)).Scale(-1, 1).Move(frameW*2, 0).Draw()
+	leftFootAnimation := animation.NewAnimation(nil, 0)
+	leftFootAnimation.AddFrame(right)
+	leftFootAnimation.AddFrame(directionAnimations[util.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1).Scale(-1, 1))
 
-	rightFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
-	draw.PrepareDrawImage(rightFootAnimationFrameSheet, right).Draw()
-	draw.PrepareDrawImage(rightFootAnimationFrameSheet, directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(1)).Scale(-1, 1).Move(frameW*2, 0).Draw()
+	rightFootAnimation := animation.NewAnimation(nil, 0)
+	rightFootAnimation.AddFrame(right)
+	rightFootAnimation.AddFrame(directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(1).Scale(-1, 1))
 
 	directionAnimations[util.DirectionEnum.Right] = map[Foot]*animation.Animation{
-		FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
-		FootEnum.Right: animation.NewAnimation(rightFootAnimationFrameSheet, frameW, frameH, 0),
+		FootEnum.Left:  leftFootAnimation,
+		FootEnum.Right: rightFootAnimation,
 	}
 	return directionAnimations, nil
 }
@@ -102,7 +100,7 @@ func loadCompletePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Dir
 	directions := enum.Values[util.Direction](util.DirectionEnum)
 	directionAnimations := make(map[util.Direction]map[Foot]*animation.Animation, len(directions))
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
-	for i, direction := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left, util.DirectionEnum.Right} {
+	for i, _ := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left, util.DirectionEnum.Right} {
 		y := i * frameH
 		leftFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
 		rightFootAnimationFrameSheet := imgutil.NewImage(2*frameW, frameH)
@@ -119,10 +117,10 @@ func loadCompletePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Dir
 				draw.PrepareDrawImage(rightFootAnimationFrameSheet, img).Move(frameW, 0).Draw()
 			}
 		}
-		directionAnimations[direction] = map[Foot]*animation.Animation{
-			FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
-			FootEnum.Right: animation.NewAnimation(rightFootAnimationFrameSheet, frameW, frameH, 0),
-		}
+		// directionAnimations[direction] = map[Foot]*animation.Animation{
+		// 	FootEnum.Left:  animation.NewAnimation(leftFootAnimationFrameSheet, frameW, frameH, 0),
+		// 	FootEnum.Right: animation.NewAnimation(rightFootAnimationFrameSheet, frameW, frameH, 0),
+		// }
 	}
 	return directionAnimations, nil
 }
