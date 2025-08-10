@@ -1,0 +1,12 @@
+{
+  "type": ["grass", "poison"],
+  "category": "seed",
+  "height": 0.7,
+  "weight": 6.9,
+  "shape": "four_legged_beast",
+  "pokedex_color": [170,209,94],
+  "catch_rate": 45,
+  "male_rate": 87.5,
+  "species_strength": [45,49,49,65,65,45],
+  "base_experience": 64
+}
