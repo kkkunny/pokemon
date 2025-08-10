@@ -36,7 +36,7 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 
 	behaviorAnimations := make(map[sprite.Behavior]map[util.Direction]map[Foot]*animation.Animation, len(behaviors))
 	for _, behavior := range behaviors {
-		behaviorImgSheetRect, err := imgutil.NewImageFromFile(filepath.Join(dirpath, string(behavior)+".png"))
+		behaviorImgSheetRect, err := util.FindFileAndThenParse(dirpath, string(behavior), imgutil.NewImageFromFile)
 		if err != nil {
 			return nil, err
 		}

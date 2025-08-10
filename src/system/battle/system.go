@@ -1,12 +1,15 @@
 package battle
 
 import (
+	"fmt"
 	"image/color"
-	"path/filepath"
+	"strings"
 
+	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/pokemon"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util"
@@ -20,17 +23,20 @@ type System struct {
 	active    bool
 	siteImage imgutil.Image // 战斗场地
 
-	pok *pokemon.PokemonRace
+	pmRace *pokemon.Race
+	pms    [2]*pokemon.Pokemon
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
-	pok, err := pokemon.NewPokemonRace(1)
+	pok, err := pokemon.LoadPokemonRace(1)
 	if err != nil {
 		return nil, err
 	}
+	pms := [2]*pokemon.Pokemon{pok.RandomPokemon(), pok.RandomPokemon()}
 	return &System{
-		ctx: ctx,
-		pok: pok,
+		ctx:    ctx,
+		pmRace: pok,
+		pms:    pms,
 	}, nil
 }
 
@@ -39,7 +45,7 @@ func (s *System) Active() bool {
 }
 
 func (s *System) StartOneBattle(site string) error {
-	siteImage, err := imgutil.NewImageFromFile(filepath.Join(config.GFXBattleSitesPath, site+".png"))
+	siteImage, err := util.FindFileAndThenParse(config.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
 	if err != nil {
 		return err
 	}
@@ -58,21 +64,47 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer) {
+func (s *System) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
+	typ = typ.Flatten()[0]
+	draw.PrepareDrawRect(drawer, 55, 16, typ.Color()).SetRadius(7).Draw()
+	icon, ok := pokemon.GetTypeIcon(typ)
+	if ok {
+		scale := 14 / float64(icon.Bounds().Dy())
+		draw.PrepareDrawImage(drawer, icon).Scale(scale, scale).Move(2, 1).Draw()
+	}
+	typeName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon_type.%s", typ))
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 11).UnsafeInternal(), typeName)
+	x, y := (16+52)/2-bounds.Max.X.Round()/2, 3
+	draw.PrepareDrawText(drawer, typeName, util.GetFont(util.FontTypeEnum.Normal, 11), color.White).Move(x, y).Draw()
+}
+
+func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
-	opponentName := s.ctx.Localisation().Get("pokemon.1")
+	opponentName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
 	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
-	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(20, 10).Draw()
-	genderText := "♂"
+	types := pm.Type.Flatten()
+	if len(types) == 1 {
+		s.drawPokemonType(drawer.Move(5, 16), types[0])
+	} else {
+		s.drawPokemonType(drawer.Move(5, 7), types[0])
+		s.drawPokemonType(drawer.Move(5, 25), types[1])
+	}
+	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(65, 10).Draw()
+	genderText := stlval.Ternary(pm.Gender, consts.MaleText, consts.FemaleText)
+	genderTextColor := stlval.Ternary(pm.Gender, consts.MaleColor, consts.FemaleColor)
 	genderBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 16).UnsafeInternal(), opponentName)
-	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), util.NewNRGBColor(65, 200, 248)).Move(20+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
-	draw.PrepareDrawText(drawer, "Lv  5", util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(220, 10).Draw()
+	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), genderTextColor).Move(65+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
+	level := fmt.Sprintf("%03d", pm.Level)
+	if simLevel := strings.TrimPrefix(level, "0"); len(simLevel) != len(level) {
+		level = strings.Repeat(" ", len(level)-len(simLevel)) + simLevel
+	}
+	draw.PrepareDrawText(drawer, "Lv"+level, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(224, 10).Draw()
 	draw.PrepareDrawRect(drawer, 220, 20, util.NewNRGBColor(80, 104, 88)).Move(70, 50).SetRadius(7).Draw()
 	draw.PrepareDrawText(drawer, "HP", util.GetFont(util.FontTypeEnum.Normal, 20), util.NewNRGBColor(248, 178, 65)).Move(76, 50).Draw()
 	draw.PrepareDrawRect(drawer, 192, 16, color.White).Move(96, 52).SetRadius(5).Draw()
 	draw.PrepareDrawRect(drawer, 188, 12, util.NewNRGBColor(80, 104, 88)).Move(98, 54).SetRadius(3).Draw()
-	hp := 100
-	draw.PrepareDrawRect(drawer, int(float64(188)/100*float64(hp)), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
+	hpRatio := float64(pm.CurrentHP) / float64(pm.SpeciesStrength.HP()) * 100
+	draw.PrepareDrawRect(drawer, int(float64(188)/100*hpRatio), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {
@@ -83,10 +115,10 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 	// 敌方
 	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
-	s.pok.Front.Update()
-	pokemonImage := s.pok.Front.GetCurrentFrameImage()
+	s.pmRace.Front.Update()
+	pokemonImage := s.pmRace.Front.GetCurrentFrameImage()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
-	s.drawPokemonStatusCard(drawer.Move(80, 50))
+	s.drawPokemonStatusCard(drawer.Move(80, 50), s.pms[0])
 
 	// 我方
 	fontW, fontH := s.frontSize()
@@ -94,10 +126,10 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 
 	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
-	s.pok.Back.Update()
-	pokemonImage = s.pok.Back.GetCurrentFrameImage()
+	s.pmRace.Back.Update()
+	pokemonImage = s.pmRace.Back.GetCurrentFrameImage()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
-	s.drawPokemonStatusCard(drawer.Move(340, 250))
+	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
 
 	// 对话栏
 

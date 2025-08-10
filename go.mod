@@ -4,6 +4,7 @@ go 1.24.5
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.8
+	github.com/kettek/apng v0.0.0-20220823221153-ff692776a607
 	github.com/kkkunny/stl v0.0.0-20250719030022-ae211080689d
 	github.com/lafriks/go-tiled v0.13.0
 	github.com/quasilyte/ebitengine-input v0.9.1

@@ -62,6 +62,7 @@ func NewSystem(ctx context.Context) (*System, error) {
 		battle:         battleSystem,
 	}
 	w.SetOnBattleStart(s.OnBattleStart)
+	s.OnBattleStart("grassland")
 	return s, err
 }
 
