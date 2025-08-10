@@ -3,7 +3,6 @@ package battle
 import (
 	"fmt"
 	"image/color"
-	"path/filepath"
 	"strings"
 
 	stlval "github.com/kkkunny/stl/value"
@@ -46,7 +45,7 @@ func (s *System) Active() bool {
 }
 
 func (s *System) StartOneBattle(site string) error {
-	siteImage, err := imgutil.NewImageFromFile(filepath.Join(config.GFXBattleSitesPath, site+".png"))
+	siteImage, err := util.FindFileAndThenParse(config.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
 	if err != nil {
 		return err
 	}

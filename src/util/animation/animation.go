@@ -1,10 +1,15 @@
 package animation
 
 import (
+	"fmt"
 	"image"
 	"image/gif"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/kettek/apng"
 	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/util/image"
@@ -27,16 +32,56 @@ func NewAnimation(frameImages []imgutil.Image, frameTime int) *Animation {
 	}
 }
 
-func NewAnimationFromGIF(g *gif.GIF) *Animation {
-	var frameTime int
-	if len(g.Delay) != 0 {
-		frameTime = int((time.Millisecond * 10 * time.Duration(g.Delay[0])) / (time.Second / 60))
+func NewAnimationFromFile(path string) (*Animation, error) {
+	filename := filepath.Base(path)
+	fileExt := strings.TrimPrefix(filepath.Ext(filename), ".")
+
+	allowExts := []string{"png", "gif"}
+	if !stlslices.Contain(allowExts, fileExt) {
+		return nil, fmt.Errorf("%s is not a valid animation", path)
 	}
-	return &Animation{
-		frameImages:   stlslices.Map(g.Image, func(_ int, img *image.Paletted) imgutil.Image { return imgutil.WrapImage(img) }),
-		frameTime:     frameTime,
-		curFrameIndex: 0,
-		counter:       0,
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	switch fileExt {
+	case "gif":
+		g, err := gif.DecodeAll(file)
+		if err != nil {
+			return nil, err
+		}
+
+		var frameTime int
+		if len(g.Delay) != 0 {
+			frameTime = int((time.Second / 100 * time.Duration(g.Delay[0])) / (time.Second / 60))
+		}
+		return &Animation{
+			frameImages:   stlslices.Map(g.Image, func(_ int, img *image.Paletted) imgutil.Image { return imgutil.WrapImage(img) }),
+			frameTime:     frameTime,
+			curFrameIndex: 0,
+			counter:       0,
+		}, nil
+	case "png":
+		a, err := apng.DecodeAll(file)
+		if err != nil {
+			return nil, err
+		}
+
+		var frameTime int
+		if len(a.Frames) != 0 {
+			frameTime = int(time.Duration(a.Frames[0].GetDelay()*float64(time.Second)) / (time.Second / 60))
+		}
+		return &Animation{
+			frameImages:   stlslices.Map(a.Frames, func(_ int, frame apng.Frame) imgutil.Image { return imgutil.WrapImage(frame.Image) }),
+			frameTime:     frameTime,
+			curFrameIndex: 0,
+			counter:       0,
+		}, nil
+	default:
+		return nil, fmt.Errorf("%s is not a valid animation", path)
 	}
 }
 

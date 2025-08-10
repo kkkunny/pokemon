@@ -3,7 +3,6 @@ package pokemon
 import (
 	"encoding/json"
 	"image/color"
-	"image/gif"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -71,25 +70,15 @@ func LoadPokemonRace(id uint16) (*Race, error) {
 		}
 	}
 
-	frontFile, err := os.Open(filepath.Join(dirpath, "front.gif"))
+	front, err := util.FindFileAndThenParse(dirpath, "front", animation.NewAnimationFromFile)
 	if err != nil {
 		return nil, err
 	}
-	defer frontFile.Close()
-	frontGif, err := gif.DecodeAll(frontFile)
+	back, err := util.FindFileAndThenParse(dirpath, "back", animation.NewAnimationFromFile)
 	if err != nil {
 		return nil, err
 	}
 
-	backFile, err := os.Open(filepath.Join(dirpath, "back.gif"))
-	if err != nil {
-		return nil, err
-	}
-	defer backFile.Close()
-	backGif, err := gif.DecodeAll(backFile)
-	if err != nil {
-		return nil, err
-	}
 	return &Race{
 		ID:                  id,
 		Type:                typ,
@@ -102,7 +91,7 @@ func LoadPokemonRace(id uint16) (*Race, error) {
 		BaseSpeciesStrength: define.SpeciesStrength,
 		BaseExperience:      int(define.BaseExperience),
 
-		Front: animation.NewAnimationFromGIF(frontGif),
-		Back:  animation.NewAnimationFromGIF(backGif),
+		Front: front,
+		Back:  back,
 	}, nil
 }

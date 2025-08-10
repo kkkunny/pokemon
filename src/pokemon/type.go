@@ -58,7 +58,7 @@ func init() {
 	// icon
 	types := enum.Values[Type](TypeEnum)
 	for i, name := range enum.Keys(TypeEnum) {
-		icon, err := imgutil.NewImageFromFile(filepath.Join(config.GFXPokemonTypePath, strings.ToLower(name)+".png"))
+		icon, err := util.FindFileAndThenParse(config.GFXPokemonTypePath, strings.ToLower(name), imgutil.NewImageFromFile)
 		if err != nil {
 			continue
 		}

@@ -28,6 +28,8 @@ github.com/jfreymuth/oggvorbis v1.0.5 h1:u+Ck+R0eLSRhgq8WTmffYnrVtSztJcYrl588DM4
 github.com/jfreymuth/oggvorbis v1.0.5/go.mod h1:1U4pqWmghcoVsCJJ4fRBKv9peUJMBHixthRlBeD6uII=
 github.com/jfreymuth/vorbis v1.0.2 h1:m1xH6+ZI4thH927pgKD8JOH4eaGRm18rEE9/0WKjvNE=
 github.com/jfreymuth/vorbis v1.0.2/go.mod h1:DoftRo4AznKnShRl1GxiTFCseHr4zR9BN3TWXyuzrqQ=
+github.com/kettek/apng v0.0.0-20220823221153-ff692776a607 h1:8tP9cdXzcGX2AvweVVG/lxbI7BSjWbNNUustwJ9dQVA=
+github.com/kettek/apng v0.0.0-20220823221153-ff692776a607/go.mod h1:x78/VRQYKuCftMWS0uK5e+F5RJ7S4gSlESRWI0Prl6Q=
 github.com/kkkunny/stl v0.0.0-20250719030022-ae211080689d h1:BpyKO3PWgZDAwJtN+W8n3UzbMKNpll1gOY/ldIgk82Q=
 github.com/kkkunny/stl v0.0.0-20250719030022-ae211080689d/go.mod h1:qH0RSIi6N3PVbTqVpLi6yueFtc75rvBiWHGvx8CkeCA=
 github.com/lafriks/go-tiled v0.13.0 h1:xZE2rEKCNJPya+g92FCIjzEH4fZLQcZVqvpw174P2MY=
