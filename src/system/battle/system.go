@@ -81,9 +81,9 @@ func (s *System) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
 
 func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
-	opponentName := s.ctx.Localisation().Get("pokemon.1")
+	opponentName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
 	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
-	types := pm.Race.Type.Flatten()
+	types := pm.Type.Flatten()
 	if len(types) == 1 {
 		s.drawPokemonType(drawer.Move(5, 16), types[0])
 	} else {
@@ -99,13 +99,13 @@ func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pok
 	if simLevel := strings.TrimPrefix(level, "0"); len(simLevel) != len(level) {
 		level = strings.Repeat(" ", len(level)-len(simLevel)) + simLevel
 	}
-	draw.PrepareDrawText(drawer, "Lv"+level, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(220, 10).Draw()
+	draw.PrepareDrawText(drawer, "Lv"+level, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(224, 10).Draw()
 	draw.PrepareDrawRect(drawer, 220, 20, util.NewNRGBColor(80, 104, 88)).Move(70, 50).SetRadius(7).Draw()
 	draw.PrepareDrawText(drawer, "HP", util.GetFont(util.FontTypeEnum.Normal, 20), util.NewNRGBColor(248, 178, 65)).Move(76, 50).Draw()
 	draw.PrepareDrawRect(drawer, 192, 16, color.White).Move(96, 52).SetRadius(5).Draw()
 	draw.PrepareDrawRect(drawer, 188, 12, util.NewNRGBColor(80, 104, 88)).Move(98, 54).SetRadius(3).Draw()
-	hp := 100
-	draw.PrepareDrawRect(drawer, int(float64(188)/100*float64(hp)), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
+	hpRatio := float64(pm.CurrentHP) / float64(pm.SpeciesStrength.HP()) * 100
+	draw.PrepareDrawRect(drawer, int(float64(188)/100*hpRatio), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {

@@ -17,16 +17,16 @@ import (
 
 // Race 宝可梦种族
 type Race struct {
-	ID              uint16          // 图鉴编号
-	Type            Type            // 属性
-	Category        Category        // 类别
-	Height          float64         // 身高（m）
-	Weight          float64         // 体重（kg）
-	PokedexColor    color.Color     // 图鉴颜色
-	CatchRate       float64         // 捕获概率(%)
-	MaleRate        float64         // 男性概率(%)
-	SpeciesStrength SpeciesStrength // 种族值
-	BaseExperience  int             // 基础经验值
+	ID                  uint16          // 图鉴编号
+	Type                Type            // 属性
+	Category            Category        // 类别
+	Height              float64         // 身高（m）
+	Weight              float64         // 体重（kg）
+	PokedexColor        color.Color     // 图鉴颜色
+	CatchRate           float64         // 捕获概率(%)
+	MaleRate            float64         // 男性概率(%)
+	BaseSpeciesStrength SpeciesStrength // 种族值
+	BaseExperience      int             // 基础经验值
 
 	Front *animation.Animation // 战斗正面图
 	Back  *animation.Animation // 战斗背面图
@@ -91,16 +91,16 @@ func LoadPokemonRace(id uint16) (*Race, error) {
 		return nil, err
 	}
 	return &Race{
-		ID:              id,
-		Type:            typ,
-		Category:        ParseCategory(define.Category),
-		Height:          define.Height,
-		Weight:          define.Weight,
-		PokedexColor:    util.NewNRGBColor(define.PokeDexColor[0], define.PokeDexColor[1], define.PokeDexColor[2]),
-		CatchRate:       define.CatchRate,
-		MaleRate:        define.MaleRate,
-		SpeciesStrength: define.SpeciesStrength,
-		BaseExperience:  int(define.BaseExperience),
+		ID:                  id,
+		Type:                typ,
+		Category:            ParseCategory(define.Category),
+		Height:              define.Height,
+		Weight:              define.Weight,
+		PokedexColor:        util.NewNRGBColor(define.PokeDexColor[0], define.PokeDexColor[1], define.PokeDexColor[2]),
+		CatchRate:           define.CatchRate,
+		MaleRate:            define.MaleRate,
+		BaseSpeciesStrength: define.SpeciesStrength,
+		BaseExperience:      int(define.BaseExperience),
 
 		Front: animation.NewAnimationFromGIF(frontGif),
 		Back:  animation.NewAnimationFromGIF(backGif),
