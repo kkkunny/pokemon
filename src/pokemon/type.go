@@ -2,6 +2,7 @@ package pokemon
 
 import (
 	"encoding/csv"
+	"image/color"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -10,6 +11,8 @@ import (
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/util"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 func init() {
@@ -50,6 +53,16 @@ func init() {
 				typeRestraintRelationship[ht][vt] = SkillEffectEnum.Excellent
 			}
 		}
+	}
+
+	// icon
+	types := enum.Values[Type](TypeEnum)
+	for i, name := range enum.Keys(TypeEnum) {
+		icon, err := imgutil.NewImageFromFile(filepath.Join(config.GFXPokemonTypePath, strings.ToLower(name)+".png"))
+		if err != nil {
+			continue
+		}
+		typeIconCache[types[i]] = icon
 	}
 }
 
@@ -126,6 +139,59 @@ func (t Type) GetEffectTo(dst Type) float64 {
 	}
 }
 
+func (t Type) String() string {
+	for i, v := range enum.Values[Type](TypeEnum) {
+		if v != t {
+			continue
+		}
+		return strings.ToLower(enum.Keys(TypeEnum)[i])
+	}
+	return ""
+}
+
+func (t Type) Color() color.Color {
+	switch t {
+	case TypeEnum.Normal:
+		return util.NewNRGBColor(159, 161, 159)
+	case TypeEnum.Flying:
+		return util.NewNRGBColor(230, 40, 41)
+	case TypeEnum.Fire:
+		return util.NewNRGBColor(129, 185, 239)
+	case TypeEnum.Psychic:
+		return util.NewNRGBColor(239, 65, 121)
+	case TypeEnum.Water:
+		return util.NewNRGBColor(41, 128, 239)
+	case TypeEnum.Bug:
+		return util.NewNRGBColor(145, 161, 25)
+	case TypeEnum.Electric:
+		return util.NewNRGBColor(250, 192, 0)
+	case TypeEnum.Rock:
+		return util.NewNRGBColor(175, 169, 129)
+	case TypeEnum.Grass:
+		return util.NewNRGBColor(63, 161, 41)
+	case TypeEnum.Ghost:
+		return util.NewNRGBColor(112, 65, 112)
+	case TypeEnum.Ice:
+		return util.NewNRGBColor(63, 216, 255)
+	case TypeEnum.Dragon:
+		return util.NewNRGBColor(80, 96, 225)
+	case TypeEnum.Fighting:
+		return util.NewNRGBColor(255, 128, 0)
+	case TypeEnum.Dark:
+		return util.NewNRGBColor(80, 65, 63)
+	case TypeEnum.Poison:
+		return util.NewNRGBColor(145, 65, 203)
+	case TypeEnum.Steel:
+		return util.NewNRGBColor(80, 65, 63)
+	case TypeEnum.Ground:
+		return util.NewNRGBColor(145, 81, 33)
+	case TypeEnum.Fairy:
+		return util.NewNRGBColor(239, 112, 239)
+	default:
+		return util.NewNRGBColor(127, 127, 127)
+	}
+}
+
 // SkillEffect 技能效果
 type SkillEffect uint8
 
@@ -148,4 +214,13 @@ func (e SkillEffect) Multiples() float64 {
 	default:
 		return 0
 	}
+}
+
+// 属性图标
+var typeIconCache = make(map[Type]imgutil.Image)
+
+// 获取属性图标
+func GetTypeIcon(t Type) (imgutil.Image, bool) {
+	icon, ok := typeIconCache[t]
+	return icon, ok
 }

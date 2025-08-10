@@ -65,15 +65,36 @@ func (s *System) frontSize() (int, int) {
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
+func (s *System) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
+	typ = typ.Flatten()[0]
+	draw.PrepareDrawRect(drawer, 55, 16, typ.Color()).SetRadius(7).Draw()
+	icon, ok := pokemon.GetTypeIcon(typ)
+	if ok {
+		scale := 14 / float64(icon.Bounds().Dy())
+		draw.PrepareDrawImage(drawer, icon).Scale(scale, scale).Move(2, 1).Draw()
+	}
+	typeName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon_type.%s", typ))
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 11).UnsafeInternal(), typeName)
+	x, y := (16+52)/2-bounds.Max.X.Round()/2, 3
+	draw.PrepareDrawText(drawer, typeName, util.GetFont(util.FontTypeEnum.Normal, 11), color.White).Move(x, y).Draw()
+}
+
 func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
 	opponentName := s.ctx.Localisation().Get("pokemon.1")
 	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
-	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(20, 10).Draw()
+	types := pm.Race.Type.Flatten()
+	if len(types) == 1 {
+		s.drawPokemonType(drawer.Move(5, 16), types[0])
+	} else {
+		s.drawPokemonType(drawer.Move(5, 7), types[0])
+		s.drawPokemonType(drawer.Move(5, 25), types[1])
+	}
+	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(65, 10).Draw()
 	genderText := stlval.Ternary(pm.Gender, consts.MaleText, consts.FemaleText)
 	genderTextColor := stlval.Ternary(pm.Gender, consts.MaleColor, consts.FemaleColor)
 	genderBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 16).UnsafeInternal(), opponentName)
-	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), genderTextColor).Move(20+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
+	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), genderTextColor).Move(65+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
 	level := fmt.Sprintf("%03d", pm.Level)
 	if simLevel := strings.TrimPrefix(level, "0"); len(simLevel) != len(level) {
 		level = strings.Repeat(" ", len(level)-len(simLevel)) + simLevel
