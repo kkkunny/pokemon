@@ -36,15 +36,14 @@ type World struct {
 	onBattleStart func(site string) error // 战斗开始回调
 }
 
-func NewWorld(ctx context.Context, initMapName string) (*World, error) {
+func NewWorld(ctx context.Context) (*World, error) {
 	tileCache := render.NewTileCache()
-	w := &World{
+	return &World{
 		ctx:           ctx,
 		tileCache:     tileCache,
 		mapCache:      make(map[string]*Map),
 		nameMoveSpeed: 1,
-	}
-	return w, w.MoveTo(initMapName)
+	}, nil
 }
 
 func (w *World) SetOnBattleStart(f func(site string) error) {

@@ -10,14 +10,16 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/pokemon"
 	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
-type System struct {
+type BattleSystem struct {
 	ctx context.Context
 
 	active    bool
@@ -27,24 +29,28 @@ type System struct {
 	pms    [2]*pokemon.Pokemon
 }
 
-func NewSystem(ctx context.Context) (*System, error) {
+func NewBattleSystem(ctx context.Context) (*BattleSystem, error) {
 	pok, err := pokemon.LoadPokemonRace(1)
 	if err != nil {
 		return nil, err
 	}
 	pms := [2]*pokemon.Pokemon{pok.RandomPokemon(), pok.RandomPokemon()}
-	return &System{
+	return &BattleSystem{
 		ctx:    ctx,
 		pmRace: pok,
 		pms:    pms,
 	}, nil
 }
 
-func (s *System) Active() bool {
+func (s *BattleSystem) Active() bool {
 	return s.active
 }
 
-func (s *System) StartOneBattle(site string) error {
+func (s *BattleSystem) Type() sub_system.SubSystemType {
+	return sub_system.SubSystemTypeEnum.Battle
+}
+
+func (s *BattleSystem) StartOneBattle(site string) error {
 	siteImage, err := util.FindFileAndThenParse(config.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
 	if err != nil {
 		return err
@@ -54,17 +60,21 @@ func (s *System) StartOneBattle(site string) error {
 	return nil
 }
 
-func (s *System) OnUpdate() error {
+func (s *BattleSystem) OnAction(action input.KeyInputAction) error {
 	return nil
 }
 
-func (s *System) frontSize() (int, int) {
+func (s *BattleSystem) OnUpdate() error {
+	return nil
+}
+
+func (s *BattleSystem) frontSize() (int, int) {
 	displayText := s.ctx.Localisation().Get("game_name")
 	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 32).UnsafeInternal(), displayText)
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
 
-func (s *System) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
+func (s *BattleSystem) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
 	typ = typ.Flatten()[0]
 	draw.PrepareDrawRect(drawer, 55, 16, typ.Color()).SetRadius(7).Draw()
 	icon, ok := pokemon.GetTypeIcon(typ)
@@ -78,7 +88,7 @@ func (s *System) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Type) {
 	draw.PrepareDrawText(drawer, typeName, util.GetFont(util.FontTypeEnum.Normal, 11), color.White).Move(x, y).Draw()
 }
 
-func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
+func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
 	opponentName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
 	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
@@ -107,7 +117,7 @@ func (s *System) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pok
 	draw.PrepareDrawRect(drawer, int(float64(188)/100*hpRatio), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
 }
 
-func (s *System) OnDraw(drawer draw.OptionDrawer) error {
+func (s *BattleSystem) OnDraw(drawer draw.OptionDrawer) error {
 	draw.OverlayColor(drawer, color.White)
 
 	screenWidth, screenHeight := drawer.Bounds().Dx(), drawer.Bounds().Dy()
