@@ -9,9 +9,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/script"
 	"github.com/kkkunny/pokemon/src/system/context"
-	"github.com/kkkunny/pokemon/src/system/world"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -193,27 +191,27 @@ var luaModuleToGo = map[string]map[string]lua.LGFunction{
 	},
 }
 
-func loadScriptFileWithSelf(w *world.World, this sprite.Sprite, master *_Self, name string) (rt *lua.LState, err error) {
-	rt, err = script.LoadScriptFile(name)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			rt.Close()
-		}
-	}()
-
-	err = rt.PCall(0, lua.MultRet, nil)
-	if err != nil {
-		return nil, err
-	}
-	for moduleName, luaFuncToGo := range luaModuleToGo {
-		rt.PreloadModule(moduleName, func(rt *lua.LState) int {
-			rt.Push(rt.SetFuncs(rt.NewTable(), luaFuncToGo))
-			return 1
-		})
-	}
-
-	return rt, nil
-}
+// func loadScriptFileWithSelf(w *world.World, this sprite.Sprite, master *_Self, name string) (rt *lua.LState, err error) {
+// 	rt, err = script.LoadScriptFile(name)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer func() {
+// 		if err != nil {
+// 			rt.Close()
+// 		}
+// 	}()
+//
+// 	err = rt.PCall(0, lua.MultRet, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for moduleName, luaFuncToGo := range luaModuleToGo {
+// 		rt.PreloadModule(moduleName, func(rt *lua.LState) int {
+// 			rt.Push(rt.SetFuncs(rt.NewTable(), luaFuncToGo))
+// 			return 1
+// 		})
+// 	}
+//
+// 	return rt, nil
+// }

@@ -54,6 +54,8 @@ func (s *System) KeyInputAction() (*KeyInputAction, error) {
 	for _, a := range enum.Values[KeyInputAction](KeyInputActionEnum) {
 		if s.actionHandler.ActionIsJustPressed(a.action()) {
 			return stlval.Ptr(a.Pressed()), nil
+		} else if s.actionHandler.ActionIsJustReleased(a.action()) {
+			return stlval.Ptr(a.Released()), nil
 		} else if s.actionHandler.ActionIsPressed(a.action()) {
 			return &a, nil
 		}
