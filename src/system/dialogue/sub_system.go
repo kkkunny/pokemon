@@ -22,8 +22,8 @@ const (
 )
 
 type DialogueSystem struct {
-	ctx context.Context
-
+	ctx             context.Context
+	display         bool
 	displayInterval time.Duration
 
 	// 显示文字的必备属性
@@ -46,11 +46,15 @@ func (s *DialogueSystem) Type() sub_system.SubSystemType {
 }
 
 func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+	if !s.display {
+		return system.Next().OnAction(system, action)
+	}
+
 	switch {
 	case s.waitForContinue() && action == input.KeyInputActionEnum.A.Pressed():
 		s.continueNext()
 	case s.streamDone() && action == input.KeyInputActionEnum.A.Pressed():
-		system.Pop()
+		s.SetDisplay(false)
 	case s.fastMode() && action == input.KeyInputActionEnum.A.Released():
 		s.setFastMode(false)
 	case !s.fastMode() && action == input.KeyInputActionEnum.A.Pressed():
@@ -60,6 +64,10 @@ func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action inp
 }
 
 func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
+	if !s.display {
+		return system.Next().OnUpdate(system)
+	}
+
 	if s.waitForContinue() {
 		if time.Since(s.lastUpdateTime) > s.displayInterval {
 			s.waitFrame = (s.waitFrame + 1) % 6
@@ -79,6 +87,10 @@ func (s *DialogueSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.
 	err := system.Next().OnDraw(system, drawer)
 	if err != nil {
 		return err
+	}
+
+	if !s.display {
+		return nil
 	}
 
 	_fontW, _fontH := s.frontSize()
@@ -213,4 +225,12 @@ func (s *DialogueSystem) continueNext() {
 		return
 	}
 	s.index++
+}
+
+func (s *DialogueSystem) Display() bool {
+	return s.display
+}
+
+func (s *DialogueSystem) SetDisplay(v bool) {
+	s.display = v
 }

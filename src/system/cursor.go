@@ -1,8 +1,6 @@
 package system
 
 import (
-	stlslices "github.com/kkkunny/stl/container/slices"
-
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 )
@@ -19,11 +17,8 @@ func newCursor(sys *System) *cursor {
 	}
 }
 
-func (s *cursor) Pop() {
-	if stlslices.Last(s.sys.subSystems).Type() == sub_system.SubSystemTypeEnum.Empty {
-		return
-	}
-	s.sys.subSystems = s.sys.subSystems[:len(s.sys.subSystems)-1]
+func (s *cursor) SubSystems() []sub_system.SubSystem {
+	return s.sys.subSystems
 }
 
 func (s *cursor) Next() sub_system.SubSystem {
@@ -35,21 +30,15 @@ func (s *cursor) Next() sub_system.SubSystem {
 }
 
 func (s *cursor) DisplayLabel(text string) error {
-	ds, err := dialogue.NewDialogueSystem(s.sys.ctx)
-	if err != nil {
-		return err
-	}
-	s.sys.subSystems = append(s.sys.subSystems, ds)
-	ds.SetLabel(text)
+	ss := sub_system.ExtractSubSystem[*dialogue.DialogueSystem](s)
+	ss.SetDisplay(true)
+	ss.SetLabel(text)
 	return nil
 }
 
 func (s *cursor) DisplayDialogue(text string) error {
-	ds, err := dialogue.NewDialogueSystem(s.sys.ctx)
-	if err != nil {
-		return err
-	}
-	s.sys.subSystems = append(s.sys.subSystems, ds)
-	ds.SetDialogue(text)
+	ss := sub_system.ExtractSubSystem[*dialogue.DialogueSystem](s)
+	ss.SetDisplay(true)
+	ss.SetDialogue(text)
 	return nil
 }
