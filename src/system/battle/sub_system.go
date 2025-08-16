@@ -42,10 +42,6 @@ func NewBattleSystem(ctx context.Context) (*BattleSystem, error) {
 	}, nil
 }
 
-func (s *BattleSystem) Active() bool {
-	return s.active
-}
-
 func (s *BattleSystem) Type() sub_system.SubSystemType {
 	return sub_system.SubSystemTypeEnum.Battle
 }
@@ -60,12 +56,68 @@ func (s *BattleSystem) StartOneBattle(site string) error {
 	return nil
 }
 
-func (s *BattleSystem) OnAction(action input.KeyInputAction) error {
+func (s *BattleSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+	if !s.active {
+		return system.Next().OnAction(system, action)
+	}
 	return nil
 }
 
-func (s *BattleSystem) OnUpdate() error {
+func (s *BattleSystem) OnUpdate(system sub_system.SubSystemManager) error {
+	if !s.active {
+		return system.Next().OnUpdate(system)
+	}
 	return nil
+}
+
+func (s *BattleSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+	if !s.active {
+		return system.Next().OnDraw(system, drawer)
+	}
+
+	draw.OverlayColor(drawer, color.White)
+
+	screenWidth, screenHeight := drawer.Bounds().Dx(), drawer.Bounds().Dy()
+
+	// 敌方
+	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
+	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
+	s.pmRace.Front.Update()
+	pokemonImage := s.pmRace.Front.GetCurrentFrameImage()
+	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
+	s.drawPokemonStatusCard(drawer.Move(80, 50), s.pms[0])
+
+	// 我方
+	fontW, fontH := s.frontSize()
+	_, bgH := fontW*(19+2), fontH*(2+2)
+
+	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
+	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
+	s.pmRace.Back.Update()
+	pokemonImage = s.pmRace.Back.GetCurrentFrameImage()
+	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
+	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
+
+	// 对话栏
+
+	// 对话栏总背景
+	draw.PrepareDrawRect(drawer, screenWidth, bgH+10, color.Black).Move(0, screenHeight-bgH-10).Draw()
+
+	// 对话栏背景
+	draw.PrepareDrawRect(drawer, screenWidth-10, bgH, util.NewNRGBColor(200, 168, 72)).Move(5, screenHeight-bgH-5).SetRadius(10).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth-30, bgH-20, util.NewNRGBColor(224, 216, 224)).Move(15, screenHeight-bgH+5).SetRadius(4).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth-40, bgH-30, util.NewNRGBColor(40, 80, 104)).Move(20, screenHeight-bgH+10).Draw()
+
+	// 行为框背景
+	draw.PrepareDrawRect(drawer, screenWidth/2, bgH+10, color.Black).Move(screenWidth/2, screenHeight-bgH-10).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth/2-10, bgH, util.NewNRGBColor(132, 131, 188)).Move(screenWidth/2+5, screenHeight-bgH-5).SetRadius(4).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth/2-14, bgH-4, util.NewNRGBColor(112, 104, 128)).Move(screenWidth/2+7, screenHeight-bgH-3).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth/2-24, bgH-14, util.NewNRGBColor(248, 248, 248)).Move(screenWidth/2+12, screenHeight-bgH+2).SetRadius(6).Draw()
+	return nil
+}
+
+func (s *BattleSystem) Active() bool {
+	return s.active
 }
 
 func (s *BattleSystem) frontSize() (int, int) {
@@ -115,46 +167,4 @@ func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokem
 	draw.PrepareDrawRect(drawer, 188, 12, util.NewNRGBColor(80, 104, 88)).Move(98, 54).SetRadius(3).Draw()
 	hpRatio := float64(pm.CurrentHP) / float64(pm.SpeciesStrength.HP()) * 100
 	draw.PrepareDrawRect(drawer, int(float64(188)/100*hpRatio), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
-}
-
-func (s *BattleSystem) OnDraw(drawer draw.OptionDrawer) error {
-	draw.OverlayColor(drawer, color.White)
-
-	screenWidth, screenHeight := drawer.Bounds().Dx(), drawer.Bounds().Dy()
-
-	// 敌方
-	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
-	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
-	s.pmRace.Front.Update()
-	pokemonImage := s.pmRace.Front.GetCurrentFrameImage()
-	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
-	s.drawPokemonStatusCard(drawer.Move(80, 50), s.pms[0])
-
-	// 我方
-	fontW, fontH := s.frontSize()
-	_, bgH := fontW*(19+2), fontH*(2+2)
-
-	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
-	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
-	s.pmRace.Back.Update()
-	pokemonImage = s.pmRace.Back.GetCurrentFrameImage()
-	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
-	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
-
-	// 对话栏
-
-	// 对话栏总背景
-	draw.PrepareDrawRect(drawer, screenWidth, bgH+10, color.Black).Move(0, screenHeight-bgH-10).Draw()
-
-	// 对话栏背景
-	draw.PrepareDrawRect(drawer, screenWidth-10, bgH, util.NewNRGBColor(200, 168, 72)).Move(5, screenHeight-bgH-5).SetRadius(10).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth-30, bgH-20, util.NewNRGBColor(224, 216, 224)).Move(15, screenHeight-bgH+5).SetRadius(4).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth-40, bgH-30, util.NewNRGBColor(40, 80, 104)).Move(20, screenHeight-bgH+10).Draw()
-
-	// 行为框背景
-	draw.PrepareDrawRect(drawer, screenWidth/2, bgH+10, color.Black).Move(screenWidth/2, screenHeight-bgH-10).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth/2-10, bgH, util.NewNRGBColor(132, 131, 188)).Move(screenWidth/2+5, screenHeight-bgH-5).SetRadius(4).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth/2-14, bgH-4, util.NewNRGBColor(112, 104, 128)).Move(screenWidth/2+7, screenHeight-bgH-3).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth/2-24, bgH-14, util.NewNRGBColor(248, 248, 248)).Move(screenWidth/2+12, screenHeight-bgH+2).SetRadius(6).Draw()
-	return nil
 }

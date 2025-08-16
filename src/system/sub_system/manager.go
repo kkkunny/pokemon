@@ -7,6 +7,7 @@ type SubSystemManager interface {
 	Next() SubSystem
 	DisplayLabel(text string) error
 	DisplayDialogue(text string) error
+	StartOneBattle(site string) error
 }
 
 func ExtractSubSystem[T SubSystem](ssm SubSystemManager) T {

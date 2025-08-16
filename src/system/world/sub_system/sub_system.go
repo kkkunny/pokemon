@@ -120,6 +120,9 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 }
 
 func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
+	// TODO: MOCK
+	return system.StartOneBattle("grassland")
+	
 	// 地图音乐
 	songFilepath, ok := s.world.CurrentMap().SongFilepath()
 	if ok {

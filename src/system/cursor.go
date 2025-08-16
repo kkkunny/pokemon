@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 )
@@ -41,4 +42,9 @@ func (s *cursor) DisplayDialogue(text string) error {
 	ss.SetDisplay(true)
 	ss.SetDialogue(text)
 	return nil
+}
+
+func (s *cursor) StartOneBattle(site string) error {
+	ss := sub_system.ExtractSubSystem[*battle.BattleSystem](s)
+	return ss.StartOneBattle(site)
 }

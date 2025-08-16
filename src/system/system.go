@@ -4,6 +4,7 @@ import (
 	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
@@ -23,23 +24,24 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 
+	// 战斗
+	bs, err := battle.NewBattleSystem(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// 对话
 	ds, err := dialogue.NewDialogueSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// // 战斗
-	// bs, err := battle.NewBattleSystem(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return &System{
 		ctx: ctx,
 		subSystems: []sub_system.SubSystem{
 			sub_system.NewEmptySubSystem(),
 			ws,
+			bs,
 			ds,
 		},
 	}, nil
