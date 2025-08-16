@@ -51,10 +51,6 @@ func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
 	}, nil
 }
 
-func (s *WorldSystem) Type() sub_system.SubSystemType {
-	return sub_system.SubSystemTypeEnum.World
-}
-
 func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
 	drawInfo := &person.UpdateInfo{World: s.world}
 	err := s.self.OnAction(s.ctx, action, drawInfo)
@@ -149,7 +145,7 @@ func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
 }
 
-func (s *WorldSystem) NeedDrop() bool {
+func (s *WorldSystem) Drop() bool {
 	return false
 }
 

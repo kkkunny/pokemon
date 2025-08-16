@@ -35,7 +35,7 @@ func (s *cursor) Next() sub_system.SubSystem {
 }
 
 func (s *cursor) DisplayText(boxStyle sub_system.BoxStyle, text string, fontColor color.Color) error {
-	ss, err := dialogue.NewDialogueSystem(s.sys.ctx, boxStyle, text, fontColor)
+	ss, err := dialogue.NewText(s.sys.ctx, boxStyle, text, fontColor)
 	if err != nil {
 		return err
 	}

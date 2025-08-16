@@ -35,7 +35,7 @@ func init() {
 	waitIcon = icon
 }
 
-type DialogueSystem struct {
+type Text struct {
 	ctx       context.Context
 	boxStyle  sub_system.BoxStyle
 	needDrop  bool
@@ -43,15 +43,14 @@ type DialogueSystem struct {
 
 	displayInterval time.Duration
 
-	// 显示文字的必备属性
 	text           []rune
 	index          int
 	lastUpdateTime time.Time
 	waitFrame      int
 }
 
-func NewDialogueSystem(ctx context.Context, botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*DialogueSystem, error) {
-	return &DialogueSystem{
+func NewText(ctx context.Context, botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*Text, error) {
+	return &Text{
 		ctx:             ctx,
 		boxStyle:        botStyle,
 		fontColor:       fontColor,
@@ -60,11 +59,7 @@ func NewDialogueSystem(ctx context.Context, botStyle sub_system.BoxStyle, text s
 	}, nil
 }
 
-func (s *DialogueSystem) Type() sub_system.SubSystemType {
-	return sub_system.SubSystemTypeEnum.Dialogue
-}
-
-func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+func (s *Text) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
 	switch {
 	case s.waitForContinue() && action == input.KeyInputActionEnum.A.Pressed():
 		s.continueNext()
@@ -78,7 +73,7 @@ func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action inp
 	return nil
 }
 
-func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
+func (s *Text) OnUpdate(system sub_system.SubSystemManager) error {
 	if s.waitForContinue() {
 		if time.Since(s.lastUpdateTime) > s.displayInterval {
 			s.waitFrame = (s.waitFrame + 1) % 6
@@ -94,7 +89,7 @@ func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	return system.Next().OnUpdate(system)
 }
 
-func (s *DialogueSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+func (s *Text) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
 	err := system.Next().OnDraw(system, drawer)
 	if err != nil {
 		return err
@@ -139,15 +134,15 @@ func (s *DialogueSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.
 	return nil
 }
 
-func (s *DialogueSystem) NeedDrop() bool {
+func (s *Text) Drop() bool {
 	return s.needDrop
 }
 
-func (s *DialogueSystem) streamDone() bool {
+func (s *Text) streamDone() bool {
 	return s.index > len(s.text)-1
 }
 
-func (s *DialogueSystem) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) {
+func (s *Text) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) {
 	var beginIndex, curIndex int
 	for _, ch := range text {
 		if ch == '\n' {
@@ -168,22 +163,22 @@ func (s *DialogueSystem) splitDoneLines(text []rune, maxLineCount int) (lines []
 	return lines
 }
 
-func (s *DialogueSystem) setFastMode(v bool) {
+func (s *Text) setFastMode(v bool) {
 	s.displayInterval = stlval.Ternary(v, fastModeDisplayInterval, normalDisplayInterval)
 }
 
-func (s *DialogueSystem) fastMode() bool {
+func (s *Text) fastMode() bool {
 	return s.displayInterval != normalDisplayInterval
 }
 
-func (s *DialogueSystem) waitForContinue() bool {
+func (s *Text) waitForContinue() bool {
 	if s.index >= len(s.text) {
 		return false
 	}
 	return s.text[s.index] == waitForContinueChar
 }
 
-func (s *DialogueSystem) continueNext() {
+func (s *Text) continueNext() {
 	if !s.waitForContinue() {
 		return
 	}

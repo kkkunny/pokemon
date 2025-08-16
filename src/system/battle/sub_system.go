@@ -46,10 +46,6 @@ func NewBattleSystem(ctx context.Context) (*BattleSystem, error) {
 	}, nil
 }
 
-func (s *BattleSystem) Type() sub_system.SubSystemType {
-	return sub_system.SubSystemTypeEnum.Battle
-}
-
 func (s *BattleSystem) StartOneBattle(site string) error {
 	siteImage, err := util.FindFileAndThenParse(config.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
 	if err != nil {
@@ -142,7 +138,7 @@ func (s *BattleSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.Op
 	return nil
 }
 
-func (s *BattleSystem) NeedDrop() bool {
+func (s *BattleSystem) Drop() bool {
 	return false
 }
 

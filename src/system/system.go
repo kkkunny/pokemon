@@ -78,6 +78,6 @@ func (s *System) OnDraw(drawer draw.OptionDrawer) error {
 
 func (s *System) dropSubSystem() {
 	s.subSystems = stlslices.Filter(s.subSystems, func(_ int, ss sub_system.SubSystem) bool {
-		return !ss.NeedDrop()
+		return !ss.Drop()
 	})
 }
