@@ -143,7 +143,7 @@ func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
 }
 
-func (s *WorldSystem) OnDraw(drawer draw.OptionDrawer) error {
+func (s *WorldSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
 	// 地图
 	err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
 	if err != nil {

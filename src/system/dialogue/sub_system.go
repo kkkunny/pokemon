@@ -72,10 +72,15 @@ func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
 
 	s.lastUpdateTime = time.Now()
 	s.index++
-	return nil
+	return system.Next().OnUpdate(system)
 }
 
-func (s *DialogueSystem) OnDraw(drawer draw.OptionDrawer) error {
+func (s *DialogueSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+	err := system.Next().OnDraw(system, drawer)
+	if err != nil {
+		return err
+	}
+
 	_fontW, _fontH := s.frontSize()
 	fontW, fontH := float64(_fontW), float64(_fontH)
 	_screenW, _screenH := drawer.Bounds().Dx(), drawer.Bounds().Dy()
