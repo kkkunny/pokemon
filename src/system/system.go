@@ -39,7 +39,26 @@ func (s *System) OnAction(action input.KeyInputAction) error {
 }
 
 func (s *System) OnUpdate() error {
-	return stlslices.Last(s.subSystems).OnUpdate(newCursor(s))
+	err := stlslices.Last(s.subSystems).OnUpdate(newCursor(s))
+	if err != nil {
+		return err
+	}
+
+	// 声音
+	for _, p := range sub_system.PlayingVoicePlayers {
+		err = p.Player.Play()
+		if err != nil {
+			return err
+		}
+	}
+	stopPlayer := stlslices.DiffTo(sub_system.PrevPlayingVoicePlayers, sub_system.PlayingVoicePlayers)
+	sub_system.PrevPlayingVoicePlayers = sub_system.PlayingVoicePlayers
+	sub_system.PlayingVoicePlayers = nil
+	for _, p := range stopPlayer {
+		p.Pause()
+	}
+
+	return nil
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {

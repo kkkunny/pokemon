@@ -6,6 +6,7 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/output/voice"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/system/world"
@@ -16,10 +17,11 @@ import (
 )
 
 type WorldSystem struct {
-	ctx   context.Context
-	world *world.World // 世界
-	self  person.Self  // 主角
-	time  time.Time    // 游戏世界时间
+	ctx    context.Context
+	world  *world.World // 世界
+	self   person.Self  // 主角
+	time   time.Time    // 游戏世界时间
+	player *sub_system.RealTimeVoicePlayer
 }
 
 func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
@@ -41,10 +43,11 @@ func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
 	self.SetPosition(6, 8)
 
 	return &WorldSystem{
-		ctx:   ctx,
-		world: w,
-		self:  self,
-		time:  time.Now(),
+		ctx:    ctx,
+		world:  w,
+		self:   self,
+		time:   time.Now(),
+		player: sub_system.NewRealTimeVoicePlayer(voice.NewPlayer()),
 	}, nil
 }
 
@@ -117,18 +120,18 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 }
 
 func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
-	// // 地图音乐
-	// songFilepath, ok := s.world.CurrentMap().SongFilepath()
-	// if ok {
-	// 	err := s.mapVoicePlayer.LoadFile(songFilepath)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	err = s.mapVoicePlayer.Play()
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	// 地图音乐
+	songFilepath, ok := s.world.CurrentMap().SongFilepath()
+	if ok {
+		err := s.player.LoadFile(songFilepath)
+		if err != nil {
+			return err
+		}
+		err = s.player.Play()
+		if err != nil {
+			return err
+		}
+	}
 
 	// 时间
 	s.time = s.time.Add(time.Minute)

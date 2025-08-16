@@ -65,9 +65,9 @@ func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
 			s.waitFrame = (s.waitFrame + 1) % 6
 			s.lastUpdateTime = time.Now()
 		}
-		return nil
+		return system.Next().OnUpdate(system)
 	} else if s.streamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Since(s.lastUpdateTime) < s.displayInterval) {
-		return nil
+		return system.Next().OnUpdate(system)
 	}
 
 	s.lastUpdateTime = time.Now()
