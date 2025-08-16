@@ -1,227 +1,79 @@
 package system
 
 import (
-	"image/color"
-	"time"
+	stlslices "github.com/kkkunny/stl/container/slices"
 
-	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/output/voice"
 	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
-	"github.com/kkkunny/pokemon/src/system/world"
-	"github.com/kkkunny/pokemon/src/system/world/sprite"
-	"github.com/kkkunny/pokemon/src/system/world/sprite/person"
-	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/system/sub_system"
+	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 type System struct {
-	ctx            context.Context
-	world          *world.World
-	self           person.Self
-	mapVoicePlayer *voice.Player
-	dialogue       *dialogue.System
-	// 战斗页面
-	battle *battle.System
-
-	time time.Time // 游戏世界时间
+	ctx        context.Context
+	subSystems []sub_system.SubSystem
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
-	// 地图
-	w, err := world.NewWorld(ctx, "pallet_town")
+	// 世界
+	ws, err := worldsubsystem.NewWorldSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	// 战斗
-	battleSystem, err := battle.NewSystem(ctx)
+	bs, err := battle.NewBattleSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
-	// 对话系统
-	ds, err := dialogue.NewSystem(ctx)
+
+	// 对话
+	ds, err := dialogue.NewDialogueSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
-	ds.DisplayLabel("欢迎来到口袋妖怪世界！开始属于你的冒险吧！")
-	// 主角
-	self, err := person.NewSelf("master")
-	if err != nil {
-		return nil, err
-	}
-	self.SetPosition(6, 8)
-	s := &System{
-		ctx:            ctx,
-		world:          w,
-		self:           self,
-		mapVoicePlayer: voice.NewPlayer(),
-		dialogue:       ds,
-		time:           time.Now(),
-		battle:         battleSystem,
-	}
-	w.SetOnBattleStart(s.OnBattleStart)
-	s.OnBattleStart("grassland")
-	return s, err
+
+	return &System{
+		ctx: ctx,
+		subSystems: []sub_system.SubSystem{
+			sub_system.NewEmptySubSystem(),
+			ws,
+			bs,
+			ds,
+		},
+	}, nil
 }
 
 func (s *System) OnAction(action input.KeyInputAction) error {
-	s.dialogue.SetFastMode(false)
-
-	if !s.dialogue.Display() {
-		drawInfo := &person.UpdateInfo{World: s.world}
-		err := s.self.OnAction(s.ctx, action, drawInfo)
-		if err != nil {
-			return err
-		}
-		for _, sp := range s.world.CurrentMap().Sprites() {
-			err = sp.OnAction(s.ctx, action, drawInfo)
-			if err != nil {
-				return err
-			}
-		}
-
-		if action == input.KeyInputActionEnum.A.Pressed() {
-			x, y := s.self.Position()
-			targetX, targetY := person.GetNextPositionByDirection(s.self.Direction(), x, y)
-			targetMap, targetX, targetY, _ := s.world.GetActualPosition(targetX, targetY)
-			targetSprite, ok := targetMap.GetSpriteByPosition(targetX, targetY)
-			if ok {
-				s.self.SetActionSprite(targetSprite)
-				switch targetSprite.ActionType() {
-				case sprite.ActionTypeEnum.Script:
-					// scriptName := targetSprite.GetScript()
-					// rt, err := loadScriptFileWithSelf(updateInfo.World, targetSprite, s, scriptName)
-					// if err != nil {
-					// 	return err
-					// }
-					// defer rt.Close()
-					//
-					// param1 := rt.NewUserData()
-					// param1.Value = targetSprite
-					// err = rt.CallByParam(lua.P{
-					// 	Fn:      rt.GetGlobal(scriptName),
-					// 	NRet:    1,
-					// 	Protect: true,
-					// }, param1)
-					// if err != nil {
-					// 	return err
-					// }
-				case sprite.ActionTypeEnum.Label:
-					text := s.ctx.Localisation().Get(targetSprite.GetText())
-					s.dialogue.DisplayLabel(text)
-				case sprite.ActionTypeEnum.Dialogue:
-					movableSprite, ok := targetSprite.(sprite.MovableSprite)
-					if ok {
-						movableSprite.SetMovable(false)
-					}
-					text := s.ctx.Localisation().Get(targetSprite.GetText())
-					s.dialogue.DisplayDialogue(text)
-				}
-			}
-		}
-	} else if s.dialogue.WaitForContinue() && action == input.KeyInputActionEnum.A.Pressed() {
-		s.dialogue.Continue()
-	} else if s.dialogue.StreamDone() && action == input.KeyInputActionEnum.A.Pressed() {
-		actionSprite := s.self.ActionSprite()
-		if actionSprite != nil {
-			s.self.SetActionSprite(nil)
-			movableSprite, ok := actionSprite.(sprite.MovableSprite)
-			if ok {
-				movableSprite.SetMovable(true)
-			}
-		}
-		s.dialogue.SetDisplay(false)
-	} else if action == input.KeyInputActionEnum.A {
-		s.dialogue.SetFastMode(true)
-	}
-	return nil
+	return stlslices.Last(s.subSystems).OnAction(newCursor(s), action)
 }
 
 func (s *System) OnUpdate() error {
-	// 地图音乐
-	songFilepath, ok := s.world.CurrentMap().SongFilepath()
-	if ok {
-		err := s.mapVoicePlayer.LoadFile(songFilepath)
-		if err != nil {
-			return err
-		}
-		err = s.mapVoicePlayer.Play()
+	err := stlslices.Last(s.subSystems).OnUpdate(newCursor(s))
+	if err != nil {
+		return err
+	}
+
+	// 声音
+	for _, p := range sub_system.PlayingVoicePlayers {
+		err = p.Player.Play()
 		if err != nil {
 			return err
 		}
 	}
-
-	if s.battle.Active() {
-		return s.battle.OnUpdate()
-	} else {
-		// 时间
-		s.time = s.time.Add(time.Minute)
-
-		// 主角
-		drawInfo := &person.UpdateInfo{World: s.world}
-		err := s.self.Update(s.ctx, drawInfo)
-		if err != nil {
-			return err
-		}
-		// 世界
-		return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
+	stopPlayer := stlslices.DiffTo(sub_system.PrevPlayingVoicePlayers, sub_system.PlayingVoicePlayers)
+	sub_system.PrevPlayingVoicePlayers = sub_system.PlayingVoicePlayers
+	sub_system.PlayingVoicePlayers = nil
+	for _, p := range stopPlayer {
+		p.Pause()
 	}
-}
 
-func (s *System) getSkyMaskColor() color.Color {
-	hour, minute := float64(s.time.Hour()), float64(s.time.Minute())
-	hour += minute / 60
-
-	switch {
-	case hour < 4:
-		return util.NewNRGBAColor(0, 0, 0, 180)
-	case 4 <= hour && hour < 10:
-		return util.GradientColor(util.NewNRGBAColor(0, 0, 0, 180), util.NewNRGBAColor(255, 255, 255, 0), (hour-4)/6)
-	case 10 <= hour && hour < 15:
-		return util.NewNRGBAColor(255, 255, 255, 0)
-	case 15 <= hour && hour < 17:
-		return util.GradientColor(util.NewNRGBAColor(255, 255, 255, 0), util.NewNRGBAColor(255, 128, 64, 80), (hour-15)/2)
-	case 17 <= hour && hour < 18:
-		return util.GradientColor(util.NewNRGBAColor(255, 128, 64, 80), util.NewNRGBAColor(0, 0, 0, 180), (hour-17)/1)
-	case 18 <= hour:
-		return util.NewNRGBAColor(0, 0, 0, 180)
-	default:
-		return util.NewNRGBAColor(255, 255, 255, 0)
-	}
+	return nil
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {
-	if s.battle.Active() {
-		return s.battle.OnDraw(drawer)
-	} else {
-		// 地图
-		err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
-		if err != nil {
-			return err
-		}
-
-		// 天色
-		if !s.world.CurrentMap().Indoor() {
-			draw.OverlayColor(drawer, s.getSkyMaskColor())
-		}
-
-		// 地图名
-		err = s.world.DrawMapName(drawer)
-		if err != nil {
-			return err
-		}
-
-		// 对话
-		err = s.dialogue.OnDraw(drawer)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-}
-
-func (s *System) OnBattleStart(site string) error {
-	return s.battle.StartOneBattle(site)
+	return stlslices.Last(s.subSystems).OnDraw(newCursor(s), drawer)
 }

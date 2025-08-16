@@ -32,23 +32,16 @@ type World struct {
 
 	// 地图碰撞缓存
 	selfPos [2]int // 主角所在当前地图位置
-
-	onBattleStart func(site string) error // 战斗开始回调
 }
 
-func NewWorld(ctx context.Context, initMapName string) (*World, error) {
+func NewWorld(ctx context.Context) (*World, error) {
 	tileCache := render.NewTileCache()
-	w := &World{
+	return &World{
 		ctx:           ctx,
 		tileCache:     tileCache,
 		mapCache:      make(map[string]*Map),
 		nameMoveSpeed: 1,
-	}
-	return w, w.MoveTo(initMapName)
-}
-
-func (w *World) SetOnBattleStart(f func(site string) error) {
-	w.onBattleStart = f
+	}, nil
 }
 
 func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
@@ -87,20 +80,20 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 		return nil
 	}
 
-	for _, objectLayer := range w.currentMap.define.ObjectGroups {
-		if objectLayer.Class != ObjectLayerTypeEnum.Split {
-			continue
-		}
-		for _, object := range objectLayer.Objects {
-			if object.Type != "gunting_ground" {
-				continue
-			}
-			if float64(selfX*config.TileSize) >= object.X && float64(selfX+1*config.TileSize) <= object.X+object.Width &&
-				float64(selfY*config.TileSize) >= object.Y && float64(selfY+1*config.TileSize) <= object.Y+object.Width {
-				return w.onBattleStart(object.Properties.GetString("battle_site"))
-			}
-		}
-	}
+	// for _, objectLayer := range w.currentMap.define.ObjectGroups {
+	// 	if objectLayer.Class != ObjectLayerTypeEnum.Split {
+	// 		continue
+	// 	}
+	// 	for _, object := range objectLayer.Objects {
+	// 		if object.Type != "gunting_ground" {
+	// 			continue
+	// 		}
+	// 		if float64(selfX*config.TileSize) >= object.X && float64(selfX+1*config.TileSize) <= object.X+object.Width &&
+	// 			float64(selfY*config.TileSize) >= object.Y && float64(selfY+1*config.TileSize) <= object.Y+object.Width {
+	// 			return w.onBattleStart(object.Properties.GetString("battle_site"))
+	// 		}
+	// 	}
+	// }
 	return nil
 }
 

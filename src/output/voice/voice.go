@@ -90,3 +90,11 @@ func (p *Player) ContinuePlay() {
 	p.player.Play()
 	return
 }
+
+func (p *Player) Pause() {
+	if p.path == "" {
+		return
+	}
+	p.player.Pause()
+	return
+}
