@@ -52,7 +52,7 @@ func (s *WorldSystem) Type() sub_system.SubSystemType {
 	return sub_system.SubSystemTypeEnum.World
 }
 
-func (s *WorldSystem) OnAction(system sub_system.SubSystemQueue, action input.KeyInputAction) error {
+func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
 	drawInfo := &person.UpdateInfo{World: s.world}
 	err := s.self.OnAction(s.ctx, action, drawInfo)
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemQueue, action input.Ke
 	return nil
 }
 
-func (s *WorldSystem) OnUpdate(system sub_system.SubSystemQueue) error {
+func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	// // 地图音乐
 	// songFilepath, ok := s.world.CurrentMap().SongFilepath()
 	// if ok {

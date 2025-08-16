@@ -4,20 +4,16 @@ import (
 	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/output/voice"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
-	"github.com/kkkunny/pokemon/src/system/world"
 	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 type System struct {
-	ctx            context.Context
-	world          *world.World
-	mapVoicePlayer *voice.Player
-	subSystems     []sub_system.SubSystem
+	ctx        context.Context
+	subSystems []sub_system.SubSystem
 }
 
 func NewSystem(ctx context.Context) (*System, error) {
@@ -34,9 +30,8 @@ func NewSystem(ctx context.Context) (*System, error) {
 	// }
 
 	return &System{
-		ctx:            ctx,
-		mapVoicePlayer: voice.NewPlayer(),
-		subSystems:     []sub_system.SubSystem{ws},
+		ctx:        ctx,
+		subSystems: []sub_system.SubSystem{ws},
 	}, nil
 }
 

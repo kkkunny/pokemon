@@ -17,7 +17,7 @@ var SubSystemTypeEnum = enum.New[struct {
 
 type SubSystem interface {
 	Type() SubSystemType
-	OnAction(system SubSystemQueue, action input.KeyInputAction) error
-	OnUpdate(system SubSystemQueue) error
+	OnAction(system SubSystemManager, action input.KeyInputAction) error
+	OnUpdate(system SubSystemManager) error
 	OnDraw(drawer draw.OptionDrawer) error
 }

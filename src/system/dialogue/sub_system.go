@@ -45,20 +45,33 @@ func (s *DialogueSystem) Type() sub_system.SubSystemType {
 	return sub_system.SubSystemTypeEnum.Dialogue
 }
 
-func (s *DialogueSystem) OnAction(system sub_system.SubSystemQueue, action input.KeyInputAction) error {
+func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
 	switch {
 	case s.waitForContinue() && action == input.KeyInputActionEnum.A.Pressed():
 		s.continueNext()
 	case s.streamDone() && action == input.KeyInputActionEnum.A.Pressed():
 		system.Pop()
-	case action == input.KeyInputActionEnum.A:
+	case s.fastMode() && action == input.KeyInputActionEnum.A.Released():
+		s.setFastMode(false)
+	case !s.fastMode() && action == input.KeyInputActionEnum.A.Pressed():
 		s.setFastMode(true)
 	}
 	return nil
 }
 
-func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemQueue) error {
-	s.setFastMode(false)
+func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
+	if s.waitForContinue() {
+		if time.Since(s.lastUpdateTime) > s.displayInterval {
+			s.waitFrame = (s.waitFrame + 1) % 6
+			s.lastUpdateTime = time.Now()
+		}
+		return nil
+	} else if s.streamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Since(s.lastUpdateTime) < s.displayInterval) {
+		return nil
+	}
+
+	s.lastUpdateTime = time.Now()
+	s.index++
 	return nil
 }
 
@@ -98,22 +111,13 @@ func (s *DialogueSystem) OnDraw(drawer draw.OptionDrawer) error {
 	if s.waitForContinue() {
 		bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), renderStr)
 		x += float64((bounds.Max.X - bounds.Min.X).Round())
-		y += (fontH/5)*2 + float64(s.waitFrame)
+		y += (fontH/5)*3 - stlval.Ternary(s.waitFrame < 4, float64(s.waitFrame), float64(6-s.waitFrame))
 		waitString := string([]rune{waitForContinueChar})
 		bounds, _ = font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 36).UnsafeInternal(), renderStr)
 		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
 		draw.PrepareDrawText(drawer, waitString, util.GetFont(util.FontTypeEnum.Emoji, 36), util.NewNRGBColor(224, 8, 8)).Move(int(x), int(y)).Draw()
-		if time.Since(s.lastUpdateTime) > s.displayInterval*2 {
-			s.waitFrame = (s.waitFrame + 1) % 3
-			s.lastUpdateTime = time.Now()
-		}
-		return nil
-	} else if s.streamDone() || (s.lastUpdateTime != stlval.Default[time.Time]() && time.Since(s.lastUpdateTime) < s.displayInterval) {
 		return nil
 	}
-
-	s.lastUpdateTime = time.Now()
-	s.index++
 	return nil
 }
 

@@ -1,6 +1,6 @@
 package sub_system
 
-type SubSystemQueue interface {
+type SubSystemManager interface {
 	Pop()
 	DisplayLabel(text string) error
 	DisplayDialogue(text string) error
