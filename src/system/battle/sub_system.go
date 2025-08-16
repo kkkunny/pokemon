@@ -25,8 +25,12 @@ type BattleSystem struct {
 	active    bool
 	siteImage imgutil.Image // 战斗场地
 
+	// 宝可梦
 	pmRace *pokemon.Race
 	pms    [2]*pokemon.Pokemon
+
+	// 动作选项
+	actionSelect int8
 }
 
 func NewBattleSystem(ctx context.Context) (*BattleSystem, error) {
@@ -60,6 +64,18 @@ func (s *BattleSystem) OnAction(system sub_system.SubSystemManager, action input
 	if !s.active {
 		return system.Next().OnAction(system, action)
 	}
+
+	switch {
+	case action == input.KeyInputActionEnum.MoveUp.Released():
+		s.actionSelect = (s.actionSelect + 3) % 4
+	case action == input.KeyInputActionEnum.MoveDown.Released():
+		s.actionSelect = (s.actionSelect + 1) % 4
+	case action == input.KeyInputActionEnum.MoveLeft.Released():
+		s.actionSelect = (s.actionSelect + 2) % 4
+	case action == input.KeyInputActionEnum.MoveRight.Released():
+		s.actionSelect = (s.actionSelect + 2) % 4
+	}
+
 	return nil
 }
 
@@ -99,21 +115,35 @@ func (s *BattleSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.Op
 	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
 
 	// 对话栏
-
-	// 对话栏总背景
-	draw.PrepareDrawRect(drawer, screenWidth, bgH+10, color.Black).Move(0, screenHeight-bgH-10).Draw()
-
-	// 对话栏背景
-	draw.PrepareDrawRect(drawer, screenWidth-10, bgH, util.NewNRGBColor(200, 168, 72)).Move(5, screenHeight-bgH-5).SetRadius(10).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth-30, bgH-20, util.NewNRGBColor(224, 216, 224)).Move(15, screenHeight-bgH+5).SetRadius(4).Draw()
-	draw.PrepareDrawRect(drawer, screenWidth-40, bgH-30, util.NewNRGBColor(40, 80, 104)).Move(20, screenHeight-bgH+10).Draw()
+	draw.PrepareDrawRect(drawer, screenWidth, 126, color.Black).Move(0, screenHeight-126).Draw()
 
 	// 行为框背景
 	draw.PrepareDrawRect(drawer, screenWidth/2, bgH+10, color.Black).Move(screenWidth/2, screenHeight-bgH-10).Draw()
 	draw.PrepareDrawRect(drawer, screenWidth/2-10, bgH, util.NewNRGBColor(132, 131, 188)).Move(screenWidth/2+5, screenHeight-bgH-5).SetRadius(4).Draw()
 	draw.PrepareDrawRect(drawer, screenWidth/2-14, bgH-4, util.NewNRGBColor(112, 104, 128)).Move(screenWidth/2+7, screenHeight-bgH-3).Draw()
 	draw.PrepareDrawRect(drawer, screenWidth/2-24, bgH-14, util.NewNRGBColor(248, 248, 248)).Move(screenWidth/2+12, screenHeight-bgH+2).SetRadius(6).Draw()
+
+	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("battle"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+14).Draw()
+	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("backpack"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+14).Draw()
+	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("pokemons"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+60).Draw()
+	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("escape"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+60).Draw()
+	actionSelectDrawer := draw.PrepareDrawText(drawer, "🔻", util.GetFont(util.FontTypeEnum.Emoji, 32), color.Black)
+	switch s.actionSelect {
+	case 0:
+		actionSelectDrawer = actionSelectDrawer.Move(screenWidth/2+10, screenHeight-bgH+14)
+	case 1:
+		actionSelectDrawer = actionSelectDrawer.Move(screenWidth/2+10, screenHeight-bgH+60)
+	case 2:
+		actionSelectDrawer = actionSelectDrawer.Move(screenWidth/2+200, screenHeight-bgH+14)
+	case 3:
+		actionSelectDrawer = actionSelectDrawer.Move(screenWidth/2+200, screenHeight-bgH+60)
+	}
+	actionSelectDrawer.Draw()
 	return nil
+}
+
+func (s *BattleSystem) NeedDrop() bool {
+	return false
 }
 
 func (s *BattleSystem) Active() bool {
@@ -142,8 +172,8 @@ func (s *BattleSystem) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Typ
 
 func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
-	opponentName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
-	opponentNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), opponentName)
+	pokemonName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
+	pokemonNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), pokemonName)
 	types := pm.Type.Flatten()
 	if len(types) == 1 {
 		s.drawPokemonType(drawer.Move(5, 16), types[0])
@@ -151,11 +181,11 @@ func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokem
 		s.drawPokemonType(drawer.Move(5, 7), types[0])
 		s.drawPokemonType(drawer.Move(5, 25), types[1])
 	}
-	draw.PrepareDrawText(drawer, opponentName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(65, 10).Draw()
+	draw.PrepareDrawText(drawer, pokemonName, util.GetFont(util.FontTypeEnum.Normal, 26), color.Black).Move(65, 10).Draw()
 	genderText := stlval.Ternary(pm.Gender, consts.MaleText, consts.FemaleText)
 	genderTextColor := stlval.Ternary(pm.Gender, consts.MaleColor, consts.FemaleColor)
-	genderBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 16).UnsafeInternal(), opponentName)
-	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), genderTextColor).Move(65+opponentNameBounds.Max.X.Round(), 10+opponentNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
+	genderBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 16).UnsafeInternal(), pokemonName)
+	draw.PrepareDrawText(drawer, genderText, util.GetFont(util.FontTypeEnum.Emoji, 16), genderTextColor).Move(65+pokemonNameBounds.Max.X.Round(), 10+pokemonNameBounds.Max.Y.Round()-genderBounds.Max.Y.Round()).Draw()
 	level := fmt.Sprintf("%03d", pm.Level)
 	if simLevel := strings.TrimPrefix(level, "0"); len(simLevel) != len(level) {
 		level = strings.Repeat(" ", len(level)-len(simLevel)) + simLevel
@@ -167,4 +197,8 @@ func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokem
 	draw.PrepareDrawRect(drawer, 188, 12, util.NewNRGBColor(80, 104, 88)).Move(98, 54).SetRadius(3).Draw()
 	hpRatio := float64(pm.CurrentHP) / float64(pm.SpeciesStrength.HP()) * 100
 	draw.PrepareDrawRect(drawer, int(float64(188)/100*hpRatio), 12, util.NewNRGBColor(110, 245, 165)).Move(98, 54).SetRadius(3).Draw()
+}
+
+func (s *BattleSystem) GetSelfPokemon() *pokemon.Pokemon {
+	return s.pms[1]
 }

@@ -105,14 +105,14 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 				// }
 			case sprite.ActionTypeEnum.Label:
 				text := s.ctx.Localisation().Get(targetSprite.GetText())
-				return system.DisplayLabel(text)
+				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			case sprite.ActionTypeEnum.Dialogue:
 				movableSprite, ok := targetSprite.(sprite.MovableSprite)
 				if ok {
 					movableSprite.SetMovable(false)
 				}
 				text := s.ctx.Localisation().Get(targetSprite.GetText())
-				return system.DisplayDialogue(text)
+				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			}
 		}
 	}
@@ -122,7 +122,7 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	// TODO: MOCK
 	return system.StartOneBattle("grassland")
-	
+
 	// 地图音乐
 	songFilepath, ok := s.world.CurrentMap().SongFilepath()
 	if ok {
@@ -147,6 +147,10 @@ func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 	}
 	// 世界
 	return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
+}
+
+func (s *WorldSystem) NeedDrop() bool {
+	return false
 }
 
 func (s *WorldSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {

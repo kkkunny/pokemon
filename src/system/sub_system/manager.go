@@ -1,12 +1,15 @@
 package sub_system
 
-import stlval "github.com/kkkunny/stl/value"
+import (
+	"image/color"
+
+	stlval "github.com/kkkunny/stl/value"
+)
 
 type SubSystemManager interface {
 	SubSystems() []SubSystem
 	Next() SubSystem
-	DisplayLabel(text string) error
-	DisplayDialogue(text string) error
+	DisplayText(boxStyle BoxStyle, text string, fontColor color.Color) error
 	StartOneBattle(site string) error
 }
 

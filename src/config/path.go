@@ -25,4 +25,5 @@ var (
 	GFXMapPath         = filepath.Join(GFXPath, "map")
 	GFXBattleSitesPath = filepath.Join(GFXPath, "battle_sites")
 	GFXPokemonTypePath = filepath.Join(GFXPath, "pokemon_type")
+	GFXInterfacePath   = filepath.Join(GFXPath, "interface")
 )

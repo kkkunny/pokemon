@@ -6,7 +6,6 @@ import (
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/context"
-	"github.com/kkkunny/pokemon/src/system/dialogue"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -30,28 +29,25 @@ func NewSystem(ctx context.Context) (*System, error) {
 		return nil, err
 	}
 
-	// 对话
-	ds, err := dialogue.NewDialogueSystem(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	return &System{
 		ctx: ctx,
 		subSystems: []sub_system.SubSystem{
 			sub_system.NewEmptySubSystem(),
 			ws,
 			bs,
-			ds,
 		},
 	}, nil
 }
 
 func (s *System) OnAction(action input.KeyInputAction) error {
+	s.dropSubSystem()
+
 	return stlslices.Last(s.subSystems).OnAction(newCursor(s), action)
 }
 
 func (s *System) OnUpdate() error {
+	s.dropSubSystem()
+
 	err := stlslices.Last(s.subSystems).OnUpdate(newCursor(s))
 	if err != nil {
 		return err
@@ -75,5 +71,13 @@ func (s *System) OnUpdate() error {
 }
 
 func (s *System) OnDraw(drawer draw.OptionDrawer) error {
+	s.dropSubSystem()
+
 	return stlslices.Last(s.subSystems).OnDraw(newCursor(s), drawer)
+}
+
+func (s *System) dropSubSystem() {
+	s.subSystems = stlslices.Filter(s.subSystems, func(_ int, ss sub_system.SubSystem) bool {
+		return !ss.NeedDrop()
+	})
 }

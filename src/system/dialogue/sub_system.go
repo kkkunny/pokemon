@@ -1,18 +1,22 @@
 package dialogue
 
 import (
+	"image"
+	"image/color"
+	"path/filepath"
 	"strings"
 	"time"
 
 	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/util/image"
+	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 const (
@@ -21,23 +25,38 @@ const (
 	fastModeDisplayInterval = time.Millisecond * 30
 )
 
+var waitIcon imgutil.Image
+
+func init() {
+	icon, err := imgutil.NewImageFromFile(filepath.Join(config.GFXInterfacePath, "red_wedge_1.png"))
+	if err != nil {
+		panic(err)
+	}
+	waitIcon = icon
+}
+
 type DialogueSystem struct {
-	ctx             context.Context
-	display         bool
+	ctx       context.Context
+	boxStyle  sub_system.BoxStyle
+	needDrop  bool
+	fontColor color.Color
+
 	displayInterval time.Duration
 
 	// 显示文字的必备属性
-	isDialogue     bool
 	text           []rune
 	index          int
 	lastUpdateTime time.Time
 	waitFrame      int
 }
 
-func NewDialogueSystem(ctx context.Context) (*DialogueSystem, error) {
+func NewDialogueSystem(ctx context.Context, botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*DialogueSystem, error) {
 	return &DialogueSystem{
 		ctx:             ctx,
+		boxStyle:        botStyle,
+		fontColor:       fontColor,
 		displayInterval: normalDisplayInterval,
+		text:            []rune(text),
 	}, nil
 }
 
@@ -46,15 +65,11 @@ func (s *DialogueSystem) Type() sub_system.SubSystemType {
 }
 
 func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
-	if !s.display {
-		return system.Next().OnAction(system, action)
-	}
-
 	switch {
 	case s.waitForContinue() && action == input.KeyInputActionEnum.A.Pressed():
 		s.continueNext()
 	case s.streamDone() && action == input.KeyInputActionEnum.A.Pressed():
-		s.SetDisplay(false)
+		s.needDrop = true
 	case s.fastMode() && action == input.KeyInputActionEnum.A.Released():
 		s.setFastMode(false)
 	case !s.fastMode() && action == input.KeyInputActionEnum.A.Pressed():
@@ -64,10 +79,6 @@ func (s *DialogueSystem) OnAction(system sub_system.SubSystemManager, action inp
 }
 
 func (s *DialogueSystem) OnUpdate(system sub_system.SubSystemManager) error {
-	if !s.display {
-		return system.Next().OnUpdate(system)
-	}
-
 	if s.waitForContinue() {
 		if time.Since(s.lastUpdateTime) > s.displayInterval {
 			s.waitFrame = (s.waitFrame + 1) % 6
@@ -89,99 +100,51 @@ func (s *DialogueSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.
 		return err
 	}
 
-	if !s.display {
-		return nil
-	}
-
-	_fontW, _fontH := s.frontSize()
-	fontW, fontH := float64(_fontW), float64(_fontH)
-	_screenW, _screenH := drawer.Bounds().Dx(), drawer.Bounds().Dy()
-	screenW, screenH := float64(_screenW), float64(_screenH)
-	hFrontMaxCount, vFrontMaxCount := int(screenW/fontW)-4, int(screenH/fontH)-4
-	if hFrontMaxCount < 2 || vFrontMaxCount < 3 {
-		return nil
-	}
-
 	// 背景
-	bgImg := stlval.Ternary(s.isDialogue, s.getDialogueBackground, s.getLabelBackground)(hFrontMaxCount, 2)
-	x, y := (screenW-float64(bgImg.Bounds().Dx()))/2, screenH-float64(bgImg.Bounds().Dy())-fontH
-	draw.PrepareDrawImage(drawer, bgImg).Move(int(x), int(y)).Draw()
+	_, innerRect, err := s.boxStyle.OnUpdate(drawer, image.Rect(-1, -1, -1, -1))
+	if err != nil {
+		return err
+	}
 
 	// 文字
-	fontColor := util.NewNRGBColor(100, 100, 100)
+	displayText := s.ctx.Localisation().Get("game_name")
+	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), displayText)
+	fontW, fontH := (bounds.Max.X-bounds.Min.X).Round()/len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
+	hSep := 10
+	hFrontMaxCount := (innerRect.Dx() - hSep*2) / fontW
 
-	x, y = x+fontW/2+fontW/4, y+fontH/2+fontH/3
+	x, y := innerRect.Min.X+hSep, (innerRect.Min.Y+(innerRect.Min.Y+innerRect.Max.Y)/2)/2-fontH/2
 
 	lines := s.splitDoneLines(s.text[:stlval.Ternary(s.index < len(s.text), s.index+1, s.index)], hFrontMaxCount)
 	if len(lines) > 1 {
 		// 存量行（第一行）
 		renderStr := strings.Replace(string(lines[len(lines)-2]), string([]rune{waitForContinueChar}), "", -1)
-		draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), fontColor).Move(int(x), int(y)).Draw()
+		draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), s.fontColor).Move(x, y).Draw()
 
-		y += fontH + fontH/3
+		y = ((innerRect.Min.Y+innerRect.Max.Y)/2+innerRect.Max.Y)/2 - fontH/2
 	}
 
 	// 输出行（第二行或第一行）
 	renderStr := strings.Replace(string(lines[len(lines)-1]), string([]rune{waitForContinueChar}), "", -1)
-	draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), fontColor).Move(int(x), int(y)).Draw()
+	draw.PrepareDrawText(drawer, renderStr, util.GetFont(util.FontTypeEnum.Normal, 36), s.fontColor).Move(x, y).Draw()
 
+	// 等待符
 	if s.waitForContinue() {
-		bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), renderStr)
-		x += float64((bounds.Max.X - bounds.Min.X).Round())
-		y += (fontH/5)*3 - stlval.Ternary(s.waitFrame < 4, float64(s.waitFrame), float64(6-s.waitFrame))
-		waitString := string([]rune{waitForContinueChar})
-		bounds, _ = font.BoundString(util.GetFont(util.FontTypeEnum.Emoji, 36).UnsafeInternal(), renderStr)
-		y -= float64((bounds.Max.Y - bounds.Min.Y).Round()) / 2
-		draw.PrepareDrawText(drawer, waitString, util.GetFont(util.FontTypeEnum.Emoji, 36), util.NewNRGBColor(224, 8, 8)).Move(int(x), int(y)).Draw()
+		x += fontW*len([]rune(renderStr)) + fontW/4
+		y += (fontH/5)*3 - stlval.Ternary(s.waitFrame < 4, s.waitFrame, 6-s.waitFrame)
+		ratio := 20 / float64(waitIcon.Bounds().Dx())
+		draw.PrepareDrawImage(drawer, waitIcon).Scale(ratio, ratio).Move(x, y).Draw()
 		return nil
 	}
 	return nil
 }
 
-func (s *DialogueSystem) SetLabel(text string) {
-	s.isDialogue = false
-	s.text = []rune(text)
-	s.index = 0
-	s.lastUpdateTime = time.Time{}
-}
-
-func (s *DialogueSystem) SetDialogue(text string) {
-	s.isDialogue = true
-	s.text = []rune(text)
-	s.index = 0
-	s.lastUpdateTime = time.Time{}
+func (s *DialogueSystem) NeedDrop() bool {
+	return s.needDrop
 }
 
 func (s *DialogueSystem) streamDone() bool {
 	return s.index > len(s.text)-1
-}
-
-func (s *DialogueSystem) frontSize() (int, int) {
-	displayText := s.ctx.Localisation().Get("game_name")
-	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), displayText)
-	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
-}
-
-func (s *DialogueSystem) getLabelBackground(w, h int) imgutil.Image {
-	fontW, fontH := s.frontSize()
-	bgW, bgH := fontW*(w+2), fontH*(h+2)
-
-	img := imgutil.NewImage(bgW, bgH)
-	draw.PrepareDrawRect(img, bgW, bgH, util.NewNRGBColor(104, 112, 120)).Draw()
-	draw.PrepareDrawRect(img, bgW-fontW/2, bgH-fontH/2, util.NewNRGBColor(200, 200, 216)).Move(fontW/4, fontH/4).Draw()
-	draw.PrepareDrawRect(img, bgW-fontW, bgH-fontH, util.NewNRGBColor(248, 248, 248)).Move(fontW/2, fontH/2).Draw()
-	return img
-}
-
-func (s *DialogueSystem) getDialogueBackground(w, h int) imgutil.Image {
-	fontW, fontH := s.frontSize()
-	bgW, bgH := fontW*(w+2), fontH*(h+2)
-
-	img := imgutil.NewImage(bgW, bgH)
-	draw.PrepareDrawRect(img, bgW, bgH, util.NewNRGBColor(160, 208, 224)).SetRadius(fontW / 2).Draw()
-	draw.PrepareDrawRect(img, bgW-fontW/2, bgH-fontH/2, util.NewNRGBColor(224, 240, 248)).SetRadius(fontW/2).Move(fontW/4, fontH/4).Draw()
-	draw.PrepareDrawRect(img, bgW-fontW, bgH-fontH, util.NewNRGBColor(248, 248, 248)).SetRadius(fontW/2).Move(fontW/2, fontH/2).Draw()
-	return img
 }
 
 func (s *DialogueSystem) splitDoneLines(text []rune, maxLineCount int) (lines [][]rune) {
@@ -225,12 +188,4 @@ func (s *DialogueSystem) continueNext() {
 		return
 	}
 	s.index++
-}
-
-func (s *DialogueSystem) Display() bool {
-	return s.display
-}
-
-func (s *DialogueSystem) SetDisplay(v bool) {
-	s.display = v
 }

@@ -22,6 +22,7 @@ type SubSystem interface {
 	OnAction(system SubSystemManager, action input.KeyInputAction) error
 	OnUpdate(system SubSystemManager) error
 	OnDraw(system SubSystemManager, drawer draw.OptionDrawer) error
+	NeedDrop() bool
 }
 
 type emptySubSystem struct{}
@@ -44,4 +45,8 @@ func (emptySubSystem) OnUpdate(system SubSystemManager) error {
 
 func (emptySubSystem) OnDraw(system SubSystemManager, drawer draw.OptionDrawer) error {
 	return nil
+}
+
+func (emptySubSystem) NeedDrop() bool {
+	return false
 }

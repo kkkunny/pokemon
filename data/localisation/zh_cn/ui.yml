@@ -1,0 +1,6 @@
+game_name: "口袋妖怪：火红复刻版"
+battle: "战斗"
+backpack: "背包"
+pokemons: "宝可梦"
+escape: "逃跑"
+default_battle_action_question: "%POKEMON_NAME%\n要做什么呢？"
