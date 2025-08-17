@@ -1,4 +1,4 @@
-package system
+package src
 
 import (
 	"fmt"
@@ -12,27 +12,25 @@ import (
 )
 
 type cursor struct {
-	sys   *System
 	index int
 }
 
-func newCursor(sys *System) *cursor {
+func newCursor() *cursor {
 	return &cursor{
-		sys:   sys,
-		index: len(sys.subSystems) - 1,
+		index: len(subSystems) - 1,
 	}
 }
 
 func (s *cursor) SubSystems() []sub_system.SubSystem {
-	return s.sys.subSystems
+	return subSystems
 }
 
 func (s *cursor) Next() sub_system.SubSystem {
 	s.index--
-	if s.index < 0 || s.index >= len(s.sys.subSystems) {
+	if s.index < 0 || s.index >= len(subSystems) {
 		return sub_system.NewEmptySubSystem()
 	}
-	return s.sys.subSystems[s.index]
+	return subSystems[s.index]
 }
 
 func (s *cursor) DisplayText(boxStyle sub_system.BoxStyle, text string, fontColor color.Color) error {
@@ -40,7 +38,7 @@ func (s *cursor) DisplayText(boxStyle sub_system.BoxStyle, text string, fontColo
 	if err != nil {
 		return err
 	}
-	s.sys.subSystems = append(s.sys.subSystems, ss)
+	subSystems = append(subSystems, ss)
 	return nil
 }
 

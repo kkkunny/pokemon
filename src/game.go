@@ -1,62 +1,77 @@
 package src
 
 import (
-	"fmt"
+	stlslices "github.com/kkkunny/stl/container/slices"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-
-	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/system"
+	"github.com/kkkunny/pokemon/src/system/battle"
+	"github.com/kkkunny/pokemon/src/system/sub_system"
+	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
-type Game struct {
-	input *input.System
-	sys   *system.System
-}
+var subSystems []sub_system.SubSystem
 
-func NewGame() (*Game, error) {
-	sys, err := system.NewSystem()
-	if err != nil {
-		return nil, err
-	}
-	return &Game{
-		input: input.NewSystem(),
-		sys:   sys,
-	}, err
-}
-
-func (g *Game) Name() string {
-	return i18n.Get("game_name")
-}
-
-func (g *Game) Update() error {
-	action, err := g.input.KeyInputAction()
+func Init() error {
+	// 世界
+	ws, err := worldsubsystem.NewWorldSystem()
 	if err != nil {
 		return err
 	}
-	if action != nil {
-		err = g.sys.OnAction(*action)
+
+	// 战斗
+	bs, err := battle.NewBattleSystem()
+	if err != nil {
+		return err
+	}
+
+	subSystems = []sub_system.SubSystem{
+		sub_system.NewEmptySubSystem(),
+		ws,
+		bs,
+	}
+	return nil
+}
+
+func OnAction(action input.KeyInputAction) error {
+	dropSubSystem()
+
+	return stlslices.Last(subSystems).OnAction(newCursor(), action)
+}
+
+func OnUpdate() error {
+	dropSubSystem()
+
+	err := stlslices.Last(subSystems).OnUpdate(newCursor())
+	if err != nil {
+		return err
+	}
+
+	// 声音
+	for _, p := range sub_system.PlayingVoicePlayers {
+		err = p.Player.Play()
 		if err != nil {
 			return err
 		}
 	}
-	return g.sys.OnUpdate()
-}
-
-func (g *Game) Draw(screen *ebiten.Image) {
-	err := g.sys.OnDraw(draw.NewDrawerFromImage(imgutil.WrapImage(screen)))
-	if err != nil {
-		panic(err)
+	stopPlayer := stlslices.DiffTo(sub_system.PrevPlayingVoicePlayers, sub_system.PlayingVoicePlayers)
+	sub_system.PrevPlayingVoicePlayers = sub_system.PlayingVoicePlayers
+	sub_system.PlayingVoicePlayers = nil
+	for _, p := range stopPlayer {
+		p.Pause()
 	}
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f, TPS: %0.2f", ebiten.ActualFPS(), ebiten.ActualTPS()))
+
+	return nil
 }
 
-func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	config.ScreenWidth, config.ScreenHeight = outsideWidth, outsideHeight
-	return outsideWidth, outsideHeight
+func OnDraw(drawer draw.OptionDrawer) error {
+	dropSubSystem()
+
+	return stlslices.Last(subSystems).OnDraw(newCursor(), drawer)
+}
+
+func dropSubSystem() {
+	subSystems = stlslices.Filter(subSystems, func(_ int, ss sub_system.SubSystem) bool {
+		return !ss.Drop()
+	})
 }
