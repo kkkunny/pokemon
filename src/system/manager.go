@@ -1,4 +1,4 @@
-package sub_system
+package system
 
 import (
 	"image/color"
@@ -6,14 +6,14 @@ import (
 	stlval "github.com/kkkunny/stl/value"
 )
 
-type SubSystemManager interface {
-	SubSystems() []SubSystem
-	Next() SubSystem
+type SystemManager interface {
+	SubSystems() []System
+	Next() System
 	DisplayText(boxStyle BoxStyle, text string, fontColor color.Color) error
 	StartOneBattle(site string) error
 }
 
-func ExtractSubSystem[T SubSystem](ssm SubSystemManager) T {
+func ExtractSystem[T System](ssm SystemManager) T {
 	for _, s := range ssm.SubSystems() {
 		ss, ok := s.(T)
 		if ok {

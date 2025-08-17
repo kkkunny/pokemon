@@ -1,4 +1,4 @@
-package sub_system
+package system
 
 import (
 	"image/color"
@@ -8,7 +8,7 @@ import (
 	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/output/voice"
-	"github.com/kkkunny/pokemon/src/system/sub_system"
+	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/system/world"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/system/world/sprite/person"
@@ -20,7 +20,7 @@ type WorldSystem struct {
 	world  *world.World // 世界
 	self   person.Self  // 主角
 	time   time.Time    // 游戏世界时间
-	player *sub_system.RealTimeVoicePlayer
+	player *system.RealTimeVoicePlayer
 }
 
 func NewWorldSystem() (*WorldSystem, error) {
@@ -45,11 +45,11 @@ func NewWorldSystem() (*WorldSystem, error) {
 		world:  w,
 		self:   self,
 		time:   time.Now(),
-		player: sub_system.NewRealTimeVoicePlayer(voice.NewPlayer()),
+		player: system.NewRealTimeVoicePlayer(voice.NewPlayer()),
 	}, nil
 }
 
-func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+func (s *WorldSystem) OnAction(sm system.SystemManager, action input.KeyInputAction) error {
 	drawInfo := &person.UpdateInfo{World: s.world}
 	err := s.self.OnAction(action, drawInfo)
 	if err != nil {
@@ -99,21 +99,21 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 				// }
 			case sprite.ActionTypeEnum.Label:
 				text := i18n.Get(targetSprite.GetText())
-				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
+				return sm.DisplayText(system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			case sprite.ActionTypeEnum.Dialogue:
 				movableSprite, ok := targetSprite.(sprite.MovableSprite)
 				if ok {
 					movableSprite.SetMovable(false)
 				}
 				text := i18n.Get(targetSprite.GetText())
-				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
+				return sm.DisplayText(system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			}
 		}
 	}
 	return nil
 }
 
-func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
+func (s *WorldSystem) OnUpdate(system system.SystemManager) error {
 	// TODO: MOCK
 	return system.StartOneBattle("grassland")
 
@@ -147,7 +147,7 @@ func (s *WorldSystem) Drop() bool {
 	return false
 }
 
-func (s *WorldSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+func (s *WorldSystem) OnDraw(system system.SystemManager, drawer draw.OptionDrawer) error {
 	// 地图
 	err := s.world.OnDraw(drawer.Scale(config.Scale, config.Scale), []sprite.Sprite{s.self})
 	if err != nil {

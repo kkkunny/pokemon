@@ -13,7 +13,7 @@ import (
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/system/sub_system"
+	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
@@ -36,7 +36,7 @@ func init() {
 }
 
 type Text struct {
-	boxStyle  sub_system.BoxStyle
+	boxStyle  system.BoxStyle
 	needDrop  bool
 	fontColor color.Color
 
@@ -48,7 +48,7 @@ type Text struct {
 	waitFrame      int
 }
 
-func NewText(botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*Text, error) {
+func NewText(botStyle system.BoxStyle, text string, fontColor color.Color) (*Text, error) {
 	return &Text{
 		boxStyle:        botStyle,
 		fontColor:       fontColor,
@@ -57,7 +57,7 @@ func NewText(botStyle sub_system.BoxStyle, text string, fontColor color.Color) (
 	}, nil
 }
 
-func (s *Text) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+func (s *Text) OnAction(system system.SystemManager, action input.KeyInputAction) error {
 	switch {
 	case s.waitForContinue() && action == input.KeyInputActionEnum.A.Pressed():
 		s.continueNext()
@@ -71,7 +71,7 @@ func (s *Text) OnAction(system sub_system.SubSystemManager, action input.KeyInpu
 	return nil
 }
 
-func (s *Text) OnUpdate(system sub_system.SubSystemManager) error {
+func (s *Text) OnUpdate(system system.SystemManager) error {
 	if s.waitForContinue() {
 		if time.Since(s.lastUpdateTime) > s.displayInterval {
 			s.waitFrame = (s.waitFrame + 1) % 6
@@ -87,7 +87,7 @@ func (s *Text) OnUpdate(system sub_system.SubSystemManager) error {
 	return system.Next().OnUpdate(system)
 }
 
-func (s *Text) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+func (s *Text) OnDraw(system system.SystemManager, drawer draw.OptionDrawer) error {
 	err := system.Next().OnDraw(system, drawer)
 	if err != nil {
 		return err

@@ -13,7 +13,7 @@ import (
 	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/pokemon"
-	"github.com/kkkunny/pokemon/src/system/sub_system"
+	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
@@ -53,7 +53,7 @@ func (s *BattleSystem) StartOneBattle(site string) error {
 	return nil
 }
 
-func (s *BattleSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
+func (s *BattleSystem) OnAction(system system.SystemManager, action input.KeyInputAction) error {
 	if !s.active {
 		return system.Next().OnAction(system, action)
 	}
@@ -72,14 +72,14 @@ func (s *BattleSystem) OnAction(system sub_system.SubSystemManager, action input
 	return nil
 }
 
-func (s *BattleSystem) OnUpdate(system sub_system.SubSystemManager) error {
+func (s *BattleSystem) OnUpdate(system system.SystemManager) error {
 	if !s.active {
 		return system.Next().OnUpdate(system)
 	}
 	return nil
 }
 
-func (s *BattleSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDrawer) error {
+func (s *BattleSystem) OnDraw(system system.SystemManager, drawer draw.OptionDrawer) error {
 	if !s.active {
 		return system.Next().OnDraw(system, drawer)
 	}

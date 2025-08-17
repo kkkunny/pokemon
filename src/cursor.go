@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/kkkunny/pokemon/src/i18n"
+	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/system/battle"
 	"github.com/kkkunny/pokemon/src/system/dialogue"
-	"github.com/kkkunny/pokemon/src/system/sub_system"
 )
 
 type cursor struct {
@@ -21,19 +21,19 @@ func newCursor() *cursor {
 	}
 }
 
-func (s *cursor) SubSystems() []sub_system.SubSystem {
+func (s *cursor) SubSystems() []system.System {
 	return subSystems
 }
 
-func (s *cursor) Next() sub_system.SubSystem {
+func (s *cursor) Next() system.System {
 	s.index--
 	if s.index < 0 || s.index >= len(subSystems) {
-		return sub_system.NewEmptySubSystem()
+		return system.NewEmptySystem()
 	}
 	return subSystems[s.index]
 }
 
-func (s *cursor) DisplayText(boxStyle sub_system.BoxStyle, text string, fontColor color.Color) error {
+func (s *cursor) DisplayText(boxStyle system.BoxStyle, text string, fontColor color.Color) error {
 	ss, err := dialogue.NewText(boxStyle, text, fontColor)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (s *cursor) DisplayText(boxStyle sub_system.BoxStyle, text string, fontColo
 }
 
 func (s *cursor) StartOneBattle(site string) error {
-	ss := sub_system.ExtractSubSystem[*battle.BattleSystem](s)
+	ss := system.ExtractSystem[*battle.BattleSystem](s)
 	err := ss.StartOneBattle(site)
 	if err != nil {
 		return err
@@ -51,5 +51,5 @@ func (s *cursor) StartOneBattle(site string) error {
 
 	pokemonName := i18n.Get(fmt.Sprintf("pokemon.%d", ss.GetSelfPokemon().ID))
 	text := strings.ReplaceAll(i18n.Get("default_battle_action_question"), "%POKEMON_NAME%", pokemonName)
-	return s.DisplayText(sub_system.BoxStyleEnum.Battle, text, color.White)
+	return s.DisplayText(system.BoxStyleEnum.Battle, text, color.White)
 }

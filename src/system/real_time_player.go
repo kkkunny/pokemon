@@ -1,4 +1,4 @@
-package sub_system
+package system
 
 import (
 	stlslices "github.com/kkkunny/stl/container/slices"

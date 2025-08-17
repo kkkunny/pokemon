@@ -4,17 +4,17 @@ import (
 	stlslices "github.com/kkkunny/stl/container/slices"
 
 	"github.com/kkkunny/pokemon/src/input"
+	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/system/battle"
-	"github.com/kkkunny/pokemon/src/system/sub_system"
-	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
+	worldsystem "github.com/kkkunny/pokemon/src/system/world/system"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
-var subSystems []sub_system.SubSystem
+var subSystems []system.System
 
 func Init() error {
 	// 世界
-	ws, err := worldsubsystem.NewWorldSystem()
+	ws, err := worldsystem.NewWorldSystem()
 	if err != nil {
 		return err
 	}
@@ -25,8 +25,8 @@ func Init() error {
 		return err
 	}
 
-	subSystems = []sub_system.SubSystem{
-		sub_system.NewEmptySubSystem(),
+	subSystems = []system.System{
+		system.NewEmptySystem(),
 		ws,
 		bs,
 	}
@@ -48,15 +48,15 @@ func OnUpdate() error {
 	}
 
 	// 声音
-	for _, p := range sub_system.PlayingVoicePlayers {
+	for _, p := range system.PlayingVoicePlayers {
 		err = p.Player.Play()
 		if err != nil {
 			return err
 		}
 	}
-	stopPlayer := stlslices.DiffTo(sub_system.PrevPlayingVoicePlayers, sub_system.PlayingVoicePlayers)
-	sub_system.PrevPlayingVoicePlayers = sub_system.PlayingVoicePlayers
-	sub_system.PlayingVoicePlayers = nil
+	stopPlayer := stlslices.DiffTo(system.PrevPlayingVoicePlayers, system.PlayingVoicePlayers)
+	system.PrevPlayingVoicePlayers = system.PlayingVoicePlayers
+	system.PlayingVoicePlayers = nil
 	for _, p := range stopPlayer {
 		p.Pause()
 	}
@@ -71,7 +71,7 @@ func OnDraw(drawer draw.OptionDrawer) error {
 }
 
 func dropSubSystem() {
-	subSystems = stlslices.Filter(subSystems, func(_ int, ss sub_system.SubSystem) bool {
+	subSystems = stlslices.Filter(subSystems, func(_ int, ss system.System) bool {
 		return !ss.Drop()
 	})
 }
