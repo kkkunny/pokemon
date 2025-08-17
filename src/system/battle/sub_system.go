@@ -10,9 +10,9 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/pokemon"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -20,8 +20,6 @@ import (
 )
 
 type BattleSystem struct {
-	ctx context.Context
-
 	active    bool
 	siteImage imgutil.Image // 战斗场地
 
@@ -33,21 +31,20 @@ type BattleSystem struct {
 	actionSelect int8
 }
 
-func NewBattleSystem(ctx context.Context) (*BattleSystem, error) {
+func NewBattleSystem() (*BattleSystem, error) {
 	pok, err := pokemon.LoadPokemonRace(1)
 	if err != nil {
 		return nil, err
 	}
 	pms := [2]*pokemon.Pokemon{pok.RandomPokemon(), pok.RandomPokemon()}
 	return &BattleSystem{
-		ctx:    ctx,
 		pmRace: pok,
 		pms:    pms,
 	}, nil
 }
 
 func (s *BattleSystem) StartOneBattle(site string) error {
-	siteImage, err := util.FindFileAndThenParse(config.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
+	siteImage, err := util.FindFileAndThenParse(consts.GFXBattleSitesPath, site, imgutil.NewImageFromFile)
 	if err != nil {
 		return err
 	}
@@ -119,10 +116,10 @@ func (s *BattleSystem) OnDraw(system sub_system.SubSystemManager, drawer draw.Op
 	draw.PrepareDrawRect(drawer, screenWidth/2-14, bgH-4, util.NewNRGBColor(112, 104, 128)).Move(screenWidth/2+7, screenHeight-bgH-3).Draw()
 	draw.PrepareDrawRect(drawer, screenWidth/2-24, bgH-14, util.NewNRGBColor(248, 248, 248)).Move(screenWidth/2+12, screenHeight-bgH+2).SetRadius(6).Draw()
 
-	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("battle"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+14).Draw()
-	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("backpack"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+14).Draw()
-	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("pokemons"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+60).Draw()
-	draw.PrepareDrawText(drawer, s.ctx.Localisation().Get("escape"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+60).Draw()
+	draw.PrepareDrawText(drawer, i18n.Get("battle"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+14).Draw()
+	draw.PrepareDrawText(drawer, i18n.Get("backpack"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+14).Draw()
+	draw.PrepareDrawText(drawer, i18n.Get("pokemons"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+50, screenHeight-bgH+60).Draw()
+	draw.PrepareDrawText(drawer, i18n.Get("escape"), util.GetFont(util.FontTypeEnum.Normal, 32), color.Black).Move(screenWidth/2+240, screenHeight-bgH+60).Draw()
 	actionSelectDrawer := draw.PrepareDrawText(drawer, "🔻", util.GetFont(util.FontTypeEnum.Emoji, 32), color.Black)
 	switch s.actionSelect {
 	case 0:
@@ -147,7 +144,7 @@ func (s *BattleSystem) Active() bool {
 }
 
 func (s *BattleSystem) frontSize() (int, int) {
-	displayText := s.ctx.Localisation().Get("game_name")
+	displayText := i18n.Get("game_name")
 	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 32).UnsafeInternal(), displayText)
 	return (bounds.Max.X - bounds.Min.X).Round() / len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 }
@@ -160,7 +157,7 @@ func (s *BattleSystem) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Typ
 		scale := 14 / float64(icon.Bounds().Dy())
 		draw.PrepareDrawImage(drawer, icon).Scale(scale, scale).Move(2, 1).Draw()
 	}
-	typeName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon_type.%s", typ))
+	typeName := i18n.Get(fmt.Sprintf("pokemon_type.%s", typ))
 	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 11).UnsafeInternal(), typeName)
 	x, y := (16+52)/2-bounds.Max.X.Round()/2, 3
 	draw.PrepareDrawText(drawer, typeName, util.GetFont(util.FontTypeEnum.Normal, 11), color.White).Move(x, y).Draw()
@@ -168,7 +165,7 @@ func (s *BattleSystem) drawPokemonType(drawer draw.OptionDrawer, typ pokemon.Typ
 
 func (s *BattleSystem) drawPokemonStatusCard(drawer draw.OptionDrawer, pm *pokemon.Pokemon) {
 	draw.PrepareDrawRect(drawer, 300, 80, util.NewNRGBColor(248, 248, 216)).SetBorderWidth(5).SetBorderColor(color.Black).Draw()
-	pokemonName := s.ctx.Localisation().Get(fmt.Sprintf("pokemon.%d", pm.ID))
+	pokemonName := i18n.Get(fmt.Sprintf("pokemon.%d", pm.ID))
 	pokemonNameBounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 26).UnsafeInternal(), pokemonName)
 	types := pm.Type.Flatten()
 	if len(types) == 1 {

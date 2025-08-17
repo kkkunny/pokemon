@@ -11,7 +11,7 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 
-	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 )
 
 type FontType uint8
@@ -28,7 +28,7 @@ func init() {
 	fontNames := enum.Keys(FontTypeEnum)
 	fontTypeEnums := enum.Values[FontType](FontTypeEnum)
 	for i, fontName := range fontNames {
-		fontData, err := os.ReadFile(filepath.Join(config.FontsPath, strings.ToLower(fontName)+".ttf"))
+		fontData, err := os.ReadFile(filepath.Join(consts.FontsPath, strings.ToLower(fontName)+".ttf"))
 		if err != nil {
 			panic(err)
 		}

@@ -5,32 +5,29 @@ import (
 
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system/battle"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	worldsubsystem "github.com/kkkunny/pokemon/src/system/world/sub_system"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
 type System struct {
-	ctx        context.Context
 	subSystems []sub_system.SubSystem
 }
 
-func NewSystem(ctx context.Context) (*System, error) {
+func NewSystem() (*System, error) {
 	// 世界
-	ws, err := worldsubsystem.NewWorldSystem(ctx)
+	ws, err := worldsubsystem.NewWorldSystem()
 	if err != nil {
 		return nil, err
 	}
 
 	// 战斗
-	bs, err := battle.NewBattleSystem(ctx)
+	bs, err := battle.NewBattleSystem()
 	if err != nil {
 		return nil, err
 	}
 
 	return &System{
-		ctx: ctx,
 		subSystems: []sub_system.SubSystem{
 			sub_system.NewEmptySubSystem(),
 			ws,

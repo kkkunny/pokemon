@@ -11,7 +11,8 @@ import (
 	"github.com/tnnmigga/enum"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/system/context"
+	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/i18n"
 	render2 "github.com/kkkunny/pokemon/src/system/world/render"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
@@ -26,7 +27,6 @@ var ObjectLayerTypeEnum = enum.New[struct {
 }]()
 
 type Map struct {
-	ctx          context.Context
 	id           string
 	define       *tiled.Map
 	tileCache    *render2.TileCache
@@ -34,11 +34,11 @@ type Map struct {
 	sprites      []sprite.Sprite
 }
 
-func NewMap(ctx context.Context, tileCache *render2.TileCache, id string) (*Map, error) {
-	return newMapWithAdjacent(ctx, tileCache, id, make(map[string]*Map))
+func NewMap(tileCache *render2.TileCache, id string) (*Map, error) {
+	return newMapWithAdjacent(tileCache, id, make(map[string]*Map))
 }
 
-func newMapWithAdjacent(ctx context.Context, tileCache *render2.TileCache, id string, existMap map[string]*Map) (*Map, error) {
+func newMapWithAdjacent(tileCache *render2.TileCache, id string, existMap map[string]*Map) (*Map, error) {
 	// 缓存
 	curMap := existMap[id]
 	if curMap != nil {
@@ -46,7 +46,7 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render2.TileCache, id st
 	}
 
 	// 地图
-	mapTMX, err := tiled.LoadFile(filepath.Join(config.MapsPath, id+".tmx"))
+	mapTMX, err := tiled.LoadFile(filepath.Join(consts.MapsPath, id+".tmx"))
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,6 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render2.TileCache, id st
 	}
 
 	curMap = &Map{
-		ctx:       ctx,
 		id:        id,
 		define:    mapTMX,
 		tileCache: tileCache,
@@ -66,7 +65,7 @@ func newMapWithAdjacent(ctx context.Context, tileCache *render2.TileCache, id st
 	if mapTMX.Properties != nil {
 		songFileName := mapTMX.Properties.GetString("song")
 		if songFileName != "" {
-			curMap.songFilepath = filepath.Join(config.VoicePath, "map", songFileName)
+			curMap.songFilepath = filepath.Join(consts.VoicePath, "map", songFileName)
 		}
 	}
 
@@ -147,7 +146,7 @@ func (m *Map) ID() string {
 }
 
 func (m *Map) Name() string {
-	return m.ctx.Localisation().Get(m.define.Properties.GetString("name"))
+	return i18n.Get(m.define.Properties.GetString("name"))
 }
 
 func (m *Map) SongFilepath() (string, bool) {

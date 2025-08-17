@@ -9,7 +9,6 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -51,7 +50,7 @@ func NewSelf(name string) (Self, error) {
 	return &_Self{_Person: *person}, nil
 }
 
-func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sprite.UpdateInfo) error {
+func (s *_Self) OnAction(action input.KeyInputAction, info sprite.UpdateInfo) error {
 	if info == nil {
 		return nil
 	}
@@ -84,7 +83,7 @@ func (s *_Self) PixelPosition() (x, y float64) {
 	return float64(config.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(config.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
 }
 
-func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
+func (s *_Self) Update(info sprite.UpdateInfo) error {
 	if info == nil {
 		return errors.New("expect UpdateInfo")
 	}
@@ -131,7 +130,7 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (s *_Self) Draw(ctx context.Context, drawer draw.OptionDrawer) error {
+func (s *_Self) Draw(drawer draw.OptionDrawer) error {
 	x, y := s.PixelPosition()
 	drawer = drawer.MoveTo(int(x/config.Scale), int(y/config.Scale))
 

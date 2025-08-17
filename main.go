@@ -9,11 +9,17 @@ import (
 
 	"github.com/kkkunny/pokemon/src"
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/i18n"
 )
 
 func main() {
 	config.Init()
-	icon, err := imaging.Open(filepath.Join(config.GFXPath, "icon.png"))
+	if err := i18n.Init(); err != nil {
+		panic(err)
+	}
+
+	icon, err := imaging.Open(filepath.Join(consts.GFXPath, "icon.png"))
 	if err != nil {
 		panic(err)
 	}

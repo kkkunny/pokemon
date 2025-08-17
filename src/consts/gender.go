@@ -1,6 +1,8 @@
 package consts
 
-import "github.com/kkkunny/pokemon/src/util"
+import (
+	"image/color"
+)
 
 const (
 	MaleText   = "♂"
@@ -8,6 +10,6 @@ const (
 )
 
 var (
-	MaleColor   = util.NewNRGBColor(51, 85, 255)   // 雄性颜色
-	FemaleColor = util.NewNRGBColor(255, 119, 221) // 雌性颜色
+	MaleColor   = color.NRGBA{R: 51, G: 85, B: 255, A: 0xff}   // 雄性颜色
+	FemaleColor = color.NRGBA{R: 255, G: 119, B: 221, A: 0xff} // 雌性颜色
 )

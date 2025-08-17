@@ -8,13 +8,12 @@ import (
 
 	"github.com/tnnmigga/enum"
 
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/animation"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	"github.com/kkkunny/pokemon/src/util/image"
-
-	"github.com/kkkunny/pokemon/src/config"
 )
 
 type Foot int8
@@ -26,7 +25,7 @@ var FootEnum = enum.New[struct {
 
 // 载入人类动画
 func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite.Behavior]map[util.Direction]map[Foot]*animation.Animation, error) {
-	dirpath := filepath.Join(config.GFXMapPath, "people", name)
+	dirpath := filepath.Join(consts.GFXMapPath, "people", name)
 	dirinfo, err := os.Stat(dirpath)
 	if err != nil {
 		return nil, err

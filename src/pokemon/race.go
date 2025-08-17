@@ -9,7 +9,7 @@ import (
 
 	stlslices "github.com/kkkunny/stl/container/slices"
 
-	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/animation"
 )
@@ -46,7 +46,7 @@ type pokemonRaceDefine struct {
 }
 
 func LoadPokemonRace(id uint16) (*Race, error) {
-	dirpath := filepath.Join(config.PokemonDefinePath, strconv.FormatUint(uint64(id), 10))
+	dirpath := filepath.Join(consts.PokemonDefinePath, strconv.FormatUint(uint64(id), 10))
 	definePath := filepath.Join(dirpath, "define.json")
 	defineData, err := os.ReadFile(definePath)
 	if err != nil {

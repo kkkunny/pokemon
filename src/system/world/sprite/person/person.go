@@ -10,7 +10,6 @@ import (
 
 	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/system/world/sprite/item"
 	"github.com/kkkunny/pokemon/src/util"
@@ -142,7 +141,7 @@ func (p *_Person) SetNextStepDirection(d util.Direction) bool {
 	return true
 }
 
-func (p *_Person) OnAction(_ context.Context, _ input.KeyInputAction, _ sprite.UpdateInfo) error {
+func (p *_Person) OnAction(_ input.KeyInputAction, _ sprite.UpdateInfo) error {
 	return nil
 }
 
@@ -167,7 +166,7 @@ func (p *_Person) PixelPosition() (x, y float64) {
 	return x, y
 }
 
-func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
+func (p *_Person) Update(info sprite.UpdateInfo) error {
 	if info == nil {
 		return errors.New("expect UpdateInfo")
 	}
@@ -223,7 +222,7 @@ func (p *_Person) Update(ctx context.Context, info sprite.UpdateInfo) error {
 	return nil
 }
 
-func (p *_Person) Draw(ctx context.Context, drawer draw.OptionDrawer) error {
+func (p *_Person) Draw(drawer draw.OptionDrawer) error {
 	x, y := p.PixelPosition()
 	drawer = drawer.Move(int(x), int(y))
 

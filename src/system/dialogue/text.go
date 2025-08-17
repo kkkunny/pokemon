@@ -10,9 +10,9 @@ import (
 	stlval "github.com/kkkunny/stl/value"
 	"golang.org/x/image/font"
 
-	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
+	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/util"
 	"github.com/kkkunny/pokemon/src/util/draw"
@@ -28,7 +28,7 @@ const (
 var waitIcon imgutil.Image
 
 func init() {
-	icon, err := imgutil.NewImageFromFile(filepath.Join(config.GFXInterfacePath, "red_wedge_1.png"))
+	icon, err := imgutil.NewImageFromFile(filepath.Join(consts.GFXInterfacePath, "red_wedge_1.png"))
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +36,6 @@ func init() {
 }
 
 type Text struct {
-	ctx       context.Context
 	boxStyle  sub_system.BoxStyle
 	needDrop  bool
 	fontColor color.Color
@@ -49,9 +48,8 @@ type Text struct {
 	waitFrame      int
 }
 
-func NewText(ctx context.Context, botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*Text, error) {
+func NewText(botStyle sub_system.BoxStyle, text string, fontColor color.Color) (*Text, error) {
 	return &Text{
-		ctx:             ctx,
 		boxStyle:        botStyle,
 		fontColor:       fontColor,
 		displayInterval: normalDisplayInterval,
@@ -102,7 +100,7 @@ func (s *Text) OnDraw(system sub_system.SubSystemManager, drawer draw.OptionDraw
 	}
 
 	// 文字
-	displayText := s.ctx.Localisation().Get("game_name")
+	displayText := i18n.Get("game_name")
 	bounds, _ := font.BoundString(util.GetFont(util.FontTypeEnum.Normal, 36).UnsafeInternal(), displayText)
 	fontW, fontH := (bounds.Max.X-bounds.Min.X).Round()/len([]rune(displayText)), (bounds.Max.Y - bounds.Min.Y).Round()
 	hSep := 10

@@ -10,7 +10,7 @@ import (
 
 	"github.com/tnnmigga/enum"
 
-	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/util"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
@@ -26,7 +26,7 @@ func init() {
 		field.SetUint(uint64(v))
 	}
 
-	file, err := os.Open(filepath.Join(config.DataPath, "type_restraint_relationship.csv"))
+	file, err := os.Open(filepath.Join(consts.DataPath, "type_restraint_relationship.csv"))
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func init() {
 	// icon
 	types := enum.Values[Type](TypeEnum)
 	for i, name := range enum.Keys(TypeEnum) {
-		icon, err := util.FindFileAndThenParse(config.GFXPokemonTypePath, strings.ToLower(name), imgutil.NewImageFromFile)
+		icon, err := util.FindFileAndThenParse(consts.GFXPokemonTypePath, strings.ToLower(name), imgutil.NewImageFromFile)
 		if err != nil {
 			continue
 		}

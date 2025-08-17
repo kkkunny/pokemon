@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/output/voice"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/sub_system"
 	"github.com/kkkunny/pokemon/src/system/world"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
@@ -17,16 +17,15 @@ import (
 )
 
 type WorldSystem struct {
-	ctx    context.Context
 	world  *world.World // 世界
 	self   person.Self  // 主角
 	time   time.Time    // 游戏世界时间
 	player *sub_system.RealTimeVoicePlayer
 }
 
-func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
+func NewWorldSystem() (*WorldSystem, error) {
 	// 地图
-	w, err := world.NewWorld(ctx)
+	w, err := world.NewWorld()
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +42,6 @@ func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
 	self.SetPosition(6, 8)
 
 	return &WorldSystem{
-		ctx:    ctx,
 		world:  w,
 		self:   self,
 		time:   time.Now(),
@@ -53,12 +51,12 @@ func NewWorldSystem(ctx context.Context) (*WorldSystem, error) {
 
 func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.KeyInputAction) error {
 	drawInfo := &person.UpdateInfo{World: s.world}
-	err := s.self.OnAction(s.ctx, action, drawInfo)
+	err := s.self.OnAction(action, drawInfo)
 	if err != nil {
 		return err
 	}
 	for _, sp := range s.world.CurrentMap().Sprites() {
-		err = sp.OnAction(s.ctx, action, drawInfo)
+		err = sp.OnAction(action, drawInfo)
 		if err != nil {
 			return err
 		}
@@ -100,14 +98,14 @@ func (s *WorldSystem) OnAction(system sub_system.SubSystemManager, action input.
 				// 	return err
 				// }
 			case sprite.ActionTypeEnum.Label:
-				text := s.ctx.Localisation().Get(targetSprite.GetText())
+				text := i18n.Get(targetSprite.GetText())
 				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			case sprite.ActionTypeEnum.Dialogue:
 				movableSprite, ok := targetSprite.(sprite.MovableSprite)
 				if ok {
 					movableSprite.SetMovable(false)
 				}
-				text := s.ctx.Localisation().Get(targetSprite.GetText())
+				text := i18n.Get(targetSprite.GetText())
 				return system.DisplayText(sub_system.BoxStyleEnum.Label, text, util.NewNRGBColor(100, 100, 100))
 			}
 		}
@@ -137,12 +135,12 @@ func (s *WorldSystem) OnUpdate(system sub_system.SubSystemManager) error {
 
 	// 主角
 	drawInfo := &person.UpdateInfo{World: s.world}
-	err := s.self.Update(s.ctx, drawInfo)
+	err := s.self.Update(drawInfo)
 	if err != nil {
 		return err
 	}
 	// 世界
-	return s.world.Update(s.ctx, []sprite.Sprite{s.self}, drawInfo)
+	return s.world.Update([]sprite.Sprite{s.self}, drawInfo)
 }
 
 func (s *WorldSystem) Drop() bool {

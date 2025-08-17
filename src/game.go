@@ -7,39 +7,31 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/kkkunny/pokemon/src/config"
+	"github.com/kkkunny/pokemon/src/i18n"
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/util/draw"
-	"github.com/kkkunny/pokemon/src/util/i18n"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
 
 type Game struct {
-	loc   *i18n.Localisation
 	input *input.System
 	sys   *system.System
 }
 
 func NewGame() (*Game, error) {
-	// 翻译
-	loc, err := i18n.LoadLocalisation(i18n.LanguageEnum.ZH_CN)
-	if err != nil {
-		return nil, err
-	}
-	sys, err := system.NewSystem(context.NewContext(loc))
+	sys, err := system.NewSystem()
 	if err != nil {
 		return nil, err
 	}
 	return &Game{
-		loc:   loc,
 		input: input.NewSystem(),
 		sys:   sys,
 	}, err
 }
 
 func (g *Game) Name() string {
-	return g.loc.Get("game_name")
+	return i18n.Get("game_name")
 }
 
 func (g *Game) Update() error {

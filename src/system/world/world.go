@@ -10,7 +10,6 @@ import (
 	"golang.org/x/image/font"
 
 	"github.com/kkkunny/pokemon/src/config"
-	"github.com/kkkunny/pokemon/src/system/context"
 	"github.com/kkkunny/pokemon/src/system/world/render"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
@@ -19,7 +18,6 @@ import (
 )
 
 type World struct {
-	ctx             context.Context
 	tileCache       *render.TileCache
 	mapCache        map[string]*Map
 	currentMap      *Map
@@ -34,17 +32,16 @@ type World struct {
 	selfPos [2]int // 主角所在当前地图位置
 }
 
-func NewWorld(ctx context.Context) (*World, error) {
+func NewWorld() (*World, error) {
 	tileCache := render.NewTileCache()
 	return &World{
-		ctx:           ctx,
 		tileCache:     tileCache,
 		mapCache:      make(map[string]*Map),
 		nameMoveSpeed: 1,
 	}, nil
 }
 
-func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite.UpdateInfo) error {
+func (w *World) Update(sprites []sprite.Sprite, info sprite.UpdateInfo) error {
 	// 全局精灵
 	var selfX, selfY int
 	for _, s := range sprites {
@@ -57,7 +54,7 @@ func (w *World) Update(ctx context.Context, sprites []sprite.Sprite, info sprite
 	}
 	// 地图精灵
 	for _, s := range w.CurrentMap().Sprites() {
-		err := s.Update(ctx, info)
+		err := s.Update(info)
 		if err != nil {
 			return err
 		}
@@ -191,7 +188,7 @@ func (w *World) OnDraw(drawer draw.OptionDrawer, sprites []sprite.Sprite) error 
 	spritePairs := drawSprites.ToSlice()
 	currentMapPos := map2Pos[w.currentMap]
 	for i := len(spritePairs) - 1; i >= 0; i-- {
-		err = spritePairs[i].E2().Draw(w.ctx, drawer.Move(currentMapPos.X, currentMapPos.Y))
+		err = spritePairs[i].E2().Draw(drawer.Move(currentMapPos.X, currentMapPos.Y))
 		if err != nil {
 			return err
 		}
@@ -214,7 +211,7 @@ func (w *World) loadMap(id string) (*Map, error) {
 	if m := w.mapCache[id]; m != nil {
 		return m, nil
 	}
-	targetMap, err := NewMap(w.ctx, w.tileCache, id)
+	targetMap, err := NewMap(w.tileCache, id)
 	if err != nil {
 		return nil, err
 	}
