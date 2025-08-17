@@ -16,24 +16,22 @@ import (
 )
 
 type Game struct {
-	cfg   *config.Config
 	loc   *i18n.Localisation
 	input *input.System
 	sys   *system.System
 }
 
-func NewGame(cfg *config.Config) (*Game, error) {
+func NewGame() (*Game, error) {
 	// 翻译
 	loc, err := i18n.LoadLocalisation(i18n.LanguageEnum.ZH_CN)
 	if err != nil {
 		return nil, err
 	}
-	sys, err := system.NewSystem(context.NewContext(cfg, loc))
+	sys, err := system.NewSystem(context.NewContext(loc))
 	if err != nil {
 		return nil, err
 	}
 	return &Game{
-		cfg:   cfg,
 		loc:   loc,
 		input: input.NewSystem(),
 		sys:   sys,
@@ -67,6 +65,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	g.cfg.ScreenWidth, g.cfg.ScreenHeight = outsideWidth, outsideHeight
+	config.ScreenWidth, config.ScreenHeight = outsideWidth, outsideHeight
 	return outsideWidth, outsideHeight
 }

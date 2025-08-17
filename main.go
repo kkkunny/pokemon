@@ -12,17 +12,17 @@ import (
 )
 
 func main() {
+	config.Init()
 	icon, err := imaging.Open(filepath.Join(config.GFXPath, "icon.png"))
 	if err != nil {
 		panic(err)
 	}
 	ebiten.SetWindowIcon([]image.Image{icon})
-	cfg := config.NewConfig()
-	game, err := src.NewGame(cfg)
+	game, err := src.NewGame()
 	if err != nil {
 		panic(err)
 	}
-	ebiten.SetWindowSize(cfg.ScreenWidth, cfg.ScreenHeight)
+	ebiten.SetWindowSize(config.ScreenWidth, config.ScreenHeight)
 	ebiten.SetWindowTitle(game.Name())
 	if err = ebiten.RunGame(game); err != nil {
 		panic(err)

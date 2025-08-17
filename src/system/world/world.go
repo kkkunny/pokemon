@@ -108,7 +108,7 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 		x0, y0 := max(0-pixX, 0)/config.TileSize, max(0-pixY, 0)/config.TileSize
 		mapPixWidth, mapPixHeight := m.PixelSize()
 		mapWidth, mapHeight := m.Size()
-		x1, y1 := mapWidth-max((pixX+mapPixWidth)*config.Scale-w.ctx.Config().ScreenWidth, 0)/(config.TileSize*config.Scale), mapHeight-max((pixY+mapPixHeight)*config.Scale-w.ctx.Config().ScreenHeight, 0)/(config.TileSize*config.Scale)
+		x1, y1 := mapWidth-max((pixX+mapPixWidth)*config.Scale-config.ScreenWidth, 0)/(config.TileSize*config.Scale), mapHeight-max((pixY+mapPixHeight)*config.Scale-config.ScreenHeight, 0)/(config.TileSize*config.Scale)
 		map2Rect[m] = image.Rect(x0, y0, x1, y1)
 
 		needDrawAdjacentMaps := stlmaps.Filter(m.AdjacentMaps(), func(d util.Direction, id string) bool {
@@ -116,11 +116,11 @@ func (w *World) getNeedDrawMap() (map[*Map]image.Point, map[*Map]image.Rectangle
 			case util.DirectionEnum.Up:
 				return pixY > 0
 			case util.DirectionEnum.Down:
-				return (pixY+mapPixHeight)*config.Scale < w.ctx.Config().ScreenHeight
+				return (pixY+mapPixHeight)*config.Scale < config.ScreenHeight
 			case util.DirectionEnum.Left:
 				return pixX > 0
 			case util.DirectionEnum.Right:
-				return (pixX+mapPixWidth)*config.Scale < w.ctx.Config().ScreenWidth
+				return (pixX+mapPixWidth)*config.Scale < config.ScreenWidth
 			default:
 				return false
 			}
@@ -297,7 +297,7 @@ func (w *World) CheckCollision(d util.Direction, x, y int) bool {
 
 // DrawMapName 绘制地图名
 func (w *World) DrawMapName(drawer draw.OptionDrawer) error {
-	height := w.ctx.Config().ScreenHeight / 7
+	height := config.ScreenHeight / 7
 	if w.nameMoveCounter < 0 || w.nameMoveCounter >= height*4 {
 		return nil
 	}
@@ -325,7 +325,7 @@ func (w *World) getMapNameDisplayImage() (imgutil.Image, bool) {
 		return nil, false
 	}
 
-	width, height := w.ctx.Config().ScreenWidth/3, w.ctx.Config().ScreenHeight/7
+	width, height := config.ScreenWidth/3, config.ScreenHeight/7
 	img := imgutil.NewImage(width, height)
 	draw.PrepareDrawRect(img, width, height, util.NewNRGBColor(248, 248, 255)).Draw()
 	draw.PrepareDrawRect(img, width, height, nil).SetBorderWidth(12).SetBorderColor(util.NewNRGBColor(176, 196, 222)).Draw()

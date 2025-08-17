@@ -79,9 +79,9 @@ func (s *_Self) OnAction(_ context.Context, action input.KeyInputAction, info sp
 }
 
 // 主角放于屏幕正中间时，相对于屏幕左上角的像素位置，考虑放大倍数
-func (s *_Self) PixelPosition(cfg *config.Config) (x, y float64) {
+func (s *_Self) PixelPosition() (x, y float64) {
 	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
-	return float64(cfg.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(cfg.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
+	return float64(config.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(config.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
 }
 
 func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
@@ -125,14 +125,14 @@ func (s *_Self) Update(ctx context.Context, info sprite.UpdateInfo) error {
 
 	// 更新地图位置
 	pixX, pixY := s._Person.PixelPosition()
-	selfPixX, selfPixY := s.PixelPosition(ctx.Config())
+	selfPixX, selfPixY := s.PixelPosition()
 	mapPixX, mapPixY := (selfPixX-pixX*config.Scale)/config.Scale, (selfPixY-pixY*config.Scale)/config.Scale
 	updateInfo.World.MovePixelPosTo(int(mapPixX), int(mapPixY))
 	return nil
 }
 
 func (s *_Self) Draw(ctx context.Context, drawer draw.OptionDrawer) error {
-	x, y := s.PixelPosition(ctx.Config())
+	x, y := s.PixelPosition()
 	drawer = drawer.MoveTo(int(x/config.Scale), int(y/config.Scale))
 
 	if s.Turning() {

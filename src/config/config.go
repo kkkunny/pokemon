@@ -5,13 +5,13 @@ const (
 	TileSize = 16 // 地图原大小
 )
 
-type Config struct {
-	ScreenWidth, ScreenHeight int
-}
+var (
+	// 屏幕宽
+	ScreenHeight int
+	// 屏幕高
+	ScreenWidth int
+)
 
-func NewConfig() *Config {
-	return &Config{
-		ScreenWidth:  720,
-		ScreenHeight: 480,
-	}
+func Init() {
+	ScreenWidth, ScreenHeight = 720, 480
 }
