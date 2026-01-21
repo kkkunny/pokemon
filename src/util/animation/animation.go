@@ -16,19 +16,12 @@ import (
 )
 
 type Animation struct {
-	frameImages   []imgutil.Image
-	frameTime     int
-	curFrameIndex int
-
-	counter int
+	frames []Frame
 }
 
-func NewAnimation(frameImages []imgutil.Image, frameTime int) *Animation {
+func NewAnimation(frame ...Frame) *Animation {
 	return &Animation{
-		frameImages:   frameImages,
-		frameTime:     frameTime,
-		curFrameIndex: 0,
-		counter:       0,
+		frames: frame,
 	}
 }
 
@@ -54,76 +47,50 @@ func NewAnimationFromFile(path string) (*Animation, error) {
 			return nil, err
 		}
 
-		var frameTime int
-		if len(g.Delay) != 0 {
-			frameTime = int((time.Second / 100 * time.Duration(g.Delay[0])) / (time.Second / 60))
+		if len(g.Delay) != len(g.Image) {
+			return nil, fmt.Errorf("gif frame count is not equal to delay count")
 		}
-		return &Animation{
-			frameImages:   stlslices.Map(g.Image, func(_ int, img *image.Paletted) imgutil.Image { return imgutil.WrapImage(img) }),
-			frameTime:     frameTime,
-			curFrameIndex: 0,
-			counter:       0,
-		}, nil
+		frames := stlslices.Map(g.Image, func(i int, img *image.Paletted) Frame {
+			return Frame{
+				Image: imgutil.WrapImage(img),
+				Time:  time.Second / 100 * time.Duration(g.Delay[i]),
+			}
+		})
+
+		return NewAnimation(frames...), nil
 	case "png":
 		a, err := apng.DecodeAll(file)
 		if err != nil {
 			return nil, err
 		}
 
-		var frameTime int
-		if len(a.Frames) != 0 {
-			frameTime = int(time.Duration(a.Frames[0].GetDelay()*float64(time.Second)) / (time.Second / 60))
-		}
-		return &Animation{
-			frameImages:   stlslices.Map(a.Frames, func(_ int, frame apng.Frame) imgutil.Image { return imgutil.WrapImage(frame.Image) }),
-			frameTime:     frameTime,
-			curFrameIndex: 0,
-			counter:       0,
-		}, nil
+		frames := stlslices.Map(a.Frames, func(i int, frame apng.Frame) Frame {
+			return Frame{
+				Image: imgutil.WrapImage(frame.Image),
+				Time:  time.Duration(frame.GetDelay() * float64(time.Second)),
+			}
+		})
+
+		return NewAnimation(frames...), nil
 	default:
 		return nil, fmt.Errorf("%s is not a valid animation", path)
 	}
 }
 
-func (a *Animation) Frames() []imgutil.Image {
-	return a.frameImages
+func (a *Animation) Frames() []Frame {
+	return a.frames
 }
 
-func (a *Animation) AddFrame(frame imgutil.Image) {
-	a.frameImages = append(a.frameImages, frame)
+func (a *Animation) AddFrame(frame Frame) Frame {
+	a.frames = append(a.frames, frame)
+	return frame
 }
 
-func (a *Animation) SetFrameTime(frameTime int) {
-	a.frameTime = frameTime
-}
-
-func (a *Animation) FrameTime() int {
-	return a.frameTime
-}
-
-func (a *Animation) FrameCount() int {
-	return len(a.frameImages)
-}
-
-func (a *Animation) Reset() {
-	a.curFrameIndex = 0
-	a.counter = 0
-}
-
-// Update @return: 此轮动画是否结束
-func (a *Animation) Update() bool {
-	a.counter++
-	if a.counter >= a.frameTime {
-		a.counter = 0
-		a.curFrameIndex = (a.curFrameIndex + 1) % a.FrameCount()
+func (a *Animation) NewPlayer(fps int) *Player {
+	return &Player{
+		animation: a,
+		frameCounters: stlslices.Map(a.frames, func(_ int, f Frame) int {
+			return int(f.Time / (time.Second / time.Duration(fps)))
+		}),
 	}
-	return a.counter == 0 && a.curFrameIndex == 0
-}
-
-func (a *Animation) GetFrameImage(i int) imgutil.Image {
-	return a.frameImages[i]
-}
-
-func (a *Animation) GetCurrentFrameImage() imgutil.Image {
-	return a.frameImages[a.curFrameIndex]
 }

@@ -16,6 +16,8 @@ var (
 	ScreenWidth int
 	// 语言
 	Language consts.Language
+	// 默认帧数
+	DefaultFPS = 60
 )
 
 func Init() {

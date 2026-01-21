@@ -15,6 +15,7 @@ import (
 	"github.com/kkkunny/pokemon/src/pokemon"
 	"github.com/kkkunny/pokemon/src/system"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/animation"
 	"github.com/kkkunny/pokemon/src/util/draw"
 	imgutil "github.com/kkkunny/pokemon/src/util/image"
 )
@@ -24,8 +25,9 @@ type BattleSystem struct {
 	siteImage imgutil.Image // 战斗场地
 
 	// 宝可梦
-	pmRace *pokemon.Race
-	pms    [2]*pokemon.Pokemon
+	pmRace       *pokemon.Race
+	pms          [2]*pokemon.Pokemon
+	pmAnimations [2]*animation.Player
 
 	// 动作选项
 	actionSelect int8
@@ -37,9 +39,14 @@ func NewBattleSystem() (*BattleSystem, error) {
 		return nil, err
 	}
 	pms := [2]*pokemon.Pokemon{pok.RandomPokemon(), pok.RandomPokemon()}
+	pmAnimations := [2]*animation.Player{
+		pok.Back.NewPlayer(config.DefaultFPS),
+		pok.Front.NewPlayer(config.DefaultFPS),
+	}
 	return &BattleSystem{
-		pmRace: pok,
-		pms:    pms,
+		pmRace:       pok,
+		pms:          pms,
+		pmAnimations: pmAnimations,
 	}, nil
 }
 
@@ -91,8 +98,8 @@ func (s *BattleSystem) OnDraw(system system.SystemManager, drawer draw.OptionDra
 	// 敌方
 	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
-	s.pmRace.Front.Update()
-	pokemonImage := s.pmRace.Front.GetCurrentFrameImage()
+	s.pmAnimations[1].Update()
+	pokemonImage := s.pmAnimations[1].GetCurrentFrame()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(80, 50), s.pms[0])
 
@@ -102,8 +109,8 @@ func (s *BattleSystem) OnDraw(system system.SystemManager, drawer draw.OptionDra
 
 	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
-	s.pmRace.Back.Update()
-	pokemonImage = s.pmRace.Back.GetCurrentFrameImage()
+	s.pmAnimations[0].Update()
+	pokemonImage = s.pmAnimations[0].GetCurrentFrame()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
 

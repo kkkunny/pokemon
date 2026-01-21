@@ -34,7 +34,7 @@ type Person interface {
 type _Person struct {
 	item.Item
 	// 静态资源
-	behaviorAnimations map[sprite.Behavior]map[util.Direction]map[Foot]*animation.Animation // 行为动画
+	behaviorAnimations map[sprite.Behavior]map[util.Direction]map[Foot]*animation.Player // 行为动画
 	// 属性
 	direction util.Direction // 当前所处方向
 	// 移动
@@ -52,6 +52,13 @@ func NewPerson(name string) (Person, error) {
 	if err != nil {
 		return nil, err
 	}
+	behaviorAnimationPlayers := stlmaps.Map(behaviorAnimations, func(b sprite.Behavior, ba map[util.Direction]map[Foot]*animation.Animation) (sprite.Behavior, map[util.Direction]map[Foot]*animation.Player) {
+		return b, stlmaps.Map(ba, func(d util.Direction, f map[Foot]*animation.Animation) (util.Direction, map[Foot]*animation.Player) {
+			return d, stlmaps.Map(f, func(foot Foot, a *animation.Animation) (Foot, *animation.Player) {
+				return foot, a.NewPlayer(config.DefaultFPS)
+			})
+		})
+	})
 
 	itemSprite, err := item.NewItem()
 	if err != nil {
@@ -60,7 +67,7 @@ func NewPerson(name string) (Person, error) {
 
 	return &_Person{
 		Item:               itemSprite,
-		behaviorAnimations: behaviorAnimations,
+		behaviorAnimations: behaviorAnimationPlayers,
 		direction:          util.DirectionEnum.Down,
 		movable:            true,
 		nextStepDirection:  util.DirectionEnum.Down,
@@ -75,6 +82,13 @@ func NewPersonByTile(object *tiled.Object) (Person, error) {
 	if err != nil {
 		return nil, err
 	}
+	behaviorAnimationPlayers := stlmaps.Map(behaviorAnimations, func(b sprite.Behavior, ba map[util.Direction]map[Foot]*animation.Animation) (sprite.Behavior, map[util.Direction]map[Foot]*animation.Player) {
+		return b, stlmaps.Map(ba, func(d util.Direction, f map[Foot]*animation.Animation) (util.Direction, map[Foot]*animation.Player) {
+			return d, stlmaps.Map(f, func(foot Foot, a *animation.Animation) (Foot, *animation.Player) {
+				return foot, a.NewPlayer(config.DefaultFPS)
+			})
+		})
+	})
 
 	itemSprite, err := item.NewItemByTile(object)
 	if err != nil {
@@ -83,7 +97,7 @@ func NewPersonByTile(object *tiled.Object) (Person, error) {
 
 	return &_Person{
 		Item:               itemSprite,
-		behaviorAnimations: behaviorAnimations,
+		behaviorAnimations: behaviorAnimationPlayers,
 		direction:          util.DirectionEnum.Down,
 		movable:            true,
 		nextStepDirection:  util.DirectionEnum.Down,
@@ -147,7 +161,7 @@ func (p *_Person) OnAction(_ input.KeyInputAction, _ sprite.UpdateInfo) error {
 
 // 相对于地图左上角的像素位置，不考虑放大倍数
 func (p *_Person) PixelPosition() (x, y float64) {
-	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds().Dy()
+	width := stlmaps.First(stlmaps.First(p.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().Animation().Frames()[0].Image.Bounds().Dy()
 	x, y = float64(p.pos[0]*config.TileSize), float64((p.pos[1]+1)*config.TileSize-width)
 
 	if p.Moving() && !p.Turning() {
@@ -185,7 +199,7 @@ func (p *_Person) Update(info sprite.UpdateInfo) error {
 		}
 	} else if p.Moving() {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		a.SetFrameTime(config.TileSize / p.speed / a.FrameCount())
+		// a.SetFrameTime(config.TileSize / p.speed / len(a.Animation().Frames()))
 		a.Update()
 
 		diff := config.TileSize - p.moveCounter
@@ -239,10 +253,10 @@ func (p *_Person) Draw(drawer draw.OptionDrawer) error {
 			p.moveStartingFoot = stlval.Ternary(p.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		draw.PrepareDrawImage(drawer, a.GetFrameImage(1)).Draw()
+		draw.PrepareDrawImage(drawer, a.Animation().Frames()[1].Image).Draw()
 	} else {
 		a := p.behaviorAnimations[sprite.BehaviorEnum.Walk][p.nextStepDirection][p.moveStartingFoot]
-		draw.PrepareDrawImage(drawer, a.GetCurrentFrameImage()).Draw()
+		draw.PrepareDrawImage(drawer, a.GetCurrentFrame()).Draw()
 	}
 	return nil
 }

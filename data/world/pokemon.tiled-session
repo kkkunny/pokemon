@@ -3,10 +3,10 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/Route_1.tmx",
+    "activeFile": "maps/route_1.tmx",
     "expandedProjectPaths": [
-        "maps",
         "tile",
+        "maps",
         "."
     ],
     "fileStates": {
@@ -25,20 +25,20 @@
             "scale": 3.6040625,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 206.29497962368853,
-                "y": 586.4215728778289
+                "x": 206.29497962368856,
+                "y": 663.0018208618746
             }
         },
         "maps/pallet_town.tmx": {
             "expandedObjectLayers": [
-                8,
-                10
+                10,
+                8
             ],
             "scale": 3,
             "selectedLayer": 7,
             "viewCenter": {
-                "x": 263.83333333333326,
-                "y": -87.83333333333334
+                "x": 263.8333333333333,
+                "y": -87.83333333333331
             }
         },
         "maps/pallet_town2.tmx": {
@@ -110,7 +110,7 @@
             "selectedLayer": 0,
             "viewCenter": {
                 "x": 208.16666666666669,
-                "y": 835.8333333333333
+                "y": 817.8333333333333
             }
         },
         "maps/sprite.tsx": {
@@ -164,7 +164,7 @@
     "last.imagePath": "W:/code/go/github.com/kkkunny/pokemon/map/tile",
     "last.worldFilePath": "W:/code/go/github.com/kkkunny/pokemon/map/maps",
     "loadedWorlds": [
-        "W:/code/go/github.com/kkkunny/pokemon/map/maps/Kanto.world"
+        "/home/kkkunny/workspace/code/go/github.com/kkkunny/pokemon/data/world/maps/Kanto.world"
     ],
     "map.height": 14,
     "map.lastUsedFormat": "tmx",
@@ -173,13 +173,13 @@
     "map.tileWidth": 16,
     "map.width": 13,
     "openFiles": [
-        "maps/Route_1.tmx"
+        "maps/route_1.tmx"
     ],
     "project": "pokemon.tiled-project",
     "property.type": "string",
     "recentFiles": [
-        "maps/Route_1.tmx",
         "maps/route_1.tmx",
+        "maps/Route_1.tmx",
         "maps/pallet_town.tmx",
         "tile/land_decoration.tsx",
         "maps/pallet_town__house1.tmx",

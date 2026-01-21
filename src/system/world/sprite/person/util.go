@@ -5,9 +5,11 @@ import (
 	"image"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/tnnmigga/enum"
 
+	"github.com/kkkunny/pokemon/src/config"
 	"github.com/kkkunny/pokemon/src/consts"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
@@ -53,24 +55,25 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 	return behaviorAnimations, nil
 }
 func loadSimplePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Direction]map[Foot]*animation.Animation, error) {
+	frameTime := (config.TileSize / 1 / 2) * (time.Second / time.Duration(config.DefaultFPS))
 	directions := enum.Values[util.Direction](util.DirectionEnum)
 	directionAnimations := make(map[util.Direction]map[Foot]*animation.Animation, len(directions))
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3
 	for i, direction := range []util.Direction{util.DirectionEnum.Down, util.DirectionEnum.Up, util.DirectionEnum.Left} {
 		y := i * frameH
-		leftFootAnimation := animation.NewAnimation(nil, 0)
-		rightFootAnimation := animation.NewAnimation(nil, 0)
+		leftFootAnimation := animation.NewAnimation()
+		rightFootAnimation := animation.NewAnimation()
 		for j := range 3 {
 			x := j * frameW
 			img := imgSheet.SubImage(image.Rect(x, y, x+frameW, y+frameH))
 			switch j {
 			case 0:
-				leftFootAnimation.AddFrame(img)
-				rightFootAnimation.AddFrame(img)
+				leftFootAnimation.AddFrame(animation.Frame{Image: img, Time: frameTime})
+				rightFootAnimation.AddFrame(animation.Frame{Image: img, Time: frameTime})
 			case 1:
-				leftFootAnimation.AddFrame(img)
+				leftFootAnimation.AddFrame(animation.Frame{Image: img, Time: frameTime})
 			case 2:
-				rightFootAnimation.AddFrame(img)
+				rightFootAnimation.AddFrame(animation.Frame{Image: img, Time: frameTime})
 			}
 		}
 		directionAnimations[direction] = map[Foot]*animation.Animation{
@@ -79,15 +82,15 @@ func loadSimplePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Direc
 		}
 	}
 
-	right := directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(0).Scale(-1, 1)
+	right := directionAnimations[util.DirectionEnum.Left][FootEnum.Left].Frames()[0].Image.Scale(-1, 1)
 
-	leftFootAnimation := animation.NewAnimation(nil, 0)
-	leftFootAnimation.AddFrame(right)
-	leftFootAnimation.AddFrame(directionAnimations[util.DirectionEnum.Left][FootEnum.Right].GetFrameImage(1).Scale(-1, 1))
+	leftFootAnimation := animation.NewAnimation()
+	leftFootAnimation.AddFrame(animation.Frame{Image: right, Time: frameTime})
+	leftFootAnimation.AddFrame(animation.Frame{Image: directionAnimations[util.DirectionEnum.Left][FootEnum.Right].Frames()[1].Image.Scale(-1, 1), Time: frameTime})
 
-	rightFootAnimation := animation.NewAnimation(nil, 0)
-	rightFootAnimation.AddFrame(right)
-	rightFootAnimation.AddFrame(directionAnimations[util.DirectionEnum.Left][FootEnum.Left].GetFrameImage(1).Scale(-1, 1))
+	rightFootAnimation := animation.NewAnimation()
+	rightFootAnimation.AddFrame(animation.Frame{Image: right, Time: frameTime})
+	rightFootAnimation.AddFrame(animation.Frame{Image: directionAnimations[util.DirectionEnum.Left][FootEnum.Left].Frames()[1].Image.Scale(-1, 1), Time: frameTime})
 
 	directionAnimations[util.DirectionEnum.Right] = map[Foot]*animation.Animation{
 		FootEnum.Left:  leftFootAnimation,

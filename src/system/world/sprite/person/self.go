@@ -11,6 +11,7 @@ import (
 	"github.com/kkkunny/pokemon/src/input"
 	"github.com/kkkunny/pokemon/src/system/world/sprite"
 	"github.com/kkkunny/pokemon/src/util"
+	"github.com/kkkunny/pokemon/src/util/animation"
 	"github.com/kkkunny/pokemon/src/util/draw"
 )
 
@@ -44,7 +45,14 @@ func NewSelf(name string) (Self, error) {
 	if err != nil {
 		return nil, err
 	}
-	person.behaviorAnimations = stlmaps.Union(person.behaviorAnimations, behaviorAnimations)
+	behaviorAnimationPlayers := stlmaps.Map(behaviorAnimations, func(b sprite.Behavior, ba map[util.Direction]map[Foot]*animation.Animation) (sprite.Behavior, map[util.Direction]map[Foot]*animation.Player) {
+		return b, stlmaps.Map(ba, func(d util.Direction, f map[Foot]*animation.Animation) (util.Direction, map[Foot]*animation.Player) {
+			return d, stlmaps.Map(f, func(foot Foot, a *animation.Animation) (Foot, *animation.Player) {
+				return foot, a.NewPlayer(config.DefaultFPS)
+			})
+		})
+	})
+	person.behaviorAnimations = stlmaps.Union(person.behaviorAnimations, behaviorAnimationPlayers)
 
 	person.SetPosition(6, 8)
 	return &_Self{_Person: *person}, nil
@@ -79,7 +87,7 @@ func (s *_Self) OnAction(action input.KeyInputAction, info sprite.UpdateInfo) er
 
 // 主角放于屏幕正中间时，相对于屏幕左上角的像素位置，考虑放大倍数
 func (s *_Self) PixelPosition() (x, y float64) {
-	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().GetFrameImage(0).Bounds()
+	bounds := stlmaps.First(stlmaps.First(s.behaviorAnimations[sprite.BehaviorEnum.Walk]).E2()).E2().Animation().Frames()[0].Image.Bounds()
 	return float64(config.ScreenWidth)/2 - float64(bounds.Dx()*config.Scale)/2, float64(config.ScreenHeight)/2 - float64(bounds.Dy()*config.Scale)/2
 }
 
@@ -102,7 +110,7 @@ func (s *_Self) Update(info sprite.UpdateInfo) error {
 		}
 	} else if s.Moving() {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		a.SetFrameTime(config.TileSize / s.speed / a.FrameCount())
+		// a.SetFrameTime(config.TileSize / s.speed / len(a.Animation().Frames()))
 		a.Update()
 
 		diff := config.TileSize - s.moveCounter
@@ -147,10 +155,10 @@ func (s *_Self) Draw(drawer draw.OptionDrawer) error {
 			s.moveStartingFoot = stlval.Ternary(s.nextStepDirection == util.DirectionEnum.Up, FootEnum.Left, FootEnum.Right)
 		}
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		draw.PrepareDrawImage(drawer, a.GetFrameImage(1)).Draw()
+		draw.PrepareDrawImage(drawer, a.Animation().Frames()[1].Image).Draw()
 	} else {
 		a := s.behaviorAnimations[sprite.BehaviorEnum.Walk][s.nextStepDirection][s.moveStartingFoot]
-		draw.PrepareDrawImage(drawer, a.GetCurrentFrameImage()).Draw()
+		draw.PrepareDrawImage(drawer, a.GetCurrentFrame()).Draw()
 	}
 	return nil
 }
