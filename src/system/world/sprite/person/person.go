@@ -55,7 +55,7 @@ func NewPerson(name string) (Person, error) {
 	behaviorAnimationPlayers := stlmaps.Map(behaviorAnimations, func(b sprite.Behavior, ba map[util.Direction]map[Foot]*animation.Animation) (sprite.Behavior, map[util.Direction]map[Foot]*animation.Player) {
 		return b, stlmaps.Map(ba, func(d util.Direction, f map[Foot]*animation.Animation) (util.Direction, map[Foot]*animation.Player) {
 			return d, stlmaps.Map(f, func(foot Foot, a *animation.Animation) (Foot, *animation.Player) {
-				return foot, a.NewPlayer(config.DefaultFPS)
+				return foot, a.NewPlayer(config.DefaultTPS)
 			})
 		})
 	})
@@ -85,7 +85,7 @@ func NewPersonByTile(object *tiled.Object) (Person, error) {
 	behaviorAnimationPlayers := stlmaps.Map(behaviorAnimations, func(b sprite.Behavior, ba map[util.Direction]map[Foot]*animation.Animation) (sprite.Behavior, map[util.Direction]map[Foot]*animation.Player) {
 		return b, stlmaps.Map(ba, func(d util.Direction, f map[Foot]*animation.Animation) (util.Direction, map[Foot]*animation.Player) {
 			return d, stlmaps.Map(f, func(foot Foot, a *animation.Animation) (Foot, *animation.Player) {
-				return foot, a.NewPlayer(config.DefaultFPS)
+				return foot, a.NewPlayer(config.DefaultTPS)
 			})
 		})
 	})

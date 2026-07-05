@@ -55,7 +55,7 @@ func loadPersonAnimations(name string, behaviors ...sprite.Behavior) (map[sprite
 	return behaviorAnimations, nil
 }
 func loadSimplePersonDirectionAnimations(imgSheet imgutil.Image) (map[util.Direction]map[Foot]*animation.Animation, error) {
-	frameTime := (config.TileSize / 1 / 2) * (time.Second / time.Duration(config.DefaultFPS))
+	frameTime := (config.TileSize / 1 / 2) * (time.Second / time.Duration(config.DefaultTPS))
 	directions := enum.Values[util.Direction](util.DirectionEnum)
 	directionAnimations := make(map[util.Direction]map[Foot]*animation.Animation, len(directions))
 	frameW, frameH := imgSheet.Bounds().Dx()/3, imgSheet.Bounds().Dy()/3

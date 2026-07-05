@@ -40,8 +40,8 @@ func NewBattleSystem() (*BattleSystem, error) {
 	}
 	pms := [2]*pokemon.Pokemon{pok.RandomPokemon(), pok.RandomPokemon()}
 	pmAnimations := [2]*animation.Player{
-		pok.Back.NewPlayer(config.DefaultFPS),
-		pok.Front.NewPlayer(config.DefaultFPS),
+		pok.Back.NewPlayer(config.DefaultTPS),
+		pok.Front.NewPlayer(config.DefaultTPS),
 	}
 	return &BattleSystem{
 		pmRace:       pok,
@@ -83,6 +83,8 @@ func (s *BattleSystem) OnUpdate(system system.SystemManager) error {
 	if !s.active {
 		return system.Next().OnUpdate(system)
 	}
+	s.pmAnimations[0].Update()
+	s.pmAnimations[1].Update()
 	return nil
 }
 
@@ -98,7 +100,6 @@ func (s *BattleSystem) OnDraw(system system.SystemManager, drawer draw.OptionDra
 	// 敌方
 	opponentSiteX, opponentSiteY := screenWidth-s.siteImage.Bounds().Dx(), screenHeight/2-s.siteImage.Bounds().Dy()
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(opponentSiteX, opponentSiteY).Draw()
-	s.pmAnimations[1].Update()
 	pokemonImage := s.pmAnimations[1].GetCurrentFrame()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(opponentSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, opponentSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(80, 50), s.pms[0])
@@ -109,7 +110,6 @@ func (s *BattleSystem) OnDraw(system system.SystemManager, drawer draw.OptionDra
 
 	selfSiteX, selfSiteY := 0, screenHeight-bgH-10-s.siteImage.Bounds().Dy()/3*2
 	draw.PrepareDrawImage(drawer, s.siteImage).Move(selfSiteX, selfSiteY).Draw()
-	s.pmAnimations[0].Update()
 	pokemonImage = s.pmAnimations[0].GetCurrentFrame()
 	draw.PrepareDrawImage(drawer, pokemonImage).Scale(config.Scale, config.Scale).Move(selfSiteX+s.siteImage.Bounds().Dx()/2-pokemonImage.Bounds().Dx()/2*config.Scale, selfSiteY+s.siteImage.Bounds().Dy()/4*3-pokemonImage.Bounds().Dy()*config.Scale).Draw()
 	s.drawPokemonStatusCard(drawer.Move(340, 250), s.pms[0])
